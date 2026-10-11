@@ -6,6 +6,17 @@ Este documento define as regras que devem ser respeitadas durante o funcionament
 
 ------------------------------------------------------------------------
 
+## Dashboard
+
+- O Frontend MVP deve apresentar o Estado Vazio Inteligente enquanto não existir nenhuma Tarefa.
+- O Estado Vazio Inteligente deve orientar o usuário para a próxima ação, sem se limitar a cards vazios ou estatísticas zeradas.
+- Sem Áreas, o Dashboard deve incentivar a criação da primeira Área.
+- Com Área, mas sem Listas, o Dashboard deve incentivar a criação da primeira Lista.
+- Com Lista, mas sem Tarefas, o Dashboard deve incentivar a criação da primeira Tarefa.
+- Após existir pelo menos uma Tarefa, o sistema deve exibir o Dashboard Completo.
+
+------------------------------------------------------------------------
+
 ## Áreas
 
 - Toda Área deve possuir um título.
@@ -62,4 +73,4 @@ Este documento define as regras que devem ser respeitadas durante o funcionament
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.3
+**Versão:** 0.4

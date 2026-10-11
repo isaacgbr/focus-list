@@ -19,6 +19,25 @@ Servir como ponto inicial da aplicação.
 - Acesso rápido às Áreas.
 - Criar uma nova Área.
 
+### Estados do Dashboard
+
+O Dashboard do Frontend MVP possui dois estados:
+
+#### Estado Vazio Inteligente
+
+Enquanto não existir nenhuma Tarefa, o Dashboard não deve exibir apenas
+cards vazios ou estatísticas zeradas. O sistema deve orientar o usuário
+para a próxima ação necessária, de acordo com os dados existentes:
+
+- Sem Áreas: incentivar a criação da primeira Área.
+- Com Área, mas sem Listas: incentivar a criação da primeira Lista.
+- Com Lista, mas sem Tarefas: incentivar a criação da primeira Tarefa.
+
+#### Dashboard Completo
+
+Após existir pelo menos uma Tarefa, o sistema deve exibir o Dashboard
+completo.
+
 ------------------------------------------------------------------------
 
 ## Áreas
@@ -174,4 +193,4 @@ Todos seguem o mesmo padrão visual e mantêm o contexto da tela principal.
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.3
+**Versão:** 0.4

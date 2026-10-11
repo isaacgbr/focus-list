@@ -48,3 +48,9 @@ Thumbs.db
 # Cobertura de testes
 # ==========================
 coverage/
+
+# Ferramentas locais de IA
+.agents/
+.claude/
+.windsurf/
+skills-lock.json

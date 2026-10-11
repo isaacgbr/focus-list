@@ -2,15 +2,13 @@
 
 ## 05. Modelo de Dados
 
-Este documento descreve o modelo conceitual de dados do projeto. Seu
-objetivo é definir quais informações o sistema precisa armazenar e como
-elas se relacionam, independentemente da tecnologia utilizada.
+Este documento descreve o modelo conceitual de dados do projeto.
 
 ------------------------------------------------------------------------
 
 ## Visão Geral
 
-``` text
+```text
 Área
     │
     └── possui várias Listas
@@ -26,16 +24,19 @@ elas se relacionam, independentemente da tecnologia utilizada.
 
 ### Objetivo
 
-Representar um contexto de organização (ex.: Faculdade, Trabalho,
-Pessoal).
+Representar um contexto de organização (ex.: Faculdade, Trabalho, Pessoal).
 
 ### Campos
 
-  Campo        Obrigatório
-  ----------- -------------
-  Nome             ✅
-  Descrição   
-  Ícone       
+| Campo | Obrigatório |
+|-------|:-----------:|
+| id | ✅ |
+| Título | ✅ |
+| Descrição | |
+| Cor | |
+| Ícone | |
+| createdAt | ✅ *(automático)* |
+| updatedAt | ✅ *(automático)* |
 
 ------------------------------------------------------------------------
 
@@ -47,15 +48,18 @@ Agrupar tarefas relacionadas dentro de uma Área.
 
 ### Campos
 
-  Campo        Obrigatório
-  ----------- -------------
-  Nome             ✅
-  Descrição   
-  Ícone       
+| Campo | Obrigatório |
+|-------|:-----------:|
+| id | ✅ |
+| areaId | ✅ |
+| Título | ✅ |
+| Descrição | |
+| createdAt | ✅ *(automático)* |
+| updatedAt | ✅ *(automático)* |
 
 ### Relação
 
--   Pertence a uma Área.
+- Pertence obrigatoriamente a uma Área.
 
 ------------------------------------------------------------------------
 
@@ -63,23 +67,26 @@ Agrupar tarefas relacionadas dentro de uma Área.
 
 ### Objetivo
 
-Representar uma atividade.
+Representar uma atividade que o usuário deseja realizar ou acompanhar.
 
 ### Campos
 
-  Campo                      Obrigatório
-  ----------------- ------------------------------
-  Nome                            ✅
-  Descrição         
-  Status             ✅ *(inicia como "A fazer")*
-  Prioridade        
-  Prazo             
-  Data de criação         ✅ *(automática)*
-  Última edição           ✅ *(automática)*
+| Campo | Obrigatório |
+|-------|:-----------:|
+| id | ✅ |
+| listId | ✅ |
+| Título | ✅ |
+| Descrição | |
+| completed | ✅ *(inicia como false)* |
+| completedAt | |
+| Prioridade | |
+| Prazo | |
+| createdAt | ✅ *(automático)* |
+| updatedAt | ✅ *(automático)* |
 
 ### Relação
 
--   Pertence a uma Lista.
+- Pertence obrigatoriamente a uma Lista.
 
 ------------------------------------------------------------------------
 
@@ -91,14 +98,17 @@ Representar uma etapa da tarefa.
 
 ### Campos
 
-  Campo        Obrigatório
-  ----------- -------------
-  Texto            ✅
-  Concluído        ✅
+| Campo | Obrigatório |
+|-------|:-----------:|
+| id | ✅ |
+| taskId | ✅ |
+| Título | ✅ |
+| completed | ✅ |
+| createdAt | ✅ *(automático)* |
 
 ### Relação
 
--   Pertence a uma Tarefa.
+- Pertence obrigatoriamente a uma Tarefa.
 
 ------------------------------------------------------------------------
 
@@ -110,25 +120,28 @@ Relacionar materiais de apoio à tarefa.
 
 ### Campos
 
-  Campo     Obrigatório
-  -------- -------------
-  Título        ✅
-  URL           ✅
+| Campo | Obrigatório |
+|-------|:-----------:|
+| id | ✅ |
+| taskId | ✅ |
+| Título | ✅ |
+| URL | ✅ |
+| createdAt | ✅ *(automático)* |
 
 ### Relação
 
--   Pertence a uma Tarefa.
+- Pertence obrigatoriamente a uma Tarefa.
 
 ------------------------------------------------------------------------
 
 ## Relações
 
--   Uma Área possui várias Listas.
--   Uma Lista pertence a uma Área.
--   Uma Lista possui várias Tarefas.
--   Uma Tarefa pertence a uma Lista.
--   Uma Tarefa pode possuir vários Itens de Checklist.
--   Uma Tarefa pode possuir vários Links.
+- Uma Área possui várias Listas.
+- Uma Lista pertence a uma Área.
+- Uma Lista possui várias Tarefas.
+- Uma Tarefa pertence a uma Lista.
+- Uma Tarefa pode possuir vários Itens de Checklist.
+- Uma Tarefa pode possuir vários Links.
 
 ------------------------------------------------------------------------
 
@@ -136,8 +149,7 @@ Relacionar materiais de apoio à tarefa.
 
 A Área **Avulsas** segue o mesmo modelo das demais Áreas.
 
-Internamente, ela possui uma **Lista Avulsas** (oculta), utilizada
-apenas para manter a estrutura do sistema consistente.
+Internamente, ela possui uma **Lista Avulsas** (oculta), utilizada apenas para manter a estrutura do sistema consistente.
 
 O usuário interage apenas com a Área Avulsas e suas tarefas.
 
@@ -145,10 +157,8 @@ O usuário interage apenas com a Área Avulsas e suas tarefas.
 
 ## Observações
 
-Este documento representa o modelo conceitual do projeto. A
-implementação em banco de dados será definida posteriormente na
-documentação de arquitetura.
+Este documento representa o modelo conceitual do projeto e serve como base para a implementação das entidades no banco de dados.
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.1
+**Versão:** 0.2

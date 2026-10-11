@@ -2,128 +2,65 @@
 
 ## 04. Regras de Negócio
 
-Este documento reúne as principais regras que definem o funcionamento do
-sistema, independentemente da tecnologia utilizada.
+Este documento define as regras que devem ser respeitadas durante o funcionamento do sistema.
 
 ------------------------------------------------------------------------
 
-## Organização
+## Áreas
 
--   Toda Lista pertence a uma única Área.
--   Toda Tarefa pertence a uma única Lista.
--   A Área **Avulsas** é uma Área especial destinada a tarefas rápidas
-    ou temporárias.
+- Toda Área deve possuir um título.
+- Uma Área pode possuir descrição, cor e ícone.
+- Uma Área pode possuir várias Listas.
+- Uma Área pode ser excluída apenas mediante confirmação do usuário.
+
+------------------------------------------------------------------------
+
+## Listas
+
+- Toda Lista deve possuir um título.
+- Toda Lista pertence obrigatoriamente a uma Área.
+- Uma Lista pode possuir descrição.
+- Uma Lista pode possuir várias Tarefas.
+- Uma Lista pode ser excluída apenas mediante confirmação do usuário.
 
 ------------------------------------------------------------------------
 
 ## Tarefas
 
--   O nome da tarefa é obrigatório.
--   Toda nova tarefa inicia com o status **A fazer**.
--   Os demais campos são opcionais.
--   Uma tarefa pode ser movida entre Listas.
--   Uma tarefa pode ser duplicada.
--   Uma tarefa pode ser arquivada.
--   Uma tarefa pode ser excluída.
-
-------------------------------------------------------------------------
-
-## Prioridade
-
-A prioridade possui três níveis:
-
--   Alta
--   Média
--   Baixa
-
-Sua função é indicar a importância da tarefa.
-
-------------------------------------------------------------------------
-
-## Prazo
-
-O prazo é opcional.
-
-Quando existir:
-
--   O sistema poderá indicar proximidade do vencimento.
--   O sistema poderá indicar tarefas vencidas.
+- Toda Tarefa deve possuir um título.
+- Toda Tarefa pertence obrigatoriamente a uma Lista.
+- Descrição, prazo e prioridade são opcionais.
+- Checklist e Links são opcionais.
+- Uma Tarefa pode ser marcada como concluída ou pendente.
+- Ao concluir uma Tarefa, a data e hora da conclusão devem ser registradas automaticamente.
+- Ao reabrir uma Tarefa, a data de conclusão deve ser removida.
+- Uma Tarefa pode ser movida para outra Lista.
+- Uma Tarefa pode ser duplicada.
+- A exclusão de uma Tarefa remove também seus Checklists e Links.
 
 ------------------------------------------------------------------------
 
 ## Checklist
 
--   O checklist é opcional.
--   Cada tarefa pode possuir vários itens.
--   O progresso é calculado automaticamente.
--   O progresso é exibido em porcentagem (%) e quantidade de itens
-    concluídos.
--   O checklist pode ser recolhido ou expandido.
--   Quando necessário, utiliza rolagem interna.
+- Um Checklist pertence obrigatoriamente a uma Tarefa.
+- Uma Tarefa pode existir sem Checklist.
+- Cada item do Checklist pode ser marcado individualmente como concluído.
 
 ------------------------------------------------------------------------
 
 ## Links
 
--   Os links são opcionais.
--   Cada tarefa pode possuir vários links.
--   A interface exibe apenas o título do link.
--   A URL completa é utilizada apenas durante a edição.
--   A lista de links pode ser recolhida ou expandida.
--   Quando necessário, utiliza rolagem interna.
+- Um Link pertence obrigatoriamente a uma Tarefa.
+- Uma Tarefa pode existir sem Links.
+- Cada Link deve armazenar uma URL válida.
 
 ------------------------------------------------------------------------
 
-## Visualização
+## Exclusão
 
-Uma Lista pode ser visualizada em:
-
--   Lista
--   Cards
-
-A troca de visualização não altera os dados.
+- Exclusões devem solicitar confirmação ao usuário.
+- A exclusão é permanente no MVP.
 
 ------------------------------------------------------------------------
 
-## Modais
-
-As operações de criação e edição utilizam modais.
-
-Durante sua exibição:
-
--   O fundo permanece visível.
--   É aplicado um leve desfoque.
--   O foco permanece no modal.
-
-------------------------------------------------------------------------
-
-## Concluídas
-
-As tarefas concluídas permanecem na Lista.
-
-Por padrão:
-
--   São exibidas em uma seção recolhida.
--   Podem ser expandidas pelo usuário.
-
-------------------------------------------------------------------------
-
-## Responsividade
-
-O projeto possui foco inicial em desktop.
-
-A adaptação para dispositivos móveis faz parte da evolução do projeto.
-
-------------------------------------------------------------------------
-
-## Convenções
-
--   Priorizar simplicidade.
--   Evitar excesso de informações na interface.
--   Manter consistência visual entre todas as telas.
--   Toda nova funcionalidade deve respeitar estas regras antes de ser
-    implementada.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.1
+**Versão:** 0.2

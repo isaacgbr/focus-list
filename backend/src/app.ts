@@ -22,6 +22,8 @@ app.use(healthRoutes);
 app.use(areaRoutes);
 app.use(listRoutes);
 app.use(taskRoutes);
+app.use(checklistItemRoutes);
+app.use(linkRoutes);
 export default app;
 
 // Middleware global de tratamento de erros.

@@ -5,6 +5,8 @@ import healthRoutes from "./routes/health.routes.js";
 import areaRoutes from "./routes/area.routes.js";
 import listRoutes from "./routes/list.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import checklistItemRoutes from "./routes/checklist-item.routes.js";
+import linkRoutes from "./routes/link.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();

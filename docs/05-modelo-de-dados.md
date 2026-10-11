@@ -31,10 +31,10 @@ Representar um contexto de organização (ex.: Faculdade, Trabalho, Pessoal).
 | Campo | Obrigatório |
 |-------|:-----------:|
 | id | ✅ |
-| Título | ✅ |
-| Descrição | |
-| Cor | |
-| Ícone | |
+| title | ✅ |
+| description | |
+| color | |
+| icon | |
 | createdAt | ✅ *(automático)* |
 | updatedAt | ✅ *(automático)* |
 
@@ -52,8 +52,8 @@ Agrupar tarefas relacionadas dentro de uma Área.
 |-------|:-----------:|
 | id | ✅ |
 | areaId | ✅ |
-| Título | ✅ |
-| Descrição | |
+| title | ✅ |
+| description | |
 | createdAt | ✅ *(automático)* |
 | updatedAt | ✅ *(automático)* |
 
@@ -75,12 +75,12 @@ Representar uma atividade que o usuário deseja realizar ou acompanhar.
 |-------|:-----------:|
 | id | ✅ |
 | listId | ✅ |
-| Título | ✅ |
-| Descrição | |
+| title | ✅ |
+| description | |
 | completed | ✅ *(inicia como false)* |
 | completedAt | |
-| Prioridade | |
-| Prazo | |
+| priority | |
+| dueDate | |
 | createdAt | ✅ *(automático)* |
 | updatedAt | ✅ *(automático)* |
 
@@ -102,8 +102,8 @@ Representar uma etapa da tarefa.
 |-------|:-----------:|
 | id | ✅ |
 | taskId | ✅ |
-| Título | ✅ |
-| completed | ✅ |
+| title | ✅ |
+| completed | ✅ *(inicia como false)* |
 | createdAt | ✅ *(automático)* |
 
 ### Relação
@@ -124,8 +124,8 @@ Relacionar materiais de apoio à tarefa.
 |-------|:-----------:|
 | id | ✅ |
 | taskId | ✅ |
-| Título | ✅ |
-| URL | ✅ |
+| title | ✅ |
+| url | ✅ |
 | createdAt | ✅ *(automático)* |
 
 ### Relação
@@ -143,22 +143,21 @@ Relacionar materiais de apoio à tarefa.
 - Uma Tarefa pode possuir vários Itens de Checklist.
 - Uma Tarefa pode possuir vários Links.
 
-------------------------------------------------------------------------
+As relações obrigatórias utilizam exclusão em cascata no banco:
 
-## Área Avulsas
-
-A Área **Avulsas** segue o mesmo modelo das demais Áreas.
-
-Internamente, ela possui uma **Lista Avulsas** (oculta), utilizada apenas para manter a estrutura do sistema consistente.
-
-O usuário interage apenas com a Área Avulsas e suas tarefas.
+- Excluir uma Área remove suas Listas e todos os registros descendentes.
+- Excluir uma Lista remove suas Tarefas, Itens de Checklist e Links.
+- Excluir uma Tarefa remove seus Itens de Checklist e Links.
 
 ------------------------------------------------------------------------
 
 ## Observações
 
-Este documento representa o modelo conceitual do projeto e serve como base para a implementação das entidades no banco de dados.
+Os IDs são inteiros autoincrementais. A prioridade, quando informada,
+aceita `LOW`, `MEDIUM` ou `HIGH`. O modelo atual não diferencia uma Área
+ou Lista "Avulsas" por campo, restrição ou registro criado
+automaticamente.
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.2
+**Versão:** 0.3

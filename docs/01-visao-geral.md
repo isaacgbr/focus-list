@@ -85,8 +85,22 @@ Esses recursos poderão ser avaliados em versões futuras.
 
 ## Tecnologias
 
-As tecnologias ainda serão definidas na fase de arquitetura do projeto.
+O backend do MVP utiliza Node.js, Express, TypeScript, Prisma e
+PostgreSQL. O frontend está planejado com React, Vite e Tailwind CSS.
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.1
+## Estado Atual
+
+O backend do MVP possui os módulos de Áreas, Listas, Tarefas, Itens de
+Checklist e Links implementados. Cada módulo disponibiliza operações de
+criação, listagem, consulta por ID, atualização e exclusão por meio da
+API REST.
+
+Também estão implementados o endpoint de saúde da API, a persistência em
+PostgreSQL, as relações entre as entidades e o tratamento global de
+erros. Autenticação não faz parte do MVP.
+
+------------------------------------------------------------------------
+
+**Versão:** 0.2

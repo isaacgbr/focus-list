@@ -11,18 +11,24 @@ orientar o crescimento da aplicação sem comprometer o escopo do MVP.
 
 Objetivo: entregar uma versão funcional e utilizável.
 
+### Estado atual
+
+O backend possui API REST e persistência PostgreSQL implementadas para
+Áreas, Listas, Tarefas, Itens de Checklist e Links. A interface, as
+visualizações e o deploy permanecem como etapas do MVP.
+
 ### Funcionalidades
 
 -   Dashboard
--   Áreas
--   Listas
--   Tarefas
--   Checklist
--   Links
+-   Áreas — backend concluído
+-   Listas — backend concluído
+-   Tarefas — backend concluído
+-   Checklist — backend concluído
+-   Links — backend concluído
 -   Visualização em Lista
 -   Visualização em Cards
--   Banco de dados PostgreSQL
--   API REST
+-   Banco de dados PostgreSQL — concluído no backend
+-   API REST — concluída para os módulos do backend MVP
 -   Deploy da aplicação
 
 ------------------------------------------------------------------------
@@ -78,4 +84,4 @@ Estas funcionalidades poderão ser avaliadas futuramente:
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.1
+**Versão:** 0.2

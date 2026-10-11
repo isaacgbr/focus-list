@@ -32,10 +32,9 @@ Este documento define as regras que devem ser respeitadas durante o funcionament
 - Descrição, prazo e prioridade são opcionais.
 - Checklist e Links são opcionais.
 - Uma Tarefa pode ser marcada como concluída ou pendente.
-- Ao concluir uma Tarefa, a data e hora da conclusão devem ser registradas automaticamente.
-- Ao reabrir uma Tarefa, a data de conclusão deve ser removida.
+- O backend aceita `completed` e `completedAt` na criação e na atualização; atualmente não preenche nem remove `completedAt` automaticamente.
 - Uma Tarefa pode ser movida para outra Lista.
-- Uma Tarefa pode ser duplicada.
+- O backend atual não possui operação específica para duplicar uma Tarefa.
 - A exclusão de uma Tarefa remove também seus Checklists e Links.
 
 ------------------------------------------------------------------------
@@ -52,7 +51,7 @@ Este documento define as regras que devem ser respeitadas durante o funcionament
 
 - Um Link pertence obrigatoriamente a uma Tarefa.
 - Uma Tarefa pode existir sem Links.
-- Cada Link deve armazenar uma URL válida.
+- Cada Link deve possuir título e URL não vazios na criação.
 
 ------------------------------------------------------------------------
 
@@ -63,4 +62,4 @@ Este documento define as regras que devem ser respeitadas durante o funcionament
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.2
+**Versão:** 0.3

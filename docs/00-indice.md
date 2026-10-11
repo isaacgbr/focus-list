@@ -47,7 +47,10 @@ Links - Visualização em Lista - Visualização em Cards
 
 ## 06. Arquitetura
 
-**Arquivo:** `06-arquitetura.md`
+**Arquivo:** `06-arquitetura-e-stack.md`
+
+**Conteúdo:** - Stack - Arquitetura em camadas - Fluxo do backend -
+Estrutura e endpoints da API
 
 ------------------------------------------------------------------------
 

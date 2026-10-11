@@ -68,7 +68,6 @@ Representar uma atividade que o usuário deseja realizar ou acompanhar.
 - Editar.
 - Concluir.
 - Reabrir.
-- Duplicar.
 - Mover para outra Lista.
 - Excluir.
 
@@ -82,7 +81,9 @@ Cada Tarefa:
 - pode possuir Checklist;
 - pode possuir Links de referência.
 
-A data e hora da conclusão devem ser registradas automaticamente ao concluir uma tarefa.
+No backend atual, conclusão e reabertura são realizadas pela atualização
+dos campos `completed` e `completedAt`. Não existe endpoint dedicado para
+essas ações nem preenchimento automático de `completedAt`.
 
 ------------------------------------------------------------------------
 
@@ -173,4 +174,4 @@ Todos seguem o mesmo padrão visual e mantêm o contexto da tela principal.
 
 ------------------------------------------------------------------------
 
-**Versão:** 0.2
+**Versão:** 0.3

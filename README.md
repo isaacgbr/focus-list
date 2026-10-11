@@ -33,7 +33,9 @@ Ela inclui:
 
 ## Status
 
-🚧 Em desenvolvimento.
+🚧 Em desenvolvimento. O Backend MVP está concluído para os módulos de
+Áreas, Listas, Tarefas, Itens de Checklist e Links; frontend e deploy
+seguem pendentes.
 
 ---
 

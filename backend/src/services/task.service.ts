@@ -1,0 +1,69 @@
+import listRepository from "../repositories/list.repository.js";
+import taskRepository from "../repositories/task.repository.js";
+
+type TaskData = {
+  title?: string;
+  description?: string;
+  dueDate?: Date | string;
+  priority?: "LOW" | "MEDIUM" | "HIGH";
+  completed?: boolean;
+  completedAt?: Date | string;
+  listId?: number;
+};
+
+class TaskService {
+  // Lista todas as Tarefas.
+  async findAll() {
+    return taskRepository.findAll();
+  }
+
+  // Busca uma Tarefa pelo ID.
+  async findById(id: number) {
+    const task = await taskRepository.findById(id);
+
+    if (!task) {
+      throw new Error("Tarefa não encontrada.");
+    }
+
+    return task;
+  }
+
+  // Cria uma nova Tarefa.
+  async create(data: TaskData & { title: string; listId: number }) {
+    if (!data.title.trim()) {
+      throw new Error("O título da Tarefa é obrigatório.");
+    }
+
+    const list = await listRepository.findById(data.listId);
+
+    if (!list) {
+      throw new Error("Lista não encontrada.");
+    }
+
+    return taskRepository.create(data);
+  }
+
+  // Atualiza uma Tarefa.
+  async update(id: number, data: TaskData) {
+    await this.findById(id);
+
+    if (data.listId !== undefined) {
+      const list = await listRepository.findById(data.listId);
+
+      if (!list) {
+        throw new Error("Lista não encontrada.");
+      }
+    }
+
+    return taskRepository.update(id, data);
+  }
+
+  // Exclui uma Tarefa.
+  async delete(id: number) {
+    await this.findById(id);
+
+    return taskRepository.delete(id);
+  }
+}
+
+export default new TaskService();

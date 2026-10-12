@@ -1,5 +1,9 @@
 import api from "./api";
 
+function notifyDataChanged() {
+  window.dispatchEvent(new Event("focuslist:data-changed"));
+}
+
 export type List = {
   id: number;
   title: string;
@@ -30,16 +34,19 @@ const listService = {
 
   async create(payload: CreateListData) {
     const { data } = await api.post<List>("/lists", payload);
+    notifyDataChanged();
     return data;
   },
 
   async update(id: number, payload: UpdateListData) {
     const { data } = await api.put<List>(`/lists/${id}`, payload);
+    notifyDataChanged();
     return data;
   },
 
   async remove(id: number) {
     await api.delete(`/lists/${id}`);
+    notifyDataChanged();
   },
 };
 

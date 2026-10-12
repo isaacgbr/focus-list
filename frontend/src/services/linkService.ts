@@ -1,5 +1,9 @@
 import api from "./api";
 
+function notifyDataChanged() {
+  window.dispatchEvent(new Event("focuslist:data-changed"));
+}
+
 export type Link = {
   id: number;
   title: string;
@@ -29,16 +33,19 @@ const linkService = {
 
   async create(payload: CreateLinkData) {
     const { data } = await api.post<Link>("/links", payload);
+    notifyDataChanged();
     return data;
   },
 
   async update(id: number, payload: UpdateLinkData) {
     const { data } = await api.put<Link>(`/links/${id}`, payload);
+    notifyDataChanged();
     return data;
   },
 
   async remove(id: number) {
     await api.delete(`/links/${id}`);
+    notifyDataChanged();
   },
 };
 

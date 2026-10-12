@@ -1,5 +1,9 @@
 import api from "./api";
 
+function notifyDataChanged() {
+  window.dispatchEvent(new Event("focuslist:data-changed"));
+}
+
 export type ChecklistItem = {
   id: number;
   title: string;
@@ -29,6 +33,7 @@ const checklistItemService = {
 
   async create(payload: CreateChecklistItemData) {
     const { data } = await api.post<ChecklistItem>("/checklist-items", payload);
+    notifyDataChanged();
     return data;
   },
 
@@ -37,11 +42,13 @@ const checklistItemService = {
       `/checklist-items/${id}`,
       payload,
     );
+    notifyDataChanged();
     return data;
   },
 
   async remove(id: number) {
     await api.delete(`/checklist-items/${id}`);
+    notifyDataChanged();
   },
 };
 

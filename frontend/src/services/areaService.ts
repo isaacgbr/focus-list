@@ -1,5 +1,9 @@
 import api from "./api";
 
+function notifyDataChanged() {
+  window.dispatchEvent(new Event("focuslist:data-changed"));
+}
+
 export type Area = {
   id: number;
   title: string;
@@ -32,16 +36,19 @@ const areaService = {
 
   async create(payload: CreateAreaData) {
     const { data } = await api.post<Area>("/areas", payload);
+    notifyDataChanged();
     return data;
   },
 
   async update(id: number, payload: UpdateAreaData) {
     const { data } = await api.put<Area>(`/areas/${id}`, payload);
+    notifyDataChanged();
     return data;
   },
 
   async remove(id: number) {
     await api.delete(`/areas/${id}`);
+    notifyDataChanged();
   },
 };
 

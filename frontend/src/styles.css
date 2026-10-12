@@ -1728,6 +1728,44 @@ button {
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.12);
 }
 
+.dashboard-state {
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 38px 24px;
+  border: 1px dashed rgba(117, 158, 194, 0.3);
+  border-radius: 15px;
+  color: #8db9df;
+  text-align: center;
+  background: rgba(8, 22, 34, 0.72);
+}
+
+.dashboard-state h2,
+.dashboard-state p {
+  margin: 0;
+}
+
+.dashboard-state h2 { color: #eef6ff; }
+.dashboard-state p { max-width: 520px; line-height: 1.55; }
+.dashboard-state.is-error { color: #ff8c9b; }
+.dashboard-state .primary-action,
+.dashboard-state .secondary-action { margin-top: 10px; }
+
+.dashboard-state-icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 18px;
+  color: #59b8ff;
+  background: rgba(20, 112, 190, 0.24);
+}
+
 .attention-card {
   margin-top: 20px;
   padding: 18px;
@@ -1806,6 +1844,11 @@ button {
 
 .see-all:hover {
   color: #85cfff;
+}
+
+.see-all:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 .attention-grid {
@@ -1950,6 +1993,34 @@ button {
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.dashboard-task-title {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.dashboard-task-metadata {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7892aa;
+  font-size: 11px;
+}
+
+.dashboard-task-metadata span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dashboard-table-empty {
+  margin: 0;
+  padding: 20px 12px 12px;
+  color: #839bb2;
+  font-size: 14px;
+  text-align: center;
 }
 
 .task-row > svg,

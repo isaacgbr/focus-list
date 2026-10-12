@@ -103,6 +103,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [loadAreas])
 
   useEffect(() => {
+    const openAreaForm = () => {
+      setEditingArea(null)
+      setForm(emptyAreaForm)
+      setActionError('')
+      setIsModalOpen(true)
+    }
+    window.addEventListener('focuslist:open-area-form', openAreaForm)
+    return () => window.removeEventListener('focuslist:open-area-form', openAreaForm)
+  }, [])
+
+  useEffect(() => {
     if (!isModalOpen) return
 
     const handleKeyDown = (event: KeyboardEvent) => {

@@ -992,6 +992,223 @@ button {
   }
 }
 
+/* Listas da área */
+.lists-page {
+  width: min(100%, 1210px);
+  margin: 0 auto;
+}
+
+.lists-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 12px 0 28px;
+  border-bottom: 1px solid rgba(117, 158, 194, 0.2);
+}
+
+.lists-page-heading p {
+  margin: 0 0 8px;
+  color: #49aaff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lists-page-heading h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.04em;
+}
+
+.lists-page-heading span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.lists-page-heading .primary-action,
+.lists-state .primary-action {
+  margin-left: 0;
+}
+
+.lists-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 26px;
+}
+
+.list-card {
+  position: relative;
+  min-width: 0;
+  border: 1px solid rgba(117, 158, 194, 0.22);
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(11, 29, 44, 0.97), rgba(8, 22, 34, 0.93));
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.list-card:hover {
+  border-color: rgba(65, 157, 239, 0.52);
+  transform: translateY(-2px);
+}
+
+.list-card-content {
+  display: grid;
+  min-height: 108px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 140px 20px 20px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.list-card-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border-radius: 12px;
+  color: #7dc3ff;
+  background: rgba(11, 121, 255, 0.18);
+}
+
+.list-card-content strong,
+.list-card-content small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-card-content strong {
+  color: #f4f8fd;
+  font-size: 18px;
+}
+
+.list-card-content small {
+  margin-top: 7px;
+  color: #9fb5cd;
+  font-size: 14px;
+}
+
+.list-card-content > svg {
+  color: #6888a5;
+}
+
+.list-card-actions {
+  position: absolute;
+  top: 50%;
+  right: 45px;
+  display: flex;
+  gap: 5px;
+  transform: translateY(-50%);
+}
+
+.list-card-actions button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  place-items: center;
+  border-radius: 8px;
+  color: #91abc4;
+  background: rgba(4, 17, 28, 0.88);
+  cursor: pointer;
+}
+
+.list-card-actions button:hover {
+  color: white;
+  background: #1b3b55;
+}
+
+.list-card-actions button:last-child:hover {
+  color: #ff7587;
+}
+
+.lists-state {
+  display: flex;
+  min-height: 390px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 26px;
+  padding: 42px 24px;
+  border: 1px solid rgba(117, 158, 194, 0.2);
+  border-radius: 15px;
+  color: #78bfff;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(11, 28, 43, 0.86), rgba(8, 22, 34, 0.72));
+}
+
+.lists-state-icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(11, 121, 255, 0.16);
+}
+
+.lists-state h2 {
+  margin: 20px 0 7px;
+  color: #f4f8fd;
+  font-size: 24px;
+}
+
+.lists-state p {
+  margin: 0;
+  color: #a8bdd4;
+  line-height: 1.55;
+}
+
+.lists-state .primary-action,
+.lists-state .secondary-action {
+  margin-top: 24px;
+}
+
+.lists-state.is-error {
+  color: #ff7b8e;
+  border-color: rgba(211, 93, 112, 0.3);
+}
+
+.lists-action-error {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 20px 0 0;
+  color: #ff8c9b;
+}
+
+@media (max-width: 900px) {
+  .lists-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .lists-page-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lists-page-heading .primary-action {
+    width: 100%;
+  }
+
+  .list-card-content {
+    padding: 18px 126px 18px 16px;
+  }
+
+  .list-card-actions {
+    right: 40px;
+  }
+}
+
 /* Dashboard completo */
 .dashboard {
   width: 100%;

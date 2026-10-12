@@ -25,7 +25,12 @@ export type CreateTaskData = {
   listId: number;
 };
 
-export type UpdateTaskData = Partial<CreateTaskData>;
+export type UpdateTaskData = Partial<Omit<CreateTaskData, "description" | "dueDate" | "priority" | "completedAt">> & {
+  description?: string | null;
+  dueDate?: string | null;
+  priority?: TaskPriority | null;
+  completedAt?: string | null;
+};
 
 const taskService = {
   async getAll() {

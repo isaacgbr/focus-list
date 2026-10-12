@@ -3,6 +3,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ListChecks,
   Circle,
   ClipboardList,
   LoaderCircle,
@@ -15,6 +16,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import taskService, { CreateTaskData, Task, TaskPriority, UpdateTaskData } from '../services/taskService'
+import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
 
 type TaskForm = {
   title: string
@@ -60,6 +62,15 @@ export function ListTasks() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deleteCandidate, setDeleteCandidate] = useState<Task | null>(null)
   const [form, setForm] = useState<TaskForm>(emptyTaskForm)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
+  const [isChecklistLoading, setIsChecklistLoading] = useState(false)
+  const [checklistLoadError, setChecklistLoadError] = useState('')
+  const [checklistActionError, setChecklistActionError] = useState('')
+  const [checklistTitle, setChecklistTitle] = useState('')
+  const [editingChecklistItem, setEditingChecklistItem] = useState<ChecklistItem | null>(null)
+  const [savingChecklistItemId, setSavingChecklistItemId] = useState<number | 'new' | null>(null)
+  const [deletingChecklistItemId, setDeletingChecklistItemId] = useState<number | null>(null)
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
@@ -87,18 +98,109 @@ export function ListTasks() {
     void loadTasks()
   }, [loadTasks])
 
+  const loadChecklist = useCallback(async (taskId: number) => {
+    setIsChecklistLoading(true)
+    setChecklistLoadError('')
+
+    try {
+      const allItems = await checklistItemService.getAll()
+      setChecklistItems(allItems.filter((item) => item.taskId === taskId))
+    } catch {
+      setChecklistItems([])
+      setChecklistLoadError('Não foi possível carregar o checklist desta tarefa.')
+    } finally {
+      setIsChecklistLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (!isModalOpen && !deleteCandidate) return
+    if (!selectedTask) return
+    void loadChecklist(selectedTask.id)
+  }, [loadChecklist, selectedTask])
+
+  useEffect(() => {
+    if (!isModalOpen && !deleteCandidate && !selectedTask) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (isModalOpen && !isSaving) setIsModalOpen(false)
       if (deleteCandidate && !isDeleting) setDeleteCandidate(null)
+      if (selectedTask && savingChecklistItemId === null && deletingChecklistItemId === null) setSelectedTask(null)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [deleteCandidate, isDeleting, isModalOpen, isSaving])
+  }, [deleteCandidate, deletingChecklistItemId, isDeleting, isModalOpen, isSaving, savingChecklistItemId, selectedTask])
+
+  const openChecklist = (task: Task) => {
+    setChecklistItems([])
+    setChecklistTitle('')
+    setEditingChecklistItem(null)
+    setChecklistActionError('')
+    setSelectedTask(task)
+  }
+
+  const closeChecklist = () => {
+    if (savingChecklistItemId === null && deletingChecklistItemId === null) setSelectedTask(null)
+  }
+
+  const handleChecklistSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!selectedTask || !checklistTitle.trim()) return
+
+    setSavingChecklistItemId(editingChecklistItem?.id ?? 'new')
+    setChecklistActionError('')
+
+    try {
+      if (editingChecklistItem) {
+        await checklistItemService.update(editingChecklistItem.id, { title: checklistTitle.trim() })
+      } else {
+        await checklistItemService.create({ title: checklistTitle.trim(), taskId: selectedTask.id })
+      }
+
+      setChecklistTitle('')
+      setEditingChecklistItem(null)
+      await loadChecklist(selectedTask.id)
+    } catch {
+      setChecklistActionError(`Não foi possível ${editingChecklistItem ? 'salvar' : 'criar'} o item.`)
+    } finally {
+      setSavingChecklistItemId(null)
+    }
+  }
+
+  const handleChecklistToggle = async (item: ChecklistItem) => {
+    if (!selectedTask) return
+    setSavingChecklistItemId(item.id)
+    setChecklistActionError('')
+
+    try {
+      await checklistItemService.update(item.id, { completed: !item.completed })
+      await loadChecklist(selectedTask.id)
+    } catch {
+      setChecklistActionError(`Não foi possível ${item.completed ? 'desmarcar' : 'concluir'} o item.`)
+    } finally {
+      setSavingChecklistItemId(null)
+    }
+  }
+
+  const handleChecklistDelete = async (item: ChecklistItem) => {
+    if (!selectedTask) return
+    setDeletingChecklistItemId(item.id)
+    setChecklistActionError('')
+
+    try {
+      await checklistItemService.remove(item.id)
+      if (editingChecklistItem?.id === item.id) {
+        setEditingChecklistItem(null)
+        setChecklistTitle('')
+      }
+      await loadChecklist(selectedTask.id)
+    } catch {
+      setChecklistActionError('Não foi possível excluir o item.')
+    } finally {
+      setDeletingChecklistItemId(null)
+    }
+  }
 
   const openCreateModal = () => {
     setEditingTask(null)
@@ -209,10 +311,10 @@ export function ListTasks() {
       >
         {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed ? <Check size={19} /> : null}
       </button>
-      <div className="task-item-copy">
+      <button className="task-item-copy" type="button" onClick={() => openChecklist(task)}>
         <strong>{task.title}</strong>
         {task.description ? <p>{task.description}</p> : null}
-      </div>
+      </button>
       <span className={`task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`}>
         {task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}
       </span>
@@ -361,6 +463,82 @@ export function ListTasks() {
                 Excluir Tarefa
               </button>
             </div>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedTask ? (
+        <div className="area-modal-backdrop" role="presentation" onMouseDown={closeChecklist}>
+          <section className="area-modal checklist-modal" role="dialog" aria-modal="true" aria-labelledby="checklist-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="area-modal-heading">
+              <span className="area-modal-heading-icon" aria-hidden="true"><ListChecks size={30} /></span>
+              <div>
+                <p>Checklist da tarefa</p>
+                <h2 id="checklist-modal-title">{selectedTask.title}</h2>
+              </div>
+              <button className="icon-button area-modal-close" type="button" onClick={closeChecklist} aria-label="Fechar"><X size={24} /></button>
+            </div>
+
+            <form className="checklist-form" onSubmit={handleChecklistSubmit}>
+              <input
+                autoFocus
+                maxLength={100}
+                value={checklistTitle}
+                onChange={(event) => setChecklistTitle(event.target.value)}
+                placeholder="Adicionar item ao checklist"
+                aria-label={editingChecklistItem ? 'Editar item do checklist' : 'Novo item do checklist'}
+              />
+              {editingChecklistItem ? (
+                <button className="secondary-action" type="button" onClick={() => { setEditingChecklistItem(null); setChecklistTitle('') }} disabled={savingChecklistItemId !== null}>Cancelar</button>
+              ) : null}
+              <button className="primary-action" type="submit" disabled={!checklistTitle.trim() || savingChecklistItemId !== null}>
+                {savingChecklistItemId === (editingChecklistItem?.id ?? 'new') ? <LoaderCircle className="spin" size={18} /> : <Plus size={18} />}
+                {editingChecklistItem ? 'Salvar' : 'Adicionar'}
+              </button>
+            </form>
+
+            {checklistActionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{checklistActionError}</p> : null}
+
+            {isChecklistLoading ? (
+              <div className="checklist-state" aria-live="polite"><LoaderCircle className="spin" size={28} /><span>Carregando checklist...</span></div>
+            ) : null}
+
+            {!isChecklistLoading && checklistLoadError ? (
+              <div className="checklist-state is-error" role="alert">
+                <AlertCircle size={30} />
+                <span>{checklistLoadError}</span>
+                <button className="secondary-action" type="button" onClick={() => void loadChecklist(selectedTask.id)}>Tentar novamente</button>
+              </div>
+            ) : null}
+
+            {!isChecklistLoading && !checklistLoadError && checklistItems.length === 0 ? (
+              <div className="checklist-state"><ListChecks size={32} /><span>Nenhum item no checklist.</span></div>
+            ) : null}
+
+            {!isChecklistLoading && !checklistLoadError && checklistItems.length > 0 ? (
+              <div className="checklist-items" aria-live="polite">
+                {checklistItems.map((item) => (
+                  <div className={`checklist-item${item.completed ? ' is-completed' : ''}`} key={item.id}>
+                    <button
+                      className="task-complete-button"
+                      type="button"
+                      onClick={() => void handleChecklistToggle(item)}
+                      disabled={savingChecklistItemId === item.id || deletingChecklistItemId === item.id}
+                      aria-label={item.completed ? `Desmarcar ${item.title}` : `Concluir ${item.title}`}
+                    >
+                      {savingChecklistItemId === item.id ? <LoaderCircle className="spin" size={18} /> : item.completed ? <Check size={17} /> : null}
+                    </button>
+                    <span>{item.title}</span>
+                    <div className="task-item-actions">
+                      <button type="button" onClick={() => { setEditingChecklistItem(item); setChecklistTitle(item.title); setChecklistActionError('') }} disabled={savingChecklistItemId !== null || deletingChecklistItemId !== null} aria-label={`Editar ${item.title}`}><Pencil size={16} /></button>
+                      <button type="button" onClick={() => void handleChecklistDelete(item)} disabled={savingChecklistItemId !== null || deletingChecklistItemId !== null} aria-label={`Excluir ${item.title}`}>
+                        {deletingChecklistItemId === item.id ? <LoaderCircle className="spin" size={16} /> : <Trash2 size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}

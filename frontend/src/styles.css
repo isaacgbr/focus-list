@@ -1404,6 +1404,8 @@ button {
 
 .checklist-modal {
   width: min(100%, 720px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
 .checklist-modal .area-modal-heading p {
@@ -1495,6 +1497,28 @@ button {
 .checklist-item button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.links-section { margin-top: 22px; padding-top: 19px; border-top: 1px solid rgba(117, 158, 194, 0.2); }
+.links-section-heading > div { display: flex; align-items: center; gap: 10px; color: #77bfff; }
+.links-section-heading h3 { margin: 0; color: #eef6ff; font-size: 16px; }
+.links-section-heading span { color: #8fa8c0; font-size: 13px; }
+.link-form { display: grid; grid-template-columns: minmax(120px, 0.8fr) minmax(180px, 1.2fr) auto auto; gap: 8px; margin-top: 14px; }
+.link-form input { min-width: 0; height: 44px; padding: 0 13px; border: 1px solid rgba(105, 159, 204, 0.34); border-radius: 9px; color: #e9f3ff; outline: none; background: #091d2b; font: inherit; }
+.link-form input:focus { border-color: #1687ff; box-shadow: 0 0 0 3px rgba(22, 135, 255, 0.12); }
+.links-state { display: flex; min-height: 94px; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; border: 1px dashed rgba(117, 158, 194, 0.24); border-radius: 10px; color: #8db9df; }
+.links-state.is-error { color: #ff8c9b; }
+.links-items { display: grid; gap: 6px; margin-top: 14px; }
+.link-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 9px 7px 12px; border: 1px solid rgba(117, 158, 194, 0.16); border-radius: 10px; background: rgba(6, 20, 31, 0.48); }
+.link-item-open { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 3px 2px; border: 0; color: #65b7ff; text-align: left; background: transparent; cursor: pointer; }
+.link-item-open span, .link-item-open strong, .link-item-open small { min-width: 0; }
+.link-item-open strong, .link-item-open small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-item-open strong { color: #eaf2fb; font-size: 14px; }
+.link-item-open small { margin-top: 3px; color: #829bb2; font-size: 12px; }
+.link-item-open:hover strong { color: #77c2ff; }
+
+@media (max-width: 700px) {
+  .link-form { grid-template-columns: 1fr; }
 }
 
 .task-form-row {

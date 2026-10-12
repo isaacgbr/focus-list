@@ -6,6 +6,8 @@ import {
   ListChecks,
   Circle,
   ClipboardList,
+  ExternalLink,
+  Link2,
   LoaderCircle,
   Pencil,
   Plus,
@@ -17,6 +19,7 @@ import { useParams } from 'react-router-dom'
 
 import taskService, { CreateTaskData, Task, TaskPriority, UpdateTaskData } from '../services/taskService'
 import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
+import linkService, { Link } from '../services/linkService'
 
 type TaskForm = {
   title: string
@@ -71,6 +74,15 @@ export function ListTasks() {
   const [editingChecklistItem, setEditingChecklistItem] = useState<ChecklistItem | null>(null)
   const [savingChecklistItemId, setSavingChecklistItemId] = useState<number | 'new' | null>(null)
   const [deletingChecklistItemId, setDeletingChecklistItemId] = useState<number | null>(null)
+  const [links, setLinks] = useState<Link[]>([])
+  const [isLinksLoading, setIsLinksLoading] = useState(false)
+  const [linksLoadError, setLinksLoadError] = useState('')
+  const [linksActionError, setLinksActionError] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
+  const [linkUrl, setLinkUrl] = useState('')
+  const [editingLink, setEditingLink] = useState<Link | null>(null)
+  const [savingLinkId, setSavingLinkId] = useState<number | 'new' | null>(null)
+  const [deletingLinkId, setDeletingLinkId] = useState<number | null>(null)
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
@@ -118,6 +130,26 @@ export function ListTasks() {
     void loadChecklist(selectedTask.id)
   }, [loadChecklist, selectedTask])
 
+  const loadLinks = useCallback(async (taskId: number) => {
+    setIsLinksLoading(true)
+    setLinksLoadError('')
+
+    try {
+      const allLinks = await linkService.getAll()
+      setLinks(allLinks.filter((link) => link.taskId === taskId))
+    } catch {
+      setLinks([])
+      setLinksLoadError('Não foi possível carregar os links desta tarefa.')
+    } finally {
+      setIsLinksLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedTask) return
+    void loadLinks(selectedTask.id)
+  }, [loadLinks, selectedTask])
+
   useEffect(() => {
     if (!isModalOpen && !deleteCandidate && !selectedTask) return
 
@@ -125,23 +157,81 @@ export function ListTasks() {
       if (event.key !== 'Escape') return
       if (isModalOpen && !isSaving) setIsModalOpen(false)
       if (deleteCandidate && !isDeleting) setDeleteCandidate(null)
-      if (selectedTask && savingChecklistItemId === null && deletingChecklistItemId === null) setSelectedTask(null)
+      if (selectedTask && savingChecklistItemId === null && deletingChecklistItemId === null && savingLinkId === null && deletingLinkId === null) setSelectedTask(null)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [deleteCandidate, deletingChecklistItemId, isDeleting, isModalOpen, isSaving, savingChecklistItemId, selectedTask])
+  }, [deleteCandidate, deletingChecklistItemId, deletingLinkId, isDeleting, isModalOpen, isSaving, savingChecklistItemId, savingLinkId, selectedTask])
 
   const openChecklist = (task: Task) => {
     setChecklistItems([])
     setChecklistTitle('')
     setEditingChecklistItem(null)
     setChecklistActionError('')
+    setLinks([])
+    setLinkTitle('')
+    setLinkUrl('')
+    setEditingLink(null)
+    setLinksActionError('')
     setSelectedTask(task)
   }
 
   const closeChecklist = () => {
-    if (savingChecklistItemId === null && deletingChecklistItemId === null) setSelectedTask(null)
+    if (savingChecklistItemId === null && deletingChecklistItemId === null && savingLinkId === null && deletingLinkId === null) setSelectedTask(null)
+  }
+
+  const resetLinkForm = () => {
+    setEditingLink(null)
+    setLinkTitle('')
+    setLinkUrl('')
+  }
+
+  const handleLinkSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!selectedTask || !linkTitle.trim() || !linkUrl.trim()) return
+    setSavingLinkId(editingLink?.id ?? 'new')
+    setLinksActionError('')
+
+    try {
+      if (editingLink) {
+        await linkService.update(editingLink.id, { title: linkTitle.trim(), url: linkUrl.trim() })
+      } else {
+        await linkService.create({ title: linkTitle.trim(), url: linkUrl.trim(), taskId: selectedTask.id })
+      }
+      resetLinkForm()
+      await loadLinks(selectedTask.id)
+    } catch {
+      setLinksActionError(`Não foi possível ${editingLink ? 'salvar' : 'criar'} o link.`)
+    } finally {
+      setSavingLinkId(null)
+    }
+  }
+
+  const handleLinkDelete = async (link: Link) => {
+    if (!selectedTask) return
+    setDeletingLinkId(link.id)
+    setLinksActionError('')
+
+    try {
+      await linkService.remove(link.id)
+      if (editingLink?.id === link.id) resetLinkForm()
+      await loadLinks(selectedTask.id)
+    } catch {
+      setLinksActionError('Não foi possível excluir o link.')
+    } finally {
+      setDeletingLinkId(null)
+    }
+  }
+
+  const handleLinkOpen = (link: Link) => {
+    try {
+      const url = new URL(link.url)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error()
+      window.open(url.href, '_blank', 'noopener,noreferrer')
+    } catch {
+      setLinksActionError('Este link não possui uma URL segura válida.')
+    }
   }
 
   const handleChecklistSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -539,6 +629,49 @@ export function ListTasks() {
                 ))}
               </div>
             ) : null}
+
+            <section className="links-section" aria-labelledby="links-section-title">
+              <div className="links-section-heading">
+                <div><Link2 size={21} /><h3 id="links-section-title">Links e referências</h3><span>{links.length} {links.length === 1 ? 'link' : 'links'}</span></div>
+              </div>
+
+              <form className="link-form" onSubmit={handleLinkSubmit}>
+                <input maxLength={100} required value={linkTitle} onChange={(event) => setLinkTitle(event.target.value)} placeholder="Título do link" aria-label="Título do link" />
+                <input type="url" required value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://exemplo.com" aria-label="URL do link" />
+                {editingLink ? <button className="secondary-action" type="button" onClick={resetLinkForm} disabled={savingLinkId !== null}>Cancelar</button> : null}
+                <button className="primary-action" type="submit" disabled={!linkTitle.trim() || !linkUrl.trim() || savingLinkId !== null}>
+                  {savingLinkId === (editingLink?.id ?? 'new') ? <LoaderCircle className="spin" size={18} /> : <Plus size={18} />}
+                  {editingLink ? 'Salvar' : 'Adicionar'}
+                </button>
+              </form>
+
+              {linksActionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{linksActionError}</p> : null}
+              {isLinksLoading ? <div className="links-state" aria-live="polite"><LoaderCircle className="spin" size={25} /><span>Carregando links...</span></div> : null}
+              {!isLinksLoading && linksLoadError ? (
+                <div className="links-state is-error" role="alert">
+                  <AlertCircle size={26} /><span>{linksLoadError}</span>
+                  <button className="secondary-action" type="button" onClick={() => void loadLinks(selectedTask.id)}>Tentar novamente</button>
+                </div>
+              ) : null}
+              {!isLinksLoading && !linksLoadError && links.length === 0 ? <div className="links-state"><Link2 size={27} /><span>Nenhum link adicionado.</span></div> : null}
+              {!isLinksLoading && !linksLoadError && links.length > 0 ? (
+                <div className="links-items" aria-live="polite">
+                  {links.map((link) => (
+                    <div className="link-item" key={link.id}>
+                      <button className="link-item-open" type="button" onClick={() => handleLinkOpen(link)} aria-label={`Abrir ${link.title} em nova aba`}>
+                        <Link2 size={18} /><span><strong>{link.title}</strong><small>{link.url}</small></span><ExternalLink size={16} />
+                      </button>
+                      <div className="task-item-actions">
+                        <button type="button" onClick={() => { setEditingLink(link); setLinkTitle(link.title); setLinkUrl(link.url); setLinksActionError('') }} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Editar ${link.title}`}><Pencil size={16} /></button>
+                        <button type="button" onClick={() => void handleLinkDelete(link)} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Excluir ${link.title}`}>
+                          {deletingLinkId === link.id ? <LoaderCircle className="spin" size={16} /> : <Trash2 size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </section>
           </section>
         </div>
       ) : null}

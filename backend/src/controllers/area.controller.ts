@@ -63,6 +63,18 @@ class AreaController {
       next(error);
     }
   }
+
+  async archive(req: Request, res: Response, next: NextFunction) {
+    try {
+      return res.status(200).json(await areaService.archive(Number(req.params.id)));
+    } catch (error) { next(error); }
+  }
+
+  async restore(req: Request, res: Response, next: NextFunction) {
+    try {
+      return res.status(200).json(await areaService.restore(Number(req.params.id)));
+    } catch (error) { next(error); }
+  }
 }
 
 export default new AreaController();

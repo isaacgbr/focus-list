@@ -30,6 +30,7 @@ type TaskDetailsProps = {
   listTitle?: string
   onClose: () => void
   onTaskChange: (task: Task) => void
+  onArchived: () => void
 }
 
 type TaskField = 'title' | 'description' | 'status' | 'priority' | 'dueDate'
@@ -67,7 +68,7 @@ function isValidDueDate(value: string) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
 }
 
-export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDetailsProps) {
+export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived }: TaskDetailsProps) {
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
   const [links, setLinks] = useState<Link[]>([])
   const [isChecklistLoading, setIsChecklistLoading] = useState(true)
@@ -89,6 +90,8 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
   const [deletingLinkId, setDeletingLinkId] = useState<number | null>(null)
   const [savingTaskField, setSavingTaskField] = useState<TaskField | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false)
+  const [isArchiving, setIsArchiving] = useState(false)
   const [openPropertyMenu, setOpenPropertyMenu] = useState<PropertyMenu | null>(null)
   const [isChecklistOpen, setIsChecklistOpen] = useState(true)
   const [isLinksOpen, setIsLinksOpen] = useState(true)
@@ -137,7 +140,8 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      if (isMenuOpen) setIsMenuOpen(false)
+      if (isArchiveConfirmOpen && !isArchiving) setIsArchiveConfirmOpen(false)
+      else if (isMenuOpen) setIsMenuOpen(false)
       else if (openPropertyMenu) setOpenPropertyMenu(null)
       else if (isEditingTitle) { setIsEditingTitle(false); setTitleDraft(task.title) }
       else if (isEditingDescription) { setIsEditingDescription(false); setDescriptionDraft(task.description ?? '') }
@@ -155,7 +159,7 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('click', handleOutsideClick)
     }
-  }, [isEditingDescription, isEditingTitle, isMenuOpen, onClose, openPropertyMenu, savingChecklistId, savingLinkId, savingTaskField, task.description, task.title])
+  }, [isArchiveConfirmOpen, isArchiving, isEditingDescription, isEditingTitle, isMenuOpen, onClose, openPropertyMenu, savingChecklistId, savingLinkId, savingTaskField, task.description, task.title])
 
   const completedItems = useMemo(() => checklistItems.filter((item) => item.completed).length, [checklistItems])
   const progress = checklistItems.length ? Math.round((completedItems / checklistItems.length) * 100) : 0
@@ -374,6 +378,20 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
     if (!savingTaskField && savingChecklistId === null && savingLinkId === null && deletingChecklistId === null && deletingLinkId === null) onClose()
   }
 
+  const handleArchive = async () => {
+    setIsArchiving(true)
+    setActionError('')
+    try {
+      await taskService.archive(task.id)
+      onArchived()
+    } catch {
+      setActionError('Não foi possível arquivar a tarefa.')
+      setIsArchiveConfirmOpen(false)
+    } finally {
+      setIsArchiving(false)
+    }
+  }
+
   return (
     <div className="area-modal-backdrop task-details-backdrop" role="presentation" onMouseDown={closeDetails}>
       <section className="task-details-modal" role="dialog" aria-modal="true" aria-labelledby="task-details-title" onMouseDown={(event) => event.stopPropagation()}>
@@ -397,8 +415,7 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
             <button className="icon-button task-details-more" type="button" onClick={() => { setOpenPropertyMenu(null); setIsMenuOpen((current) => !current) }} aria-expanded={isMenuOpen} aria-haspopup="menu" aria-label="Mais ações"><MoreHorizontal size={24} /></button>
             {isMenuOpen ? (
               <div className="task-actions-popover" role="menu">
-                <button type="button" role="menuitem" disabled title="Arquivados ainda não está disponível"><Archive size={17} />Arquivar <small>Em breve</small></button>
-                <button className="is-danger" type="button" role="menuitem" disabled title="A exclusão definitiva estará disponível em Arquivados"><Trash2 size={17} />Excluir <small>Em breve</small></button>
+                <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); setIsArchiveConfirmOpen(true) }}><Archive size={17} />Arquivar</button>
               </div>
             ) : null}
           </div>
@@ -527,6 +544,15 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange }: TaskDeta
           </aside>
         </div>
       </section>
+      {isArchiveConfirmOpen ? (
+        <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.stopPropagation(); if (!isArchiving) setIsArchiveConfirmOpen(false) }}>
+          <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-archive-title" aria-describedby="task-archive-description" onMouseDown={(event) => event.stopPropagation()}>
+            <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
+            <div><h2 id="task-archive-title">Arquivar este item?</h2><p id="task-archive-description">Ele deixará de aparecer normalmente, mas poderá ser restaurado posteriormente.</p></div>
+            <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsArchiveConfirmOpen(false)} disabled={isArchiving}>Cancelar</button><button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>{isArchiving ? <LoaderCircle className="spin" size={19} /> : <Archive size={19} />}Arquivar</button></div>
+          </section>
+        </div>
+      ) : null}
     </div>
   )
 }

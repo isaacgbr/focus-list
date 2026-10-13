@@ -17,6 +17,7 @@ export type Task = {
   listId: number;
   createdAt: string;
   updatedAt: string;
+  archivedAt: string | null;
 };
 
 export type CreateTaskData = {
@@ -62,6 +63,18 @@ const taskService = {
   async remove(id: number) {
     await api.delete(`/tasks/${id}`);
     notifyDataChanged();
+  },
+
+  async archive(id: number) {
+    const { data } = await api.patch<Task>(`/tasks/${id}/archive`);
+    notifyDataChanged();
+    return data;
+  },
+
+  async restore(id: number) {
+    const { data } = await api.patch<Task>(`/tasks/${id}/restore`);
+    notifyDataChanged();
+    return data;
   },
 };
 

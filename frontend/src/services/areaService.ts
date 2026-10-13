@@ -12,6 +12,7 @@ export type Area = {
   icon: string | null;
   createdAt: string;
   updatedAt: string;
+  archivedAt: string | null;
 };
 
 export type CreateAreaData = {
@@ -49,6 +50,18 @@ const areaService = {
   async remove(id: number) {
     await api.delete(`/areas/${id}`);
     notifyDataChanged();
+  },
+
+  async archive(id: number) {
+    const { data } = await api.patch<Area>(`/areas/${id}/archive`);
+    notifyDataChanged();
+    return data;
+  },
+
+  async restore(id: number) {
+    const { data } = await api.patch<Area>(`/areas/${id}/restore`);
+    notifyDataChanged();
+    return data;
   },
 };
 

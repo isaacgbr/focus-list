@@ -48,7 +48,12 @@ class ChecklistItemService {
 
   // Atualiza um item de checklist.
   async update(id: number, data: ChecklistItemData) {
-    await this.findById(id);
+    const checklistItem = await this.findById(id);
+    const currentTask = await taskRepository.findById(checklistItem.taskId);
+
+    if (!currentTask) {
+      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+    }
 
     const title = data.title ?? data.text;
 
@@ -69,7 +74,12 @@ class ChecklistItemService {
 
   // Exclui um item de checklist.
   async delete(id: number) {
-    await this.findById(id);
+    const checklistItem = await this.findById(id);
+    const task = await taskRepository.findById(checklistItem.taskId);
+
+    if (!task) {
+      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+    }
 
     return checklistItemRepository.delete(id);
   }

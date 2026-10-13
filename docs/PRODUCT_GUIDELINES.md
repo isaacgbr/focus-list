@@ -53,9 +53,53 @@ O produto é destinado a pessoas que buscam uma ferramenta direta, moderna e con
 
 ## Arquivados
 
-- Priorizar o arquivamento em vez da exclusão imediata.
-- A exclusão definitiva deve estar disponível apenas dentro de Arquivados.
-- Mensagens de confirmação devem descrever exatamente o comportamento e as consequências da ação.
+### Conceito
+
+Arquivados não representam uma lixeira. Eles representam itens preservados temporariamente, mantendo sua organização e seu contexto originais.
+
+O arquivamento deve ser priorizado em vez da exclusão imediata. A exclusão definitiva deve estar disponível apenas para itens já arquivados.
+
+### Hierarquia
+
+A estrutura oficial do produto é:
+
+**Área → Lista → Tarefa**
+
+Essa hierarquia deve ser sempre preservada, inclusive durante o arquivamento, a visualização e a restauração de itens.
+
+### Modo somente leitura
+
+Todo item arquivado entra em modo somente leitura. Enquanto estiver arquivado, o item não poderá ser:
+
+- Editado.
+- Movido.
+- Reorganizado.
+- Alterado de qualquer forma.
+
+As únicas ações permitidas para um item arquivado são:
+
+- Visualizar.
+- Restaurar.
+- Excluir definitivamente.
+
+Após a restauração, o item volta a permitir edição e demais operações normalmente.
+
+### Organização dos itens arquivados
+
+- Áreas arquivadas permanecem em uma Central de Arquivados.
+- Listas arquivadas permanecem dentro da Área de origem.
+- Tarefas arquivadas permanecem dentro da Lista de origem.
+- O usuário nunca deve perder o contexto do item arquivado.
+
+### Experiência
+
+O objetivo dos Arquivados é preservar contexto e organização. A experiência deve permitir que o usuário compreenda facilmente:
+
+- O que foi arquivado.
+- De onde o item veio.
+- O que será restaurado.
+
+A interface, a linguagem e os fluxos devem evitar qualquer aparência ou interpretação de lixeira. Mensagens de confirmação devem descrever exatamente o comportamento e as consequências de cada ação.
 
 ## Visual
 

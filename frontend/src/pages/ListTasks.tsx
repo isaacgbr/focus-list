@@ -1,8 +1,10 @@
-import { AlertCircle, CalendarDays, Check, CheckCircle2, Circle, ClipboardList, LoaderCircle, Plus, X } from 'lucide-react'
+import { AlertCircle, Archive, CalendarDays, Check, CheckCircle2, Circle, ClipboardList, LoaderCircle, Plus, RotateCcw, X } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { TaskDetails } from '../components/TaskDetails'
+import { ArchivedTaskDetails } from '../components/ArchivedItemDetails'
+import archiveService, { ArchivedTaskSummary } from '../services/archiveService'
 import listService from '../services/listService'
 import taskService, { CreateTaskData, Task, TaskPriority } from '../services/taskService'
 
@@ -21,6 +23,7 @@ export function ListTasks() {
   const selectedListId = Number(listId)
   const [listTitle, setListTitle] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
+  const [archivedTasks, setArchivedTasks] = useState<ArchivedTaskSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
@@ -28,6 +31,7 @@ export function ListTasks() {
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [selectedArchivedTask, setSelectedArchivedTask] = useState<ArchivedTaskSummary | null>(null)
   const [form, setForm] = useState<TaskForm>(emptyTaskForm)
 
   const loadTasks = useCallback(async () => {
@@ -35,16 +39,19 @@ export function ListTasks() {
     setLoadError('')
     if (!Number.isInteger(selectedListId) || selectedListId <= 0) {
       setTasks([])
+      setArchivedTasks([])
       setLoadError('Não foi possível identificar a lista selecionada.')
       setIsLoading(false)
       return
     }
     try {
-      const [allTasks, selectedList] = await Promise.all([taskService.getAll(), listService.getById(selectedListId)])
+      const [allTasks, selectedList, archived] = await Promise.all([taskService.getAll(), listService.getById(selectedListId), archiveService.getTasksByList(selectedListId)])
       setTasks(allTasks.filter((task) => task.listId === selectedListId))
+      setArchivedTasks(archived)
       setListTitle(selectedList.title)
     } catch {
       setTasks([])
+      setArchivedTasks([])
       setLoadError('Não foi possível carregar as tarefas desta lista.')
     } finally {
       setIsLoading(false)
@@ -143,6 +150,19 @@ export function ListTasks() {
         </div>
       ) : null}
 
+      {!isLoading && !loadError && archivedTasks.length > 0 ? (
+        <section className="context-archived-section" aria-labelledby="archived-tasks-title">
+          <header><span className="archived-category-icon is-task"><Archive size={21} /></span><div><h2 id="archived-tasks-title">Arquivadas <span>{archivedTasks.length}</span></h2><p>Tarefas preservadas nesta Lista, disponíveis somente para consulta.</p></div></header>
+          <div className="context-archived-items">
+            {archivedTasks.map((task) => (
+              <button className="context-archived-card" type="button" onClick={() => setSelectedArchivedTask(task)} key={task.id}>
+                <span className="archived-item-icon is-task"><ClipboardList size={22} /></span><span><strong>{task.title}</strong><small>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'} · Arquivada em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(task.archivedAt!))}</small></span><RotateCcw size={18} aria-label="Pode ser restaurada" />
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {isModalOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
           <section className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" onMouseDown={(event) => event.stopPropagation()}>
@@ -165,7 +185,8 @@ export function ListTasks() {
         </div>
       ) : null}
 
-      {selectedTask && !isModalOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} onClose={() => setSelectedTask(null)} onTaskChange={updateSelectedTask} /> : null}
+      {selectedTask && !isModalOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} onClose={() => setSelectedTask(null)} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
+      {selectedArchivedTask && !isModalOpen ? <ArchivedTaskDetails task={selectedArchivedTask} onClose={() => setSelectedArchivedTask(null)} onChanged={loadTasks} /> : null}
     </section>
   )
 }

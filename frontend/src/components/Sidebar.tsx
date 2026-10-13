@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Archive,
   BriefcaseBusiness,
   FileText,
   Folder,
@@ -12,7 +13,6 @@ import {
   Pencil,
   Plus,
   Settings,
-  Trash2,
   Users,
   X,
 } from 'lucide-react'
@@ -33,7 +33,7 @@ const primaryItems = [
 ]
 
 const utilityItems = [
-  { label: 'Lixeira', icon: Trash2, to: '/lixeira' },
+  { label: 'Arquivados', icon: Archive, to: '/arquivados' },
   { label: 'Configurações', icon: Settings, to: '/configuracoes' },
 ]
 
@@ -79,8 +79,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<number | null>(null)
-  const [deleteCandidate, setDeleteCandidate] = useState<Area | null>(null)
+  const [isArchiving, setIsArchiving] = useState<number | null>(null)
+  const [archiveCandidate, setArchiveCandidate] = useState<Area | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [form, setForm] = useState<AreaForm>(emptyAreaForm)
@@ -100,6 +100,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   useEffect(() => {
     void loadAreas()
+  }, [loadAreas])
+
+  useEffect(() => {
+    const handleDataChanged = () => void loadAreas()
+    window.addEventListener('focuslist:data-changed', handleDataChanged)
+    return () => window.removeEventListener('focuslist:data-changed', handleDataChanged)
   }, [loadAreas])
 
   useEffect(() => {
@@ -172,19 +178,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }
 
-  const handleDelete = async (area: Area) => {
-    setIsDeleting(area.id)
+  const handleArchive = async (area: Area) => {
+    setIsArchiving(area.id)
     setActionError('')
 
     try {
-      await areaService.remove(area.id)
-      setDeleteCandidate(null)
+      await areaService.archive(area.id)
+      setArchiveCandidate(null)
       await loadAreas()
       navigate('/')
     } catch {
-      setActionError('Não foi possível excluir a área.')
+      setActionError('Não foi possível arquivar a área.')
     } finally {
-      setIsDeleting(null)
+      setIsArchiving(null)
     }
   }
 
@@ -270,11 +276,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setDeleteCandidate(area)}
-                      aria-label={`Excluir ${area.title}`}
-                      disabled={isDeleting === area.id}
+                      onClick={() => setArchiveCandidate(area)}
+                      aria-label={`Arquivar ${area.title}`}
+                      disabled={isArchiving === area.id}
                     >
-                      {isDeleting === area.id ? <LoaderCircle className="spin" size={16} aria-hidden="true" /> : <Trash2 size={16} aria-hidden="true" />}
+                      {isArchiving === area.id ? <LoaderCircle className="spin" size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
                     </button>
                   </div>
                 </div>
@@ -393,26 +399,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       ) : null}
 
-      {deleteCandidate ? (
-        <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isDeleting && setDeleteCandidate(null)}>
+      {archiveCandidate ? (
+        <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
           <section
             className="area-delete-modal"
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby="area-delete-title"
-            aria-describedby="area-delete-description"
+            aria-labelledby="area-archive-title"
+            aria-describedby="area-archive-description"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span>
+            <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
             <div>
-              <h2 id="area-delete-title">Excluir Área</h2>
-              <p id="area-delete-description">Tem certeza de que deseja excluir “{deleteCandidate.title}”? Esta ação não pode ser desfeita.</p>
+              <h2 id="area-archive-title">Arquivar este item?</h2>
+              <p id="area-archive-description">Ele deixará de aparecer normalmente, mas poderá ser restaurado posteriormente.</p>
             </div>
             <div className="area-modal-actions">
-              <button className="secondary-action" type="button" onClick={() => setDeleteCandidate(null)} disabled={isDeleting !== null}>Cancelar</button>
-              <button className="danger-action" type="button" onClick={() => void handleDelete(deleteCandidate)} disabled={isDeleting !== null}>
-                {isDeleting !== null ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Trash2 size={19} aria-hidden="true" />}
-                Excluir Área
+              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving !== null}>Cancelar</button>
+              <button className="primary-action" type="button" onClick={() => void handleArchive(archiveCandidate)} disabled={isArchiving !== null}>
+                {isArchiving !== null ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Archive size={19} aria-hidden="true" />}
+                Arquivar
               </button>
             </div>
           </section>

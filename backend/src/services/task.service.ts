@@ -60,9 +60,27 @@ class TaskService {
 
   // Exclui uma Tarefa.
   async delete(id: number) {
-    await this.findById(id);
+    const task = await taskRepository.findAnyById(id);
+
+    if (!task) throw new Error("Tarefa não encontrada.");
+    if (!task.archivedAt) throw new Error("A Tarefa deve ser arquivada antes da exclusão definitiva.");
 
     return taskRepository.delete(id);
+  }
+
+  async archive(id: number) {
+    await this.findById(id);
+    return taskRepository.archive(id);
+  }
+
+  async restore(id: number) {
+    const task = await taskRepository.findAnyById(id);
+    if (!task) throw new Error("Tarefa não encontrada.");
+    if (!task.archivedAt) throw new Error("A Tarefa não está arquivada.");
+    if (task.list.archivedAt || task.list.area.archivedAt) {
+      throw new Error("Restaure a Área e a Lista antes de restaurar esta Tarefa.");
+    }
+    return taskRepository.restore(id);
   }
 }
 

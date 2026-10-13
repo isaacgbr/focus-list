@@ -11,6 +11,7 @@ export type List = {
   areaId: number;
   createdAt: string;
   updatedAt: string;
+  archivedAt: string | null;
 };
 
 export type CreateListData = {
@@ -47,6 +48,18 @@ const listService = {
   async remove(id: number) {
     await api.delete(`/lists/${id}`);
     notifyDataChanged();
+  },
+
+  async archive(id: number) {
+    const { data } = await api.patch<List>(`/lists/${id}/archive`);
+    notifyDataChanged();
+    return data;
+  },
+
+  async restore(id: number) {
+    const { data } = await api.patch<List>(`/lists/${id}/restore`);
+    notifyDataChanged();
+    return data;
   },
 };
 

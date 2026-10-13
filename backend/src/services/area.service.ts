@@ -48,9 +48,24 @@ class AreaService {
 
   // Exclui uma Área.
   async delete(id: number) {
-    await this.findById(id);
+    const area = await areaRepository.findAnyById(id);
+
+    if (!area) throw new Error("Área não encontrada.");
+    if (!area.archivedAt) throw new Error("A Área deve ser arquivada antes da exclusão definitiva.");
 
     return areaRepository.delete(id);
+  }
+
+  async archive(id: number) {
+    await this.findById(id);
+    return areaRepository.archive(id);
+  }
+
+  async restore(id: number) {
+    const area = await areaRepository.findAnyById(id);
+    if (!area) throw new Error("Área não encontrada.");
+    if (!area.archivedAt) throw new Error("A Área não está arquivada.");
+    return areaRepository.restore(id);
   }
 }
 

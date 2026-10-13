@@ -1,17 +1,20 @@
 import {
   AlertCircle,
+  Archive,
   ChevronRight,
   Folder,
   ListPlus,
   LoaderCircle,
   Pencil,
   Plus,
-  Trash2,
+  RotateCcw,
   X,
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { ArchivedListDetails } from '../components/ArchivedItemDetails'
+import archiveService, { ArchivedListSummary } from '../services/archiveService'
 import listService, { CreateListData, List } from '../services/listService'
 
 type ListForm = {
@@ -28,14 +31,16 @@ export function AreaLists() {
   const { areaId } = useParams()
   const selectedAreaId = Number(areaId)
   const [lists, setLists] = useState<List[]>([])
+  const [archivedLists, setArchivedLists] = useState<ArchivedListSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isArchiving, setIsArchiving] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingList, setEditingList] = useState<List | null>(null)
-  const [deleteCandidate, setDeleteCandidate] = useState<List | null>(null)
+  const [archiveCandidate, setArchiveCandidate] = useState<List | null>(null)
+  const [selectedArchivedList, setSelectedArchivedList] = useState<ArchivedListSummary | null>(null)
   const [form, setForm] = useState<ListForm>(emptyListForm)
 
   const loadLists = useCallback(async () => {
@@ -50,10 +55,12 @@ export function AreaLists() {
     }
 
     try {
-      const allLists = await listService.getAll()
+      const [allLists, archived] = await Promise.all([listService.getAll(), archiveService.getListsByArea(selectedAreaId)])
       setLists(allLists.filter((list) => list.areaId === selectedAreaId))
+      setArchivedLists(archived)
     } catch {
       setLists([])
+      setArchivedLists([])
       setLoadError('Não foi possível carregar as listas desta área.')
     } finally {
       setIsLoading(false)
@@ -65,17 +72,17 @@ export function AreaLists() {
   }, [loadLists])
 
   useEffect(() => {
-    if (!isModalOpen && !deleteCandidate) return
+    if (!isModalOpen && !archiveCandidate) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (isModalOpen && !isSaving) setIsModalOpen(false)
-      if (deleteCandidate && !isDeleting) setDeleteCandidate(null)
+      if (archiveCandidate && !isArchiving) setArchiveCandidate(null)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [deleteCandidate, isDeleting, isModalOpen, isSaving])
+  }, [archiveCandidate, isArchiving, isModalOpen, isSaving])
 
   const openCreateModal = () => {
     setEditingList(null)
@@ -124,20 +131,20 @@ export function AreaLists() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!deleteCandidate) return
+  const handleArchive = async () => {
+    if (!archiveCandidate) return
 
-    setIsDeleting(true)
+    setIsArchiving(true)
     setActionError('')
 
     try {
-      await listService.remove(deleteCandidate.id)
-      setDeleteCandidate(null)
+      await listService.archive(archiveCandidate.id)
+      setArchiveCandidate(null)
       await loadLists()
     } catch {
-      setActionError('Não foi possível excluir a lista.')
+      setActionError('Não foi possível arquivar a lista.')
     } finally {
-      setIsDeleting(false)
+      setIsArchiving(false)
     }
   }
 
@@ -155,7 +162,7 @@ export function AreaLists() {
         </button>
       </div>
 
-      {actionError && !isModalOpen && !deleteCandidate ? (
+      {actionError && !isModalOpen && !archiveCandidate ? (
         <p className="lists-action-error" role="alert"><AlertCircle size={19} />{actionError}</p>
       ) : null}
 
@@ -204,13 +211,26 @@ export function AreaLists() {
                 <button type="button" onClick={() => openEditModal(list)} aria-label={`Editar ${list.title}`}>
                   <Pencil size={17} aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => { setActionError(''); setDeleteCandidate(list) }} aria-label={`Excluir ${list.title}`}>
-                  <Trash2 size={17} aria-hidden="true" />
+                <button type="button" onClick={() => { setActionError(''); setArchiveCandidate(list) }} aria-label={`Arquivar ${list.title}`}>
+                  <Archive size={17} aria-hidden="true" />
                 </button>
               </div>
             </article>
           ))}
         </div>
+      ) : null}
+
+      {!isLoading && !loadError && archivedLists.length > 0 ? (
+        <section className="context-archived-section" aria-labelledby="archived-lists-title">
+          <header><span className="archived-category-icon is-list"><Archive size={21} /></span><div><h2 id="archived-lists-title">Arquivadas <span>{archivedLists.length}</span></h2><p>Listas preservadas nesta Área. Abra para visualizar as Tarefas.</p></div></header>
+          <div className="context-archived-items">
+            {archivedLists.map((list) => (
+              <button className="context-archived-card" type="button" onClick={() => setSelectedArchivedList(list)} key={list.id}>
+                <span className="archived-item-icon is-list"><Folder size={22} /></span><span><strong>{list.title}</strong><small>{list._count.tasks} {list._count.tasks === 1 ? 'Tarefa' : 'Tarefas'} · Arquivada em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(list.archivedAt))}</small></span><RotateCcw size={18} aria-label="Pode ser restaurada" />
+              </button>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {isModalOpen ? (
@@ -254,25 +274,27 @@ export function AreaLists() {
         </div>
       ) : null}
 
-      {deleteCandidate ? (
-        <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isDeleting && setDeleteCandidate(null)}>
-          <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-delete-title" aria-describedby="list-delete-description" onMouseDown={(event) => event.stopPropagation()}>
-            <span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span>
+      {archiveCandidate ? (
+        <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
+          <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-archive-title" aria-describedby="list-archive-description" onMouseDown={(event) => event.stopPropagation()}>
+            <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
             <div>
-              <h2 id="list-delete-title">Excluir Lista</h2>
-              <p id="list-delete-description">Tem certeza de que deseja excluir “{deleteCandidate.title}”? Esta ação não pode ser desfeita.</p>
+              <h2 id="list-archive-title">Arquivar este item?</h2>
+              <p id="list-archive-description">Ele deixará de aparecer normalmente, mas poderá ser restaurado posteriormente.</p>
               {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
             </div>
             <div className="area-modal-actions">
-              <button className="secondary-action" type="button" onClick={() => setDeleteCandidate(null)} disabled={isDeleting}>Cancelar</button>
-              <button className="danger-action" type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
-                {isDeleting ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Trash2 size={19} aria-hidden="true" />}
-                Excluir Lista
+              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving}>Cancelar</button>
+              <button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>
+                {isArchiving ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Archive size={19} aria-hidden="true" />}
+                Arquivar
               </button>
             </div>
           </section>
         </div>
       ) : null}
+
+      {selectedArchivedList ? <ArchivedListDetails item={selectedArchivedList} onClose={() => setSelectedArchivedList(null)} onChanged={loadLists} /> : null}
     </section>
   )
 }

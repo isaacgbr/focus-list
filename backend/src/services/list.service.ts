@@ -61,9 +61,25 @@ class ListService {
 
   // Exclui uma Lista.
   async delete(id: number) {
-    await this.findById(id);
+    const list = await listRepository.findAnyById(id);
+
+    if (!list) throw new Error("Lista não encontrada.");
+    if (!list.archivedAt) throw new Error("A Lista deve ser arquivada antes da exclusão definitiva.");
 
     return listRepository.delete(id);
+  }
+
+  async archive(id: number) {
+    await this.findById(id);
+    return listRepository.archive(id);
+  }
+
+  async restore(id: number) {
+    const list = await listRepository.findAnyById(id);
+    if (!list) throw new Error("Lista não encontrada.");
+    if (!list.archivedAt) throw new Error("A Lista não está arquivada.");
+    if (list.area.archivedAt) throw new Error("Restaure a Área antes de restaurar esta Lista.");
+    return listRepository.restore(id);
   }
 }
 

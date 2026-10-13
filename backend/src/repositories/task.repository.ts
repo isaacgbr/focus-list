@@ -14,6 +14,7 @@ class TaskRepository {
   // Retorna todas as Tarefas ordenadas por título.
   async findAll() {
     return prisma.task.findMany({
+      where: { archivedAt: null, list: { archivedAt: null, area: { archivedAt: null } } },
       orderBy: {
         title: "asc",
       },
@@ -22,8 +23,15 @@ class TaskRepository {
 
   // Busca uma Tarefa pelo ID.
   async findById(id: number) {
+    return prisma.task.findFirst({
+      where: { id, archivedAt: null, list: { archivedAt: null, area: { archivedAt: null } } },
+    });
+  }
+
+  async findAnyById(id: number) {
     return prisma.task.findUnique({
       where: { id },
+      include: { list: { include: { area: true } } },
     });
   }
 
@@ -47,6 +55,14 @@ class TaskRepository {
     return prisma.task.delete({
       where: { id },
     });
+  }
+
+  async archive(id: number) {
+    return prisma.task.update({ where: { id }, data: { archivedAt: new Date() } });
+  }
+
+  async restore(id: number) {
+    return prisma.task.update({ where: { id }, data: { archivedAt: null } });
   }
 }
 

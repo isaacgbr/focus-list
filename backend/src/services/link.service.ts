@@ -45,7 +45,12 @@ class LinkService {
 
   // Atualiza um Link.
   async update(id: number, data: LinkData) {
-    await this.findById(id);
+    const link = await this.findById(id);
+    const currentTask = await taskRepository.findById(link.taskId);
+
+    if (!currentTask) {
+      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+    }
 
     if (data.taskId !== undefined) {
       const task = await taskRepository.findById(data.taskId);
@@ -60,7 +65,12 @@ class LinkService {
 
   // Exclui um Link.
   async delete(id: number) {
-    await this.findById(id);
+    const link = await this.findById(id);
+    const task = await taskRepository.findById(link.taskId);
+
+    if (!task) {
+      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+    }
 
     return linkRepository.delete(id);
   }

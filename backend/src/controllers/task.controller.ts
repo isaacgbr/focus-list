@@ -63,6 +63,18 @@ class TaskController {
       next(error);
     }
   }
+
+  async archive(req: Request, res: Response, next: NextFunction) {
+    try {
+      return res.status(200).json(await taskService.archive(Number(req.params.id)));
+    } catch (error) { next(error); }
+  }
+
+  async restore(req: Request, res: Response, next: NextFunction) {
+    try {
+      return res.status(200).json(await taskService.restore(Number(req.params.id)));
+    } catch (error) { next(error); }
+  }
 }
 
 export default new TaskController();

@@ -1,196 +1,98 @@
-# Documentação do Projeto
+# Especificação Funcional
 
-## 03. Especificação Funcional
+Este documento diferencia explicitamente o que está implementado, aprovado e planejado.
 
-Este documento descreve o comportamento esperado das principais funcionalidades do sistema.
+## Dashboard — implementado
 
-------------------------------------------------------------------------
+- Consome Áreas, Listas e Tarefas reais da API.
+- Exibe carregamento, erro com nova tentativa e Estado Vazio Inteligente.
+- Sem Áreas, orienta criar a primeira Área.
+- Com Área e sem Listas, orienta criar a primeira Lista.
+- Com Lista e sem Tarefas, orienta criar a primeira Tarefa.
+- Com Tarefas, exibe indicadores de vencidas, vencimento hoje e próximos sete dias, além de agrupamentos de pendentes.
+- Permite abrir os detalhes de uma Tarefa.
 
-## Dashboard
+## Áreas — implementado
 
-### Objetivo
+- criar, consultar e editar;
+- arquivar com confirmação;
+- abrir suas Listas;
+- editar também quando arquivada;
+- restaurar ou excluir definitivamente pela Central de Arquivados.
 
-Servir como ponto inicial da aplicação.
+Campos: título obrigatório; descrição, cor e ícone opcionais.
 
-### Funcionalidades
+## Listas — implementado
 
-- Exibir Áreas existentes.
-- Exibir Área "Avulsas".
-- Acesso rápido às Áreas.
-- Criar uma nova Área.
+- criar dentro de uma Área, consultar e editar;
+- arquivar com confirmação;
+- abrir suas Tarefas;
+- editar também quando arquivada;
+- restaurar ou excluir definitivamente pela Central de Arquivados.
 
-### Estados do Dashboard
+Campos: título e Área obrigatórios; descrição opcional.
 
-O Dashboard do Frontend MVP possui dois estados:
+## Tarefas — implementado
 
-#### Estado Vazio Inteligente
+- criar e editar título, descrição, prazo e prioridade;
+- marcar como concluída ou reabrir;
+- mover para outra Lista pela API;
+- arquivar com confirmação;
+- editar normalmente quando arquivada, incluindo status, prioridade, prazo, checklist e links;
+- restaurar ou excluir definitivamente pela Central de Arquivados.
 
-Enquanto não existir nenhuma Tarefa, o Dashboard não deve exibir apenas
-cards vazios ou estatísticas zeradas. O sistema deve orientar o usuário
-para a próxima ação necessária, de acordo com os dados existentes:
+Os detalhes mostram datas de criação, última atualização e conclusão, quando existente. A interface preenche ou remove `completedAt` ao alternar a conclusão; a API também aceita atualização direta de `completed` e `completedAt`.
 
-- Sem Áreas: incentivar a criação da primeira Área.
-- Com Área, mas sem Listas: incentivar a criação da primeira Lista.
-- Com Lista, mas sem Tarefas: incentivar a criação da primeira Tarefa.
+## Checklist — implementado
 
-#### Dashboard Completo
+- adicionar, editar e remover itens;
+- marcar ou desmarcar cada item;
+- exibir progresso;
+- recolher e expandir a seção.
 
-Após existir pelo menos uma Tarefa, o sistema deve exibir o Dashboard
-completo.
+## Links — implementado
 
-------------------------------------------------------------------------
+- adicionar, editar e remover links;
+- exibir o título como acesso ao endereço;
+- recolher e expandir a seção.
 
-## Áreas
+## Central de Arquivados — implementado e aprovado
 
-### Objetivo
+- central única para Área, Lista e Tarefa;
+- ordenação por data de arquivamento, da mais recente para a mais antiga;
+- cards com tipo, contexto, contagens aplicáveis e data;
+- descendentes ocultos quando o pai está arquivado;
+- visualização e edição do conteúdo arquivado;
+- restauração que respeita a hierarquia;
+- exclusão definitiva somente para itens arquivados.
 
-Organizar diferentes contextos do usuário.
+Arquivar o pai não grava `archivedAt` nos filhos: eles ficam ocultos da organização ativa e são acessados pelo contexto do pai. Ao restaurar o pai, os filhos que não foram arquivados diretamente voltam a aparecer.
 
-### Funcionalidades
+## Tela Sobre — aprovada, não implementada
 
-- Criar Área.
-- Editar Área.
-- Excluir Área.
-- Abrir Área.
+Estrutura oficial da Etapa 16:
 
-Cada Área pode possuir várias Listas.
+1. Hero;
+2. O que é;
+3. Como funciona;
+4. Recursos principais;
+5. Desenvolvido por.
 
-------------------------------------------------------------------------
+Regras aprovadas:
 
-## Listas
+- sem versão no Hero;
+- versão somente no rodapé;
+- descrições extremamente curtas em Recursos principais;
+- autoria: Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, GitHub e LinkedIn;
+- visual definido em `PROTOTIPO_SOBRE_V1_APROVADO.png`.
 
-### Objetivo
+## Identidade Visual — aprovada, aplicação pendente
 
-Agrupar tarefas relacionadas.
+A Etapa 17 aprovou o Conceito A: organização por camadas, visual 3D minimalista, azul como cor principal e aparência premium e moderna. Check, prancheta, calendário e lista não devem ser usados como símbolo principal.
 
-### Funcionalidades
+## Não implementado
 
-- Criar Lista.
-- Editar Lista.
-- Excluir Lista.
-- Alternar entre visualização em Lista e Cards.
-- Abrir Lista.
-
-Cada Lista pertence obrigatoriamente a uma Área e pode possuir várias Tarefas.
-
-------------------------------------------------------------------------
-
-## Tarefas
-
-### Objetivo
-
-Representar uma atividade que o usuário deseja realizar ou acompanhar.
-
-### Funcionalidades
-
-- Criar.
-- Editar.
-- Concluir.
-- Reabrir.
-- Mover para outra Lista.
-- Excluir.
-
-Cada Tarefa:
-
-- pertence obrigatoriamente a uma Lista;
-- possui Título obrigatório;
-- pode possuir Descrição;
-- pode possuir Prazo;
-- pode possuir Prioridade;
-- pode possuir Checklist;
-- pode possuir Links de referência.
-
-No backend atual, conclusão e reabertura são realizadas pela atualização
-dos campos `completed` e `completedAt`. Não existe endpoint dedicado para
-essas ações nem preenchimento automático de `completedAt`.
-
-------------------------------------------------------------------------
-
-## Checklist
-
-### Objetivo
-
-Dividir uma tarefa em pequenas etapas.
-
-### Funcionalidades
-
-- Adicionar itens.
-- Editar itens.
-- Remover itens.
-- Marcar como concluído.
-- Exibir progresso (% e itens concluídos).
-- Recolher/expandir.
-- Rolagem interna quando necessário.
-
-O Checklist é opcional.
-
-------------------------------------------------------------------------
-
-## Links
-
-### Objetivo
-
-Relacionar materiais de apoio à tarefa.
-
-### Funcionalidades
-
-- Adicionar links.
-- Editar links.
-- Remover links.
-- Exibir apenas o título.
-- Recolher/expandir.
-- Rolagem interna quando necessário.
-
-Os Links são opcionais.
-
-------------------------------------------------------------------------
-
-## Visualização
-
-### Lista
-
-Exibe as tarefas em formato de linhas, priorizando leitura e organização.
-
-### Cards
-
-Exibe as mesmas tarefas em formato de cartões, priorizando visualização.
-
-Ambas apresentam exatamente as mesmas informações.
-
-------------------------------------------------------------------------
-
-## Detalhes da Tarefa
-
-A edição ocorre em um modal.
-
-Permite alterar:
-
-- Título.
-- Descrição.
-- Prazo.
-- Prioridade.
-- Checklist.
-- Links.
-
-Também exibe:
-
-- Data de criação.
-- Data da última atualização.
-- Data de conclusão (quando existir).
-
-------------------------------------------------------------------------
-
-## Modais
-
-O sistema utiliza modais para:
-
-- Nova Área.
-- Nova Lista.
-- Nova Tarefa.
-- Detalhes da Tarefa.
-
-Todos seguem o mesmo padrão visual e mantêm o contexto da tela principal.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.4
+- Landing Page, planejada para a publicação da V1;
+- visualização de Tarefas em Cards;
+- fluxo de Avulsas;
+- tela Sobre e aplicação final da nova identidade visual.

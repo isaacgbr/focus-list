@@ -1,101 +1,66 @@
-# Documentação do Projeto
+# Roadmap
 
-## 07. Roadmap
+O roadmap separa entregas concluídas, decisões aprovadas ainda pendentes e ideias futuras.
 
-Este documento apresenta a evolução planejada do projeto. Seu objetivo é orientar o crescimento da aplicação sem comprometer o escopo do MVP.
+## Concluído
 
-------------------------------------------------------------------------
+- estrutura de frontend e backend;
+- API REST e persistência PostgreSQL;
+- CRUD de Áreas, Listas, Tarefas, itens de checklist e links;
+- integração do frontend com dados reais;
+- Dashboard e Estado Vazio Inteligente;
+- telas de Área, Lista e detalhes da Tarefa;
+- checklist, links, prazo, prioridade e conclusão de Tarefas;
+- fluxo completo de Arquivados aprovado: central única, hierarquia, edição, restauração e exclusão definitiva.
 
-## MVP
+## Aprovado e pendente de implementação
 
-Objetivo: entregar uma versão funcional e utilizável.
+### Etapa 16 — Tela Sobre
 
-### Estado atual
+- Hero;
+- O que é;
+- Como funciona;
+- Recursos principais com descrições extremamente curtas;
+- Desenvolvido por Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, com GitHub e LinkedIn;
+- versão removida do Hero e mantida apenas no rodapé;
+- visual aprovado em `PROTOTIPO_SOBRE_V1_APROVADO.png`.
 
-O Backend MVP está concluído, com API REST e persistência PostgreSQL implementadas para Áreas, Listas, Tarefas, Itens de Checklist e Links.
+### Etapa 17 — Identidade Visual
 
-O Frontend já possui estrutura base, Dashboard (Estado Vazio Inteligente e Dashboard Completo utilizando dados mockados) e refinamentos visuais iniciais.
+- Conceito A;
+- organização por camadas;
+- visual 3D minimalista;
+- azul como cor principal;
+- aparência premium e moderna;
+- sem check, prancheta, calendário ou lista como símbolo principal;
+- conceito aprovado em `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png`.
 
-A próxima etapa é integrar o Frontend à API, substituindo gradualmente os dados simulados por dados reais.
+### Pendências da V1
 
-### Funcionalidades
+- implementar visualização em Cards conforme protótipo aprovado;
+- definir e implementar o fluxo de Avulsas ou remover o placeholder;
+- aplicar a identidade visual oficial;
+- implementar a Tela Sobre;
+- implementar a Landing Page para a publicação da V1;
+- validar responsividade;
+- realizar o deploy.
 
-- Dashboard — frontend concluído (mock)
-- Áreas — backend concluído
-- Listas — backend concluído
-- Tarefas — backend concluído
-- Checklist — backend concluído
-- Links — backend concluído
-- Banco de dados PostgreSQL — concluído no backend
-- API REST — concluída para os módulos do Backend MVP
-- Integração Frontend ↔ API — em andamento
-- Deploy da aplicação
+## V1.1 — possibilidades
 
-------------------------------------------------------------------------
+- pesquisa de Tarefas;
+- filtros avançados;
+- ordenação personalizada;
+- atalhos de produtividade;
+- microanimações e refinamentos de interface.
 
-## Backlog de Refinamento UI
+## Versões futuras — possibilidades
 
-Melhorias planejadas para polimento visual após a conclusão do MVP.
+- login e autenticação;
+- sincronização entre dispositivos;
+- compartilhamento e colaboração;
+- notificações;
+- aplicativo mobile ou PWA;
+- etiquetas e temas;
+- integrações e automações.
 
-- Revisar largura máxima do conteúdo principal.
-- Revisar container central do Dashboard.
-- Ajustar espaçamentos verticais.
-- Validar layout em diferentes resoluções.
-- Validar comportamento em diferentes níveis de zoom.
-- Refinar responsividade.
-- Avaliar sidebar colapsável.
-- Revisar banners conforme período do dia.
-- Adicionar microanimações.
-
-------------------------------------------------------------------------
-
-## Versão 1.1
-
-Melhorias de usabilidade e produtividade.
-
-### Possíveis evoluções
-
-- Pesquisa de tarefas.
-- Filtros avançados.
-- Ordenação personalizada.
-- Melhorias de interface.
-- Atalhos de produtividade.
-
-------------------------------------------------------------------------
-
-## Versão 2
-
-Expansão das funcionalidades.
-
-### Possíveis evoluções
-
-- Login e autenticação.
-- Sincronização entre dispositivos.
-- Compartilhamento de listas.
-- Colaboração entre usuários.
-- Notificações.
-
-------------------------------------------------------------------------
-
-## Ideias Futuras
-
-Estas funcionalidades poderão ser avaliadas futuramente:
-
-- Aplicativo mobile.
-- PWA.
-- Etiquetas.
-- Temas personalizados.
-- Integrações com serviços externos.
-- Automações.
-
-------------------------------------------------------------------------
-
-## Diretrizes
-
-- O MVP deve permanecer simples.
-- Novas funcionalidades devem ser avaliadas antes de entrarem no projeto.
-- A evolução deve ocorrer de forma incremental, preservando a organização e a qualidade do código.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.3
+Itens futuros não estão aprovados para implementação imediata. Qualquer inclusão deve preservar a simplicidade e ser registrada na documentação antes de ser tratada como escopo oficial.

@@ -1,49 +1,31 @@
 # FocusList
 
-> Aplicação web para organização de tarefas, focada em produtividade e simplicidade.
+Aplicação web desktop-first para organização pessoal em uma hierarquia simples de **Áreas → Listas → Tarefas**.
 
----
+## Estado atual
 
-## Sobre
+O núcleo funcional da V1 está em desenvolvimento e já possui frontend integrado à API para:
 
-O **FocusList** é uma aplicação web desenvolvida para ajudar na organização de tarefas de forma simples, intuitiva e organizada.
+- Dashboard com dados reais e estados vazio, carregando e erro;
+- criação e edição de Áreas, Listas e Tarefas;
+- conclusão de Tarefas, prioridades, prazos, checklist e links;
+- Central única de Arquivados para Áreas, Listas e Tarefas;
+- edição, restauração e exclusão definitiva de itens arquivados.
 
-O projeto utiliza uma estrutura baseada em **Áreas**, **Listas** e **Tarefas**, permitindo organizar diferentes contextos do dia a dia, como estudos, trabalho, projetos e atividades pessoais.
+A tela Sobre e a identidade visual oficial estão aprovadas em protótipo, mas ainda não foram implementadas. A Landing Page também não foi implementada e permanece planejada para a publicação da V1. A rota Avulsas ainda é um placeholder.
 
-Além da implementação, o FocusList também foi planejado com foco em boas práticas de documentação, arquitetura e desenvolvimento de software.
+## Stack
 
----
+- Frontend: React 19, TypeScript, Vite, React Router e Axios;
+- Estilos: CSS próprio; Tailwind CSS está instalado no projeto;
+- Backend: Node.js, Express 5 e TypeScript;
+- Dados: PostgreSQL e Prisma 7;
+- Arquitetura: monorepo com frontend e backend em camadas.
 
-## Documentação
-
-Toda a documentação do projeto está disponível na pasta **`docs/`**.
-
-Ela inclui:
-
-- Índice
-- Visão Geral
-- Navegação
-- Especificação Funcional
-- Regras de Negócio
-- Modelo de Dados
-- Arquitetura e Stack
-- Roadmap
-
----
-
-## Status
-
-🚧 Em desenvolvimento. O Backend MVP está concluído para os módulos de
-Áreas, Listas, Tarefas, Itens de Checklist e Links; frontend e deploy
-seguem pendentes.
-
----
-
-## Estrutura do projeto
+## Estrutura
 
 ```text
 FocusList/
-
 ├── assets/
 ├── backend/
 ├── docs/
@@ -53,7 +35,13 @@ FocusList/
 └── README.md
 ```
 
----
+## Documentação
+
+O índice completo e o estado oficial do produto estão em [`docs/00-indice.md`](docs/00-indice.md). As decisões de Produto, UX e identidade visual estão em [`docs/PRODUCT_GUIDELINES.md`](docs/PRODUCT_GUIDELINES.md).
+
+## Execução local
+
+Frontend e backend possuem seus próprios `package.json`. O frontend usa `VITE_API_URL`, com fallback para `http://localhost:3000`; o backend usa `DATABASE_URL` e aceita `PORT`, com fallback para `3000`.
 
 ## Licença
 

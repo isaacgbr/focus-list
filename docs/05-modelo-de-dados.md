@@ -1,163 +1,77 @@
-# Documentação do Projeto
-
-## 05. Modelo de Dados
-
-Este documento descreve o modelo conceitual de dados do projeto.
-
-------------------------------------------------------------------------
-
-## Visão Geral
-
-```text
-Área
-    │
-    └── possui várias Listas
-            │
-            └── possui várias Tarefas
-                    ├── pode possuir vários Itens de Checklist
-                    └── pode possuir vários Links
-```
-
-------------------------------------------------------------------------
-
-## Área
-
-### Objetivo
-
-Representar um contexto de organização (ex.: Faculdade, Trabalho, Pessoal).
-
-### Campos
-
-| Campo | Obrigatório |
-|-------|:-----------:|
-| id | ✅ |
-| title | ✅ |
-| description | |
-| color | |
-| icon | |
-| createdAt | ✅ *(automático)* |
-| updatedAt | ✅ *(automático)* |
-
-------------------------------------------------------------------------
-
-## Lista
-
-### Objetivo
-
-Agrupar tarefas relacionadas dentro de uma Área.
-
-### Campos
-
-| Campo | Obrigatório |
-|-------|:-----------:|
-| id | ✅ |
-| areaId | ✅ |
-| title | ✅ |
-| description | |
-| createdAt | ✅ *(automático)* |
-| updatedAt | ✅ *(automático)* |
-
-### Relação
-
-- Pertence obrigatoriamente a uma Área.
-
-------------------------------------------------------------------------
-
-## Tarefa
-
-### Objetivo
-
-Representar uma atividade que o usuário deseja realizar ou acompanhar.
-
-### Campos
-
-| Campo | Obrigatório |
-|-------|:-----------:|
-| id | ✅ |
-| listId | ✅ |
-| title | ✅ |
-| description | |
-| completed | ✅ *(inicia como false)* |
-| completedAt | |
-| priority | |
-| dueDate | |
-| createdAt | ✅ *(automático)* |
-| updatedAt | ✅ *(automático)* |
-
-### Relação
-
-- Pertence obrigatoriamente a uma Lista.
-
-------------------------------------------------------------------------
-
-## Item de Checklist
-
-### Objetivo
-
-Representar uma etapa da tarefa.
-
-### Campos
-
-| Campo | Obrigatório |
-|-------|:-----------:|
-| id | ✅ |
-| taskId | ✅ |
-| title | ✅ |
-| completed | ✅ *(inicia como false)* |
-| createdAt | ✅ *(automático)* |
-
-### Relação
-
-- Pertence obrigatoriamente a uma Tarefa.
-
-------------------------------------------------------------------------
-
-## Link
-
-### Objetivo
-
-Relacionar materiais de apoio à tarefa.
-
-### Campos
-
-| Campo | Obrigatório |
-|-------|:-----------:|
-| id | ✅ |
-| taskId | ✅ |
-| title | ✅ |
-| url | ✅ |
-| createdAt | ✅ *(automático)* |
-
-### Relação
-
-- Pertence obrigatoriamente a uma Tarefa.
-
-------------------------------------------------------------------------
+# Modelo de Dados
 
 ## Relações
 
-- Uma Área possui várias Listas.
-- Uma Lista pertence a uma Área.
-- Uma Lista possui várias Tarefas.
-- Uma Tarefa pertence a uma Lista.
-- Uma Tarefa pode possuir vários Itens de Checklist.
-- Uma Tarefa pode possuir vários Links.
+```text
+Area 1 ── N List 1 ── N Task 1 ── N ChecklistItem
+                           └────── 1 ── N Link
+```
 
-As relações obrigatórias utilizam exclusão em cascata no banco:
+Todas as chaves primárias são inteiros autoincrementais. As relações obrigatórias usam exclusão em cascata no banco.
 
-- Excluir uma Área remove suas Listas e todos os registros descendentes.
-- Excluir uma Lista remove suas Tarefas, Itens de Checklist e Links.
-- Excluir uma Tarefa remove seus Itens de Checklist e Links.
+## Area
 
-------------------------------------------------------------------------
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `title` | `String` | obrigatório |
+| `description` | `String?` | opcional |
+| `color` | `String?` | opcional |
+| `icon` | `String?` | opcional |
+| `createdAt` | `DateTime` | automático |
+| `updatedAt` | `DateTime` | automático |
+| `archivedAt` | `DateTime?` | nulo enquanto ativa |
 
-## Observações
+## List
 
-Os IDs são inteiros autoincrementais. A prioridade, quando informada,
-aceita `LOW`, `MEDIUM` ou `HIGH`. O modelo atual não diferencia uma Área
-ou Lista "Avulsas" por campo, restrição ou registro criado
-automaticamente.
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `title` | `String` | obrigatório |
+| `description` | `String?` | opcional |
+| `createdAt` | `DateTime` | automático |
+| `updatedAt` | `DateTime` | automático |
+| `archivedAt` | `DateTime?` | nulo enquanto ativa |
+| `areaId` | `Int` | Área obrigatória |
 
-------------------------------------------------------------------------
+## Task
 
-**Versão:** 0.3
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `title` | `String` | obrigatório |
+| `description` | `String?` | opcional |
+| `dueDate` | `DateTime?` | opcional |
+| `priority` | `Priority?` | `LOW`, `MEDIUM` ou `HIGH` |
+| `completed` | `Boolean` | padrão `false` |
+| `completedAt` | `DateTime?` | opcional |
+| `createdAt` | `DateTime` | automático |
+| `updatedAt` | `DateTime` | automático |
+| `archivedAt` | `DateTime?` | nulo enquanto ativa |
+| `listId` | `Int` | Lista obrigatória |
+
+## ChecklistItem
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `title` | `String` | obrigatório |
+| `completed` | `Boolean` | padrão `false` |
+| `createdAt` | `DateTime` | automático |
+| `taskId` | `Int` | Tarefa obrigatória |
+
+## Link
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `title` | `String` | obrigatório |
+| `url` | `String` | obrigatório |
+| `createdAt` | `DateTime` | automático |
+| `taskId` | `Int` | Tarefa obrigatória |
+
+## Semântica de arquivamento
+
+`archivedAt` existe apenas em Área, Lista e Tarefa. Arquivar um pai registra a data somente no pai; os descendentes são ocultados por consultas que consideram toda a hierarquia. Por isso, um filho com `archivedAt = null` pode estar invisível enquanto seu pai estiver arquivado.
+
+O modelo não possui entidade especial para Avulsas e não cria automaticamente uma Área ou Lista com esse nome.

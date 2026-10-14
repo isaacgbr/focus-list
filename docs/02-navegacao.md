@@ -1,125 +1,54 @@
-# Documentação do Projeto
+# Navegação
 
-## 02. Navegação
+## Fluxo principal implementado
 
-Este documento descreve como o usuário navega pela aplicação e como as
-principais telas se conectam.
-
-------------------------------------------------------------------------
-
-## Fluxo Principal
-
-``` text
+```text
 Dashboard
-    ↓
-Selecionar Área
-    ↓
-Selecionar Lista
-    ↓
-Gerenciar Tarefas
-    ↓
-Abrir Detalhes da Tarefa
+└── Área
+    └── Lista
+        └── Detalhes da Tarefa
 ```
 
-------------------------------------------------------------------------
+- O Dashboard é a rota inicial (`/`).
+- Uma Área abre em `/areas/:areaId`.
+- Uma Lista abre em `/areas/:areaId/listas/:listId`.
+- Os detalhes de uma Tarefa abrem em modal, preservando o contexto da Lista.
+- Criação e edição de entidades também usam modais.
 
-## Fluxos Secundários
+## Central de Arquivados
 
-### Criar uma Área
+A aplicação possui uma única entrada **Arquivados**, em `/arquivados`.
 
-``` text
-Dashboard
-    ↓
-Nova Área
-    ↓
-Área criada
+```text
+Central de Arquivados
+├── Área arquivada → /arquivados/areas/:areaId
+├── Lista arquivada → /arquivados/listas/:listId
+└── Tarefa arquivada → /arquivados/tarefas/:taskId
 ```
 
-### Criar uma Lista
+A central lista somente itens arquivados diretamente. Quando um pai está arquivado, seus filhos acompanham seu contexto e não aparecem como entradas independentes. Ao abrir um item, a aplicação reutiliza a experiência da entidade ativa, com aviso de modo arquivado e edição habilitada.
 
-``` text
-Área
-    ↓
-Nova Lista
-    ↓
-Lista criada
+Restauração e exclusão definitiva são iniciadas na Central de Arquivados. Uma Lista só pode ser restaurada com sua Área ativa; uma Tarefa só pode ser restaurada com sua Lista e Área ativas.
+
+## Fluxos de criação
+
+```text
+Dashboard ou sidebar → Nova Área → Área criada
+Área → Nova Lista → Lista criada
+Lista → Nova Tarefa → Tarefa criada como A fazer
 ```
 
-### Criar uma Tarefa
+## Dashboard
 
-``` text
-Lista
-    ↓
-Nova Tarefa
-    ↓
-Tarefa criada (Status: A fazer)
-```
+Enquanto não há Tarefas, o Dashboard orienta a criação da próxima entidade necessária. Quando existem Tarefas, apresenta indicadores e agrupamentos com dados reais. Uma Tarefa pode ser aberta diretamente pelo Dashboard.
 
-### Editar uma Tarefa
+## Rotas incompletas
 
-``` text
-Lista
-    ↓
-Detalhes da Tarefa
-    ↓
-Salvar alterações automaticamente
-```
+- `/avulsas`: placeholder; não há fluxo funcional de Avulsas.
+- `/configuracoes`: placeholder legado; a funcionalidade foi descartada da V1 e substituída pela Tela Sobre.
+- Tela Sobre: aprovada, mas ainda sem rota ou implementação.
+- Landing Page: planejada para a publicação da V1, ainda sem rota ou implementação.
 
-------------------------------------------------------------------------
+## Modos de visualização
 
-## Modos de Visualização
-
-Cada Lista pode ser exibida de duas formas:
-
--   Visualização em Lista
--   Visualização em Cards
-
-A troca de visualização não altera os dados da Lista.
-
-------------------------------------------------------------------------
-
-## Área Especial
-
-Existe uma Área especial chamada **Avulsas**.
-
-Ela é destinada a tarefas rápidas ou temporárias, mantendo a mesma
-estrutura de Listas e Tarefas das demais Áreas.
-
-------------------------------------------------------------------------
-
-## Modais
-
-Os seguintes processos utilizam modais:
-
--   Nova Área
--   Nova Lista
--   Nova Tarefa
--   Detalhes da Tarefa
-
-Ao abrir um modal:
-
--   O conteúdo ao fundo permanece visível.
--   O fundo recebe um leve desfoque.
--   O foco permanece no modal até seu fechamento.
-
-------------------------------------------------------------------------
-
-## Navegação Geral
-
--   Dashboard é o ponto inicial.
--   Toda Lista pertence a uma Área.
--   Toda Tarefa pertence a uma Lista.
--   Os detalhes são acessados sem sair da Lista, por meio de um modal.
-
-------------------------------------------------------------------------
-
-## Convenções
-
--   Evitar mudanças de tela desnecessárias.
--   Priorizar ações rápidas.
--   Manter o contexto do usuário durante a navegação.
--   Utilizar modais sempre que possível para ações de criação e edição.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.1
+A lista de Tarefas possui atualmente apenas visualização em lista. O modo Cards tem protótipo aprovado, mas ainda não está implementado.

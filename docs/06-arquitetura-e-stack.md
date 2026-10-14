@@ -1,248 +1,108 @@
-# Documentação do Projeto
+# Arquitetura e Stack
 
-## 06. Arquitetura e Stack
+## Visão geral
 
-Este documento registra a arquitetura adotada, o fluxo do backend e a
-estrutura atual da API do projeto.
+O FocusList é um monorepo com aplicações independentes de frontend e backend.
 
-------------------------------------------------------------------------
-
-## Objetivo
-
-Construir uma aplicação organizada, escalável e de fácil manutenção,
-utilizando tecnologias amplamente adotadas pelo mercado.
-
-------------------------------------------------------------------------
-
-## Stack Oficial
-
-  Camada               Tecnologia
-  -------------------- -------------------
-  Frontend             React + Vite
-  Linguagem            TypeScript
-  Estilização          Tailwind CSS
-  Backend              Node.js + Express 5
-  API                  REST
-  ORM                  Prisma 7
-  Banco de Dados       PostgreSQL
-  Controle de Versão   Git + GitHub
-
-------------------------------------------------------------------------
-
-## Arquitetura
-
-O projeto está organizado em formato **Monorepo**, separando claramente
-frontend e backend.
-
-``` text
-FocusList/
-
-├── frontend/
-├── backend/
-├── docs/
-├── prototipos/
-└── README.md
-```
-
-------------------------------------------------------------------------
-
-## Comunicação
-
-``` text
-Frontend (React)
-        │
-        ▼
-API REST (Express)
-        │
-        ▼
-Prisma
-        │
-        ▼
+```text
+React + Vite
+      ↓ HTTP/JSON
+Express REST API
+      ↓
+Services
+      ↓
+Repositories
+      ↓
+Prisma 7
+      ↓
 PostgreSQL
 ```
 
-O frontend nunca acessa o banco diretamente.
+## Tecnologias atuais
 
-------------------------------------------------------------------------
+| Camada | Tecnologia |
+|---|---|
+| Frontend | React 19, TypeScript, Vite 6 |
+| Navegação | React Router 7 |
+| Cliente HTTP | Axios |
+| Ícones | Lucide React |
+| Estilos | CSS próprio; Tailwind CSS 4 instalado |
+| Backend | Node.js, Express 5, TypeScript |
+| ORM | Prisma 7 com adapter PostgreSQL |
+| Banco | PostgreSQL |
+| Controle de versão | Git e GitHub |
 
 ## Frontend
 
-Responsável por:
+O frontend separa componentes, layouts, páginas, rotas e serviços de API. `VITE_API_URL` define a base da API; o fallback é `http://localhost:3000`.
 
--   Interface do usuário;
--   Navegação;
--   Consumo da API;
--   Validações visuais;
--   Experiência do usuário.
+Rotas implementadas:
 
-------------------------------------------------------------------------
+| Rota | Estado |
+|---|---|
+| `/` | Dashboard funcional |
+| `/areas/:areaId` | Listas da Área |
+| `/areas/:areaId/listas/:listId` | Tarefas da Lista |
+| `/arquivados` | Central de Arquivados |
+| `/arquivados/areas/:areaId` | Área arquivada |
+| `/arquivados/listas/:listId` | Lista arquivada |
+| `/arquivados/tarefas/:taskId` | Tarefa arquivada |
+| `/avulsas` | placeholder |
+| `/configuracoes` | placeholder legado; funcionalidade descartada da V1 |
+
+Não há rota implementada para Sobre ou Landing Page.
 
 ## Backend
 
-Responsável por:
-
--   Regras de negócio;
--   Validação dos dados;
--   Comunicação com o banco;
--   Endpoints da API.
-
-Arquitetura implementada:
-
-``` text
-Routes
-    ↓
-Controllers
-    ↓
-Services
-    ↓
-Repositories
-    ↓
-Prisma
-    ↓
-PostgreSQL
+```text
+Route → Controller → Service → Repository → Prisma → PostgreSQL
 ```
 
-### Fluxo de uma requisição
-
-``` text
-Requisição HTTP
-    ↓
-Route seleciona o Controller
-    ↓
-Controller converte parâmetros e define a resposta HTTP
-    ↓
-Service valida regras e existência das relações
-    ↓
-Repository executa a operação pelo Prisma
-    ↓
-PostgreSQL persiste ou retorna os dados
-```
-
-Erros lançados pelas camadas são encaminhados ao middleware global, que
-responde com status `400` e o corpo `{ "message": "..." }`.
-
-------------------------------------------------------------------------
-
-## Estrutura do Backend
-
-``` text
-backend/
-├── prisma/
-│   ├── migrations/
-│   └── schema.prisma
-└── src/
-    ├── config/
-    ├── controllers/
-    ├── middlewares/
-    ├── repositories/
-    ├── routes/
-    ├── services/
-    ├── app.ts
-    └── server.ts
-```
-
-O servidor usa a porta definida em `PORT`, com fallback para `3000`, e
-a conexão PostgreSQL usa `DATABASE_URL`. CORS e leitura de corpos JSON
-estão habilitados globalmente.
-
-------------------------------------------------------------------------
+- Routes definem método e caminho.
+- Controllers convertem parâmetros e respostas HTTP.
+- Services aplicam validações e regras de negócio.
+- Repositories concentram consultas Prisma.
+- O middleware global responde erros com status `400` e `{ "message": "..." }`.
+- CORS e JSON estão habilitados globalmente.
+- `PORT` possui fallback para `3000`; a conexão usa `DATABASE_URL`.
 
 ## API REST
 
-Não há prefixo global de versão. Os módulos de Áreas, Listas, Tarefas,
-Itens de Checklist e Links seguem o mesmo conjunto de operações:
+Não existe prefixo global de versão.
 
-| Método | Rota | Resultado em caso de sucesso |
-|--------|------|------------------------------|
-| GET | `/areas` | Lista todas as Áreas (`200`) |
-| GET | `/areas/:id` | Consulta uma Área (`200`) |
-| POST | `/areas` | Cria uma Área (`201`) |
-| PUT | `/areas/:id` | Atualiza uma Área (`200`) |
-| DELETE | `/areas/:id` | Exclui uma Área (`204`) |
-| GET | `/lists` | Lista todas as Listas (`200`) |
-| GET | `/lists/:id` | Consulta uma Lista (`200`) |
-| POST | `/lists` | Cria uma Lista (`201`) |
-| PUT | `/lists/:id` | Atualiza uma Lista (`200`) |
-| DELETE | `/lists/:id` | Exclui uma Lista (`204`) |
-| GET | `/tasks` | Lista todas as Tarefas (`200`) |
-| GET | `/tasks/:id` | Consulta uma Tarefa (`200`) |
-| POST | `/tasks` | Cria uma Tarefa (`201`) |
-| PUT | `/tasks/:id` | Atualiza uma Tarefa (`200`) |
-| DELETE | `/tasks/:id` | Exclui uma Tarefa (`204`) |
-| GET | `/checklist-items` | Lista todos os Itens de Checklist (`200`) |
-| GET | `/checklist-items/:id` | Consulta um Item de Checklist (`200`) |
-| POST | `/checklist-items` | Cria um Item de Checklist (`201`) |
-| PUT | `/checklist-items/:id` | Atualiza um Item de Checklist (`200`) |
-| DELETE | `/checklist-items/:id` | Exclui um Item de Checklist (`204`) |
-| GET | `/links` | Lista todos os Links (`200`) |
-| GET | `/links/:id` | Consulta um Link (`200`) |
-| POST | `/links` | Cria um Link (`201`) |
-| PUT | `/links/:id` | Atualiza um Link (`200`) |
-| DELETE | `/links/:id` | Exclui um Link (`204`) |
+### Recursos principais
 
-O endpoint `GET /health` retorna status `200` com o estado da API.
+| Método | Rota | Resultado |
+|---|---|---|
+| `GET` | `/health` | saúde da API |
+| `GET/POST` | `/areas` | listar/criar Áreas ativas |
+| `GET/PUT/DELETE` | `/areas/:id` | consultar/editar/excluir Área |
+| `PATCH` | `/areas/:id/archive` | arquivar Área |
+| `PATCH` | `/areas/:id/restore` | restaurar Área |
+| `GET/POST` | `/lists` | listar/criar Listas ativas |
+| `GET/PUT/DELETE` | `/lists/:id` | consultar/editar/excluir Lista |
+| `PATCH` | `/lists/:id/archive` | arquivar Lista |
+| `PATCH` | `/lists/:id/restore` | restaurar Lista |
+| `GET/POST` | `/tasks` | listar/criar Tarefas ativas |
+| `GET/PUT/DELETE` | `/tasks/:id` | consultar/editar/excluir Tarefa |
+| `PATCH` | `/tasks/:id/archive` | arquivar Tarefa |
+| `PATCH` | `/tasks/:id/restore` | restaurar Tarefa |
+| `GET/POST` | `/checklist-items` | listar/criar itens |
+| `GET/PUT/DELETE` | `/checklist-items/:id` | consultar/editar/excluir item |
+| `GET/POST` | `/links` | listar/criar links |
+| `GET/PUT/DELETE` | `/links/:id` | consultar/editar/excluir link |
 
-### Corpos de criação
+### Leitura de arquivados
 
-| Recurso | Campos obrigatórios | Campos opcionais |
-|---------|---------------------|------------------|
-| Área | `title` | `description`, `color`, `icon` |
-| Lista | `title`, `areaId` | `description` |
-| Tarefa | `title`, `listId` | `description`, `dueDate`, `priority`, `completed`, `completedAt` |
-| Item de Checklist | `title` ou `text`, `taskId` | `completed` |
-| Link | `title`, `url`, `taskId` | — |
+| Método | Rota | Resultado |
+|---|---|---|
+| `GET` | `/archived` | central com itens arquivados diretamente |
+| `GET` | `/archived/areas/:id` | Área arquivada e descendentes |
+| `GET` | `/archived/lists/:id` | Lista em contexto arquivado e Tarefas |
+| `GET` | `/archived/tasks/:id` | Tarefa em contexto arquivado, checklist e links |
 
-As atualizações usam os mesmos campos de forma opcional e podem alterar
-a relação por `areaId`, `listId` ou `taskId`. O backend verifica a
-existência do registro pai antes de criar ou mover um recurso. As
-listagens são ordenadas por `title` em ordem crescente e retornam apenas
-os campos do próprio recurso, sem inclusão automática das relações.
-
-Na criação, títulos vazios são rejeitados em todos os módulos e a URL do
-Link também não pode ser vazia. Não há validação de formato da URL. As
-atualizações atuais não repetem as validações de conteúdo dos campos.
-
-------------------------------------------------------------------------
-
-## Banco de Dados
-
--   PostgreSQL desde o MVP.
--   Prisma como ORM.
--   Estrutura baseada no modelo de dados definido em
-    `05-modelo-de-dados.md`.
-
-------------------------------------------------------------------------
+Os `DELETE` de Área, Lista e Tarefa somente aceitam registros previamente arquivados. As exclusões de checklist e link permanecem operações de edição da Tarefa.
 
 ## Deploy
 
-Frontend: - Vercel
-
-Backend: - Render
-
-Banco: - PostgreSQL
-
-------------------------------------------------------------------------
-
-## Decisões Técnicas
-
--   Desktop-first.
--   Responsividade como evolução contínua.
--   Sem login no MVP.
--   Persistência em banco desde a primeira versão.
--   Código em TypeScript.
--   Interface construída com Tailwind CSS.
-
-------------------------------------------------------------------------
-
-## Princípios
-
--   Simplicidade.
--   Organização em camadas.
--   Baixo acoplamento.
--   Código reutilizável.
--   Documentação atualizada.
--   Evolução incremental.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.2
+Ainda não realizado. O planejamento atual considera Vercel para o frontend, Render para o backend e PostgreSQL para persistência.

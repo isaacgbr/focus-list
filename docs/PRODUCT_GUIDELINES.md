@@ -1,87 +1,19 @@
 # Diretrizes de Produto do FocusList
 
-Este documento consolida a filosofia, os princípios de experiência do usuário e as decisões de interface já aprovadas para o FocusList. Ele deve orientar o planejamento, o design, a implementação e a revisão de todas as evoluções do produto.
+Este documento é a fonte oficial para decisões de Produto, UX e identidade visual. Em caso de divergência, deve ser atualizado junto da decisão aprovada antes de orientar uma implementação.
 
-## Filosofia do Produto
+## Filosofia
 
-### Objetivo
+O FocusList ajuda pessoas a organizar tarefas e prioridades com clareza, foco e baixo esforço.
 
-O FocusList tem como objetivo ajudar pessoas a organizar tarefas e prioridades com clareza, foco e baixo esforço, tornando simples entender o que precisa ser feito e acompanhar o próprio progresso.
+- simplicidade acima da quantidade de funcionalidades;
+- interface limpa, moderna e objetiva;
+- fluxos previsíveis e fáceis de aprender;
+- informações apenas quando relevantes ao contexto;
+- feedback claro para ações, estados e resultados;
+- consistência de linguagem, comportamento e apresentação.
 
-### Público-alvo
-
-O produto é destinado a pessoas que buscam uma ferramenta direta, moderna e confiável para organizar suas atividades, sem a complexidade e a sobrecarga visual comuns em soluções com excesso de funcionalidades.
-
-### Princípios do produto
-
-- Colocar simplicidade acima da quantidade de funcionalidades.
-- Manter uma interface limpa, moderna e objetiva.
-- Priorizar a experiência do usuário em todas as decisões.
-- Tornar cada funcionalidade fácil de compreender e usar.
-- Introduzir novos recursos apenas quando contribuírem claramente para o propósito do produto.
-
-## Princípios de UX
-
-- Evitar poluição visual.
-- Exibir apenas informações realmente necessárias para o contexto atual.
-- Priorizar fluxos intuitivos, previsíveis e fáceis de aprender.
-- Minimizar a quantidade de cliques sem comprometer a clareza das ações.
-- Manter consistência de comportamento, linguagem e apresentação entre todas as telas.
-- Oferecer feedback claro sobre ações, estados e resultados.
-
-## Navegação
-
-- Clicar em uma tarefa deve abrir sua tela de Detalhes.
-- A edição de uma tarefa deve acontecer exclusivamente na tela de Detalhes.
-- A listagem de tarefas deve servir apenas para navegação rápida e marcação de conclusão.
-- Breadcrumbs devem representar de forma clara e fiel o contexto atual do usuário.
-
-## Interface
-
-- Evitar botões permanentes de editar e excluir.
-- Priorizar menus contextuais (`⋯`) para ações secundárias.
-- Botões devem permanecer desabilitados quando não puderem ser utilizados.
-- Estados vazios devem orientar o usuário sobre o contexto e o próximo passo possível.
-- Modais devem seguir um padrão único de estrutura, comportamento, linguagem e hierarquia de ações.
-
-## Dashboard
-
-- O FocusList deve oferecer um Dashboard Inteligente, com informações úteis e relevantes para o contexto do usuário.
-- O Estado Vazio Inteligente deve explicar a ausência de dados e orientar o usuário para a próxima ação adequada.
-- O Dashboard Completo deve utilizar dados reais e refletir corretamente o estado atual do produto.
-- Não devem ser exibidas funcionalidades inexistentes, dados fictícios ou ações indisponíveis.
-
-## Arquivados
-
-### Conceito
-
-Arquivar significa remover o item da organização principal sem perder seu conteúdo.
-
-Arquivar não significa bloquear, impedir a edição ou transformar o item em somente leitura.
-
-Arquivados não representam uma segunda navegação da aplicação e não representam uma lixeira. Eles constituem apenas um local onde o usuário pode:
-
-- Localizar.
-- Editar normalmente.
-- Restaurar.
-- Excluir definitivamente.
-
-O arquivamento deve ser priorizado em vez da exclusão imediata. A exclusão definitiva deve estar disponível apenas para itens já arquivados.
-
-### Central de Arquivados
-
-Existe apenas uma Central de Arquivados. Toda navegação de itens arquivados deve acontecer exclusivamente por essa Central, sem Arquivados da Área, Arquivados da Lista ou quaisquer outras áreas de Arquivados.
-
-A Central de Arquivados serve para:
-
-- Localizar itens arquivados.
-- Editar normalmente.
-- Restaurar.
-- Excluir definitivamente.
-
-### Hierarquia
-
-A estrutura oficial do produto é:
+## Hierarquia do produto
 
 ```text
 Área
@@ -89,92 +21,113 @@ A estrutura oficial do produto é:
     └── Tarefa
 ```
 
-Os filhos sempre acompanham o pai:
+Essa hierarquia deve permanecer compreensível na navegação, nos breadcrumbs, no arquivamento e na restauração.
 
-- Quando uma Área for arquivada, somente a Área deverá aparecer na Central de Arquivados. Suas Listas e Tarefas não deverão aparecer separadamente.
-- Quando uma Lista for arquivada, somente a Lista deverá aparecer na Central de Arquivados. Suas Tarefas acompanharão a Lista e não deverão aparecer separadamente.
-- Quando apenas uma Tarefa for arquivada, somente a própria Tarefa deverá aparecer na Central de Arquivados.
+## Navegação e interface
 
-Essa hierarquia deve ser preservada durante o arquivamento, a visualização e a restauração dos itens.
+- Clicar em uma Tarefa abre seus Detalhes.
+- A edição da Tarefa acontece nos Detalhes.
+- A listagem prioriza navegação e marcação rápida de conclusão.
+- Ações secundárias usam menus contextuais quando isso reduz ruído visual.
+- Botões indisponíveis permanecem desabilitados.
+- Estados vazios explicam o contexto e indicam o próximo passo.
+- Modais seguem estrutura, comportamento, linguagem e hierarquia consistentes.
+- Dados fictícios ou ações inexistentes não devem aparecer como funcionalidades reais.
 
-### Visualização na Central
+## Dashboard
 
-A Central de Arquivados deve listar apenas os itens arquivados diretamente. Filhos nunca deverão ser listados quando o pai estiver arquivado.
+- O Dashboard usa dados reais.
+- O Estado Vazio Inteligente orienta a criação de Área, Lista ou Tarefa conforme o estado atual.
+- O Dashboard Completo apresenta informações relevantes sem sobrecarga visual.
 
-Cada card deve apresentar contexto suficiente para que o usuário identifique a origem do item:
+## Arquivados — fluxo aprovado e implementado
 
-- Área:
-  - Nome.
-  - Quantidade de Listas.
-  - Quantidade de Tarefas.
-  - Data de arquivamento.
-- Lista:
-  - Nome.
-  - Área de origem.
-  - Quantidade de Tarefas.
-  - Data de arquivamento.
-- Tarefa:
-  - Nome.
-  - Área.
-  - Lista.
-  - Data de arquivamento.
+### Conceito
 
-### Modo arquivado
+Arquivar remove um item da organização principal sem perder seu conteúdo. Não bloqueia edição, não transforma o item em somente leitura e não equivale a uma lixeira.
 
-Ao abrir um item arquivado, o produto deve utilizar exatamente a mesma tela do item ativo. Itens arquivados continuam totalmente editáveis.
+Existe uma única **Central de Arquivados**, destinada a:
 
-É permitido editar normalmente:
+- localizar itens arquivados;
+- abrir e editar normalmente;
+- restaurar;
+- excluir definitivamente.
 
-- Título.
-- Descrição.
-- Status.
-- Prioridade.
-- Prazo.
-- Checklist.
-- Links.
+Não existem centrais separadas por Área ou Lista. A exclusão definitiva de Área, Lista e Tarefa só fica disponível após o arquivamento.
 
-A tela deve exibir de forma discreta o aviso:
+### Hierarquia
 
-> 📦 Arquivado
+- Área arquivada: somente a Área aparece na central; suas Listas e Tarefas ficam dentro desse contexto.
+- Lista arquivada com Área ativa: somente a Lista aparece; suas Tarefas ficam dentro desse contexto.
+- Tarefa arquivada com pais ativos: somente a Tarefa aparece.
+- Filhos nunca aparecem separadamente enquanto um pai está arquivado.
+
+Arquivar um pai não arquiva diretamente cada filho. Ao restaurar o pai, descendentes sem arquivamento próprio retornam à organização principal. Um filho arquivado diretamente permanece arquivado.
+
+### Conteúdo e ações
+
+Os cards apresentam contexto suficiente:
+
+- Área: nome, quantidade de Listas e Tarefas e data de arquivamento;
+- Lista: nome, Área de origem, quantidade de Tarefas e data;
+- Tarefa: nome, Área, Lista e data.
+
+Área, Lista e Tarefa podem ser editadas normalmente quando arquivadas. Para Tarefas, isso inclui título, descrição, status, prioridade, prazo, checklist e links.
+
+O modo arquivado exibe discretamente:
+
+> Arquivado
 >
 > Este item não aparece na organização principal.
 
-### Experiência
+Restauração respeita a hierarquia: primeiro a Área, depois a Lista e então a Tarefa, quando cada uma tiver sido arquivada diretamente. Mensagens de confirmação devem explicar precisamente as consequências.
 
-O objetivo dos Arquivados é retirar itens da organização principal sem perdê-los. O usuário deve acessar a Central de Arquivados para localizar, editar normalmente, restaurar ou excluir definitivamente um item.
+## Tela Sobre — Etapa 16 aprovada
 
-A experiência deve preservar o contexto e permitir que o usuário compreenda facilmente:
+A tela ainda não está implementada. Sua estrutura oficial é:
 
-- O que foi arquivado.
-- De onde o item veio.
-- O que será restaurado.
+1. Hero;
+2. O que é;
+3. Como funciona;
+4. Recursos principais;
+5. Desenvolvido por.
 
-A interface, a linguagem e os fluxos devem evitar qualquer aparência ou interpretação de lixeira. Mensagens de confirmação devem descrever exatamente o comportamento e as consequências de cada ação.
+Decisões obrigatórias:
 
-## Visual
+- remover a versão do Hero;
+- manter a versão apenas no rodapé;
+- usar descrições extremamente curtas em Recursos principais;
+- apresentar “Isaac Gabriel”;
+- apresentar “Estudante de Análise e Desenvolvimento de Sistemas”;
+- disponibilizar GitHub e LinkedIn;
+- seguir o visual de `PROTOTIPO_SOBRE_V1_APROVADO.png`.
 
-- Seguir fielmente os protótipos aprovados.
-- Manter a identidade visual dark do FocusList.
-- Evitar alterações criativas sem validação prévia.
-- Priorizar a consistência visual entre todas as telas, incluindo cores, tipografia, espaçamentos, componentes e estados.
+## Identidade Visual — Etapa 17 aprovada
 
-## Funcionalidades Futuras
+O conceito oficial é o **Conceito A**:
 
-Os itens abaixo representam apenas a visão futura do produto. Sua inclusão neste documento não significa que estejam implementados ou aprovados para desenvolvimento imediato:
+- organização por camadas;
+- visual 3D minimalista;
+- azul como cor principal;
+- identidade premium e moderna;
+- sem check como símbolo principal;
+- sem prancheta;
+- sem calendário;
+- sem lista.
 
-- Landing Page.
-- Onboarding.
-- Kanban.
-- Pesquisa.
-- Dashboard da Área.
-- Responsividade refinada.
-- Microanimações.
-- Logo oficial.
+O protótipo oficial é `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png`. A aprovação do conceito não significa que ele já esteja aplicado ao frontend atual.
 
-## Diretriz Final
+## Direção visual
 
-Este documento é a principal referência para decisões de Produto, UX e Interface do FocusList.
+- manter a experiência dark atual até a aplicação validada da identidade oficial;
+- seguir fielmente protótipos aprovados;
+- manter consistência de cores, tipografia, espaçamentos, componentes e estados;
+- evitar mudanças criativas sem validação.
 
-Sempre que uma nova funcionalidade for implementada, ela deverá respeitar estas diretrizes.
+## Landing Page
 
-Em caso de conflito entre uma implementação e este documento, as decisões registradas aqui deverão prevalecer até que sejam oficialmente revisadas.
+A Landing Page **não está implementada**. Ela permanece planejada para a publicação da V1 e não deve ser apresentada como funcionalidade atual.
+
+## Possibilidades futuras
+
+Onboarding, Kanban, pesquisa, Dashboard da Área, responsividade refinada e microanimações são possibilidades, não funcionalidades implementadas nem autorização automática para desenvolvimento.

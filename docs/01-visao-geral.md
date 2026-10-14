@@ -1,106 +1,65 @@
-# Documentação do Projeto
+# Visão Geral
 
-## 01. Visão Geral
+## Produto
 
-Este documento apresenta uma visão geral do projeto, seu propósito,
-público-alvo e o escopo da primeira versão (MVP).
+O FocusList é uma aplicação web de organização pessoal. Sua estrutura principal é:
 
-------------------------------------------------------------------------
+```text
+Área
+└── Lista
+    └── Tarefa
+```
 
-## Sobre o Projeto
-
-O projeto é uma aplicação web de organização pessoal voltada para
-gerenciamento de tarefas de forma simples, intuitiva e organizada.
-
-A proposta é oferecer uma experiência moderna, focada em produtividade,
-sem excesso de funcionalidades ou complexidade desnecessária.
-
-------------------------------------------------------------------------
-
-## Objetivo
-
-Permitir que qualquer pessoa organize suas tarefas em uma estrutura
-clara:
-
-Área → Lista → Tarefa
-
-Com isso, o usuário consegue separar diferentes contextos (estudos,
-trabalho, pessoal, etc.) mantendo cada atividade organizada.
-
-------------------------------------------------------------------------
+O produto busca oferecer clareza, foco e baixo esforço, sem excesso de funcionalidades ou poluição visual.
 
 ## Público-alvo
 
--   Estudantes;
--   Desenvolvedores;
--   Profissionais;
--   Pessoas que desejam organizar tarefas do dia a dia.
+- estudantes;
+- desenvolvedores e profissionais;
+- pessoas que desejam organizar atividades pessoais e projetos.
 
-------------------------------------------------------------------------
+## Escopo funcional atual
 
-## Escopo do MVP
+Estão implementados:
 
-A primeira versão contempla:
+- Dashboard integrado a dados reais;
+- CRUD de Áreas, Listas e Tarefas;
+- conclusão e reabertura de Tarefas;
+- prazo e prioridade;
+- itens de checklist e links de referência;
+- Central única de Arquivados;
+- arquivamento de Área, Lista e Tarefa;
+- edição de itens arquivados;
+- restauração e exclusão definitiva de itens arquivados.
 
--   Dashboard inicial;
--   Gerenciamento de Áreas;
--   Gerenciamento de Listas;
--   Gerenciamento de Tarefas;
--   Visualização em Lista;
--   Visualização em Cards;
--   Checklist por tarefa;
--   Links de referência;
--   Prazos;
--   Prioridades;
--   Arquivamento de tarefas concluídas.
+O backend persiste os dados em PostgreSQL e expõe uma API REST. O frontend React consome essa API.
 
-------------------------------------------------------------------------
+## Decisões aprovadas com implementação pendente
 
-## Fora do Escopo (MVP)
+- **Tela Sobre — Etapa 16:** visual aprovado com Hero, O que é, Como funciona, Recursos principais e Desenvolvido por.
+- **Identidade Visual — Etapa 17:** Conceito A aprovado, com organização por camadas, visual 3D minimalista e azul como cor principal.
+- **Visualização em Cards:** possui protótipo aprovado, mas a tela atual de Tarefas implementa somente a visualização em lista.
 
-Nesta primeira versão não fazem parte do projeto:
+## Planejado para a V1
 
--   Login e cadastro;
--   Sincronização entre dispositivos;
--   Compartilhamento de tarefas;
--   Colaboração em tempo real;
--   Aplicativo mobile nativo;
--   Notificações;
--   Integrações externas.
+- implementar a tela Sobre aprovada;
+- aplicar a identidade visual aprovada;
+- implementar a Landing Page antes da publicação;
+- concluir os itens de interface ainda pendentes e realizar o deploy.
 
-Esses recursos poderão ser avaliados em versões futuras.
+## Fora do escopo atual
 
-------------------------------------------------------------------------
+- login e cadastro;
+- sincronização entre dispositivos;
+- colaboração e compartilhamento;
+- notificações;
+- aplicativo mobile nativo;
+- integrações externas.
 
-## Princípios do Projeto
+## Princípios
 
--   Simplicidade acima de quantidade de recursos.
--   Interface limpa e intuitiva.
--   Organização por Áreas, Listas e Tarefas.
--   Desktop como foco inicial.
--   Responsividade planejada para evolução futura.
--   Documentação clara e objetiva.
-
-------------------------------------------------------------------------
-
-## Tecnologias
-
-O backend do MVP utiliza Node.js, Express, TypeScript, Prisma e
-PostgreSQL. O frontend está planejado com React, Vite e Tailwind CSS.
-
-------------------------------------------------------------------------
-
-## Estado Atual
-
-O backend do MVP possui os módulos de Áreas, Listas, Tarefas, Itens de
-Checklist e Links implementados. Cada módulo disponibiliza operações de
-criação, listagem, consulta por ID, atualização e exclusão por meio da
-API REST.
-
-Também estão implementados o endpoint de saúde da API, a persistência em
-PostgreSQL, as relações entre as entidades e o tratamento global de
-erros. Autenticação não faz parte do MVP.
-
-------------------------------------------------------------------------
-
-**Versão:** 0.2
+- simplicidade acima da quantidade de recursos;
+- interface limpa, moderna e consistente;
+- organização por Área, Lista e Tarefa;
+- desktop-first;
+- evolução incremental com documentação atualizada.

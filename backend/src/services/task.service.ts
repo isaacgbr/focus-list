@@ -45,7 +45,11 @@ class TaskService {
 
   // Atualiza uma Tarefa.
   async update(id: number, data: TaskData) {
-    await this.findById(id);
+    const task = await taskRepository.findAnyById(id);
+
+    if (!task) {
+      throw new Error("Tarefa não encontrada.");
+    }
 
     if (data.listId !== undefined) {
       const list = await listRepository.findById(data.listId);

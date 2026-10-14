@@ -1,10 +1,10 @@
-import { AlertCircle, Archive, CalendarDays, Check, CheckCircle2, Circle, ClipboardList, LoaderCircle, Plus, RotateCcw, X } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, CheckCircle2, Circle, ClipboardList, LoaderCircle, Pencil, Plus, X } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
+import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import { TaskDetails } from '../components/TaskDetails'
-import { ArchivedTaskDetails } from '../components/ArchivedItemDetails'
-import archiveService, { ArchivedTaskSummary } from '../services/archiveService'
+import archiveService, { ArchivedListDetail } from '../services/archiveService'
 import listService from '../services/listService'
 import taskService, { CreateTaskData, Task, TaskPriority } from '../services/taskService'
 
@@ -18,20 +18,21 @@ function formatDueDate(value: string | null) {
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(value))
 }
 
-export function ListTasks() {
+export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) {
   const { listId } = useParams()
   const selectedListId = Number(listId)
   const [listTitle, setListTitle] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
-  const [archivedTasks, setArchivedTasks] = useState<ArchivedTaskSummary[]>([])
+  const [archivedList, setArchivedList] = useState<ArchivedListDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isListEditOpen, setIsListEditOpen] = useState(false)
+  const [listEditForm, setListEditForm] = useState({ title: '', description: '' })
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [selectedArchivedTask, setSelectedArchivedTask] = useState<ArchivedTaskSummary | null>(null)
   const [form, setForm] = useState<TaskForm>(emptyTaskForm)
 
   const loadTasks = useCallback(async () => {
@@ -39,34 +40,67 @@ export function ListTasks() {
     setLoadError('')
     if (!Number.isInteger(selectedListId) || selectedListId <= 0) {
       setTasks([])
-      setArchivedTasks([])
       setLoadError('Não foi possível identificar a lista selecionada.')
       setIsLoading(false)
       return
     }
     try {
-      const [allTasks, selectedList, archived] = await Promise.all([taskService.getAll(), listService.getById(selectedListId), archiveService.getTasksByList(selectedListId)])
-      setTasks(allTasks.filter((task) => task.listId === selectedListId))
-      setArchivedTasks(archived)
-      setListTitle(selectedList.title)
+      if (archivedMode) {
+        const list = await archiveService.getList(selectedListId)
+        setArchivedList(list)
+        setListTitle(list.title)
+        setTasks(list.tasks.map((task) => ({ ...task, completedAt: null, listId: selectedListId, createdAt: '', updatedAt: '' })))
+      } else {
+        const [allTasks, selectedList] = await Promise.all([taskService.getAll(), listService.getById(selectedListId)])
+        setTasks(allTasks.filter((task) => task.listId === selectedListId))
+        setListTitle(selectedList.title)
+      }
     } catch {
       setTasks([])
-      setArchivedTasks([])
-      setLoadError('Não foi possível carregar as tarefas desta lista.')
+      setArchivedList(null)
+      setLoadError(archivedMode ? 'Não foi possível carregar esta lista arquivada.' : 'Não foi possível carregar as tarefas desta lista.')
     } finally {
       setIsLoading(false)
     }
-  }, [selectedListId])
+  }, [archivedMode, selectedListId])
+
+  const openArchivedListEdit = () => {
+    if (!archivedList) return
+    setListEditForm({ title: archivedList.title, description: archivedList.description ?? '' })
+    setActionError('')
+    setIsListEditOpen(true)
+  }
+
+  const handleArchivedListEdit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!listEditForm.title.trim()) return
+    setIsSaving(true)
+    setActionError('')
+    try {
+      await listService.update(selectedListId, {
+        title: listEditForm.title.trim(),
+        description: listEditForm.description.trim(),
+      })
+      setIsListEditOpen(false)
+      await loadTasks()
+    } catch {
+      setActionError('Não foi possível salvar a lista.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   useEffect(() => { void loadTasks() }, [loadTasks])
   useEffect(() => {
-    if (!isModalOpen) return
+    if (!isModalOpen && !isListEditOpen) return
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isSaving) setIsModalOpen(false)
+      if (event.key !== 'Escape' || isSaving) return
+      if (isListEditOpen) setIsListEditOpen(false)
+      else setIsModalOpen(false)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen, isSaving])
+  }, [isListEditOpen, isModalOpen, isSaving])
 
   const openCreateModal = () => {
     setForm(emptyTaskForm)
@@ -136,12 +170,13 @@ export function ListTasks() {
     <section className="lists-page tasks-page" aria-labelledby="tasks-title">
       <div className="lists-page-heading">
         <div><p>{listTitle || 'Lista selecionada'}</p><h1 id="tasks-title">Tarefas</h1><span>Organize e acompanhe as tarefas desta lista.</span></div>
-        <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Nova Tarefa</button>
+        {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Nova Tarefa</button> : <button className="secondary-action" type="button" onClick={openArchivedListEdit}><Pencil size={18} />Editar Lista</button>}
       </div>
+      {archivedMode && archivedList ? <ArchivedModeBanner /> : null}
       {actionError && !isModalOpen ? <p className="lists-action-error" role="alert"><AlertCircle size={19} />{actionError}</p> : null}
       {isLoading ? <div className="lists-state" aria-live="polite"><LoaderCircle className="spin" size={32} /><h2>Carregando tarefas...</h2><p>Aguarde enquanto buscamos os dados desta lista.</p></div> : null}
       {!isLoading && loadError ? <div className="lists-state is-error" role="alert"><AlertCircle size={36} /><h2>Erro ao carregar</h2><p>{loadError}</p><button className="secondary-action" type="button" onClick={() => void loadTasks()}>Tentar novamente</button></div> : null}
-      {!isLoading && !loadError && tasks.length === 0 ? <div className="lists-state"><span className="lists-state-icon"><ClipboardList size={38} /></span><h2>Nenhuma tarefa criada</h2><p>Crie a primeira tarefa desta lista para começar.</p><button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Criar Tarefa</button></div> : null}
+      {!isLoading && !loadError && tasks.length === 0 ? <div className="lists-state"><span className="lists-state-icon"><ClipboardList size={38} /></span><h2>Nenhuma tarefa criada</h2><p>{archivedMode ? 'Esta lista não possui tarefas.' : 'Crie a primeira tarefa desta lista para começar.'}</p>{!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Criar Tarefa</button> : null}</div> : null}
       {!isLoading && !loadError && tasks.length > 0 ? (
         <div className="tasks-content" aria-live="polite">
           <div className="tasks-summary"><span><Circle size={16} />{pendingTasks.length} {pendingTasks.length === 1 ? 'pendente' : 'pendentes'}</span><span><CheckCircle2 size={17} />{completedTasks.length} {completedTasks.length === 1 ? 'concluída' : 'concluídas'}</span></div>
@@ -150,20 +185,7 @@ export function ListTasks() {
         </div>
       ) : null}
 
-      {!isLoading && !loadError && archivedTasks.length > 0 ? (
-        <section className="context-archived-section" aria-labelledby="archived-tasks-title">
-          <header><span className="archived-category-icon is-task"><Archive size={21} /></span><div><h2 id="archived-tasks-title">Arquivadas <span>{archivedTasks.length}</span></h2><p>Tarefas preservadas nesta Lista, disponíveis somente para consulta.</p></div></header>
-          <div className="context-archived-items">
-            {archivedTasks.map((task) => (
-              <button className="context-archived-card" type="button" onClick={() => setSelectedArchivedTask(task)} key={task.id}>
-                <span className="archived-item-icon is-task"><ClipboardList size={22} /></span><span><strong>{task.title}</strong><small>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'} · Arquivada em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(task.archivedAt!))}</small></span><RotateCcw size={18} aria-label="Pode ser restaurada" />
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {isModalOpen ? (
+      {!archivedMode && isModalOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
           <section className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
@@ -185,8 +207,21 @@ export function ListTasks() {
         </div>
       ) : null}
 
-      {selectedTask && !isModalOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} onClose={() => setSelectedTask(null)} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
-      {selectedArchivedTask && !isModalOpen ? <ArchivedTaskDetails task={selectedArchivedTask} onClose={() => setSelectedArchivedTask(null)} onChanged={loadTasks} /> : null}
+      {archivedMode && isListEditOpen ? (
+        <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isSaving && setIsListEditOpen(false)}>
+          <section className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="archived-list-edit-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="area-modal-heading"><span className="area-modal-heading-icon" aria-hidden="true"><ClipboardList size={31} /></span><div><h2 id="archived-list-edit-title">Editar Lista</h2><p>Atualize os dados desta lista.</p></div><button className="icon-button area-modal-close" type="button" onClick={() => setIsListEditOpen(false)} aria-label="Fechar"><X size={24} /></button></div>
+            <form onSubmit={handleArchivedListEdit}>
+              <label className="area-form-field"><span>Nome da Lista <strong>*</strong></span><input autoFocus maxLength={50} required value={listEditForm.title} onChange={(event) => setListEditForm((current) => ({ ...current, title: event.target.value }))} /><small>{listEditForm.title.length}/50</small></label>
+              <label className="area-form-field"><span>Descrição</span><textarea maxLength={200} rows={3} value={listEditForm.description} onChange={(event) => setListEditForm((current) => ({ ...current, description: event.target.value }))} /><small>{listEditForm.description.length}/200</small></label>
+              {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
+              <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsListEditOpen(false)} disabled={isSaving}>Cancelar</button><button className="primary-action" type="submit" disabled={isSaving || !listEditForm.title.trim()}>{isSaving ? <LoaderCircle className="spin" size={19} /> : null}Salvar alterações</button></div>
+            </form>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedTask && !isModalOpen && !isListEditOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} archivedMode={archivedMode} onClose={() => setSelectedTask(null)} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
     </section>
   )
 }

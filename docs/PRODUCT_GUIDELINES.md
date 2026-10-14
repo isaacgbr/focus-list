@@ -55,45 +55,95 @@ O produto é destinado a pessoas que buscam uma ferramenta direta, moderna e con
 
 ### Conceito
 
-Arquivados não representam uma lixeira. Eles representam itens preservados temporariamente, mantendo sua organização e seu contexto originais.
+Arquivar significa remover o item da organização principal sem perder seu conteúdo.
+
+Arquivar não significa bloquear, impedir a edição ou transformar o item em somente leitura.
+
+Arquivados não representam uma segunda navegação da aplicação e não representam uma lixeira. Eles constituem apenas um local onde o usuário pode:
+
+- Localizar.
+- Editar normalmente.
+- Restaurar.
+- Excluir definitivamente.
 
 O arquivamento deve ser priorizado em vez da exclusão imediata. A exclusão definitiva deve estar disponível apenas para itens já arquivados.
+
+### Central de Arquivados
+
+Existe apenas uma Central de Arquivados. Toda navegação de itens arquivados deve acontecer exclusivamente por essa Central, sem Arquivados da Área, Arquivados da Lista ou quaisquer outras áreas de Arquivados.
+
+A Central de Arquivados serve para:
+
+- Localizar itens arquivados.
+- Editar normalmente.
+- Restaurar.
+- Excluir definitivamente.
 
 ### Hierarquia
 
 A estrutura oficial do produto é:
 
-**Área → Lista → Tarefa**
+```text
+Área
+└── Lista
+    └── Tarefa
+```
 
-Essa hierarquia deve ser sempre preservada, inclusive durante o arquivamento, a visualização e a restauração de itens.
+Os filhos sempre acompanham o pai:
 
-### Modo somente leitura
+- Quando uma Área for arquivada, somente a Área deverá aparecer na Central de Arquivados. Suas Listas e Tarefas não deverão aparecer separadamente.
+- Quando uma Lista for arquivada, somente a Lista deverá aparecer na Central de Arquivados. Suas Tarefas acompanharão a Lista e não deverão aparecer separadamente.
+- Quando apenas uma Tarefa for arquivada, somente a própria Tarefa deverá aparecer na Central de Arquivados.
 
-Todo item arquivado entra em modo somente leitura. Enquanto estiver arquivado, o item não poderá ser:
+Essa hierarquia deve ser preservada durante o arquivamento, a visualização e a restauração dos itens.
 
-- Editado.
-- Movido.
-- Reorganizado.
-- Alterado de qualquer forma.
+### Visualização na Central
 
-As únicas ações permitidas para um item arquivado são:
+A Central de Arquivados deve listar apenas os itens arquivados diretamente. Filhos nunca deverão ser listados quando o pai estiver arquivado.
 
-- Visualizar.
-- Restaurar.
-- Excluir definitivamente.
+Cada card deve apresentar contexto suficiente para que o usuário identifique a origem do item:
 
-Após a restauração, o item volta a permitir edição e demais operações normalmente.
+- Área:
+  - Nome.
+  - Quantidade de Listas.
+  - Quantidade de Tarefas.
+  - Data de arquivamento.
+- Lista:
+  - Nome.
+  - Área de origem.
+  - Quantidade de Tarefas.
+  - Data de arquivamento.
+- Tarefa:
+  - Nome.
+  - Área.
+  - Lista.
+  - Data de arquivamento.
 
-### Organização dos itens arquivados
+### Modo arquivado
 
-- Áreas arquivadas permanecem em uma Central de Arquivados.
-- Listas arquivadas permanecem dentro da Área de origem.
-- Tarefas arquivadas permanecem dentro da Lista de origem.
-- O usuário nunca deve perder o contexto do item arquivado.
+Ao abrir um item arquivado, o produto deve utilizar exatamente a mesma tela do item ativo. Itens arquivados continuam totalmente editáveis.
+
+É permitido editar normalmente:
+
+- Título.
+- Descrição.
+- Status.
+- Prioridade.
+- Prazo.
+- Checklist.
+- Links.
+
+A tela deve exibir de forma discreta o aviso:
+
+> 📦 Arquivado
+>
+> Este item não aparece na organização principal.
 
 ### Experiência
 
-O objetivo dos Arquivados é preservar contexto e organização. A experiência deve permitir que o usuário compreenda facilmente:
+O objetivo dos Arquivados é retirar itens da organização principal sem perdê-los. O usuário deve acessar a Central de Arquivados para localizar, editar normalmente, restaurar ou excluir definitivamente um item.
+
+A experiência deve preservar o contexto e permitir que o usuário compreenda facilmente:
 
 - O que foi arquivado.
 - De onde o item veio.

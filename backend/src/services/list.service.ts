@@ -46,7 +46,11 @@ class ListService {
       areaId?: number;
     }
   ) {
-    await this.findById(id);
+    const list = await listRepository.findAnyById(id);
+
+    if (!list) {
+      throw new Error("Lista não encontrada.");
+    }
 
     if (data.areaId !== undefined) {
       const area = await areaRepository.findById(data.areaId);

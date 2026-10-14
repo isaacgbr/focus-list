@@ -33,7 +33,7 @@ class ChecklistItemService {
       throw new Error("O título do item de checklist é obrigatório.");
     }
 
-    const task = await taskRepository.findById(data.taskId);
+    const task = await taskRepository.findAnyById(data.taskId);
 
     if (!task) {
       throw new Error("Tarefa não encontrada.");
@@ -49,16 +49,16 @@ class ChecklistItemService {
   // Atualiza um item de checklist.
   async update(id: number, data: ChecklistItemData) {
     const checklistItem = await this.findById(id);
-    const currentTask = await taskRepository.findById(checklistItem.taskId);
+    const currentTask = await taskRepository.findAnyById(checklistItem.taskId);
 
     if (!currentTask) {
-      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+      throw new Error("Tarefa não encontrada.");
     }
 
     const title = data.title ?? data.text;
 
     if (data.taskId !== undefined) {
-      const task = await taskRepository.findById(data.taskId);
+      const task = await taskRepository.findAnyById(data.taskId);
 
       if (!task) {
         throw new Error("Tarefa não encontrada.");
@@ -75,10 +75,10 @@ class ChecklistItemService {
   // Exclui um item de checklist.
   async delete(id: number) {
     const checklistItem = await this.findById(id);
-    const task = await taskRepository.findById(checklistItem.taskId);
+    const task = await taskRepository.findAnyById(checklistItem.taskId);
 
     if (!task) {
-      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+      throw new Error("Tarefa não encontrada.");
     }
 
     return checklistItemRepository.delete(id);

@@ -24,13 +24,15 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 're
 import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
 import linkService, { Link } from '../services/linkService'
 import taskService, { Task, TaskPriority, UpdateTaskData } from '../services/taskService'
+import { ArchivedModeBanner } from './ArchivedModeBanner'
 
 type TaskDetailsProps = {
   task: Task
   listTitle?: string
+  archivedMode?: boolean
   onClose: () => void
-  onTaskChange: (task: Task) => void
-  onArchived: () => void
+  onTaskChange?: (task: Task) => void
+  onArchived?: () => void
 }
 
 type TaskField = 'title' | 'description' | 'status' | 'priority' | 'dueDate'
@@ -68,7 +70,7 @@ function isValidDueDate(value: string) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
 }
 
-export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived }: TaskDetailsProps) {
+export function TaskDetails({ task, listTitle, archivedMode = false, onClose, onTaskChange, onArchived }: TaskDetailsProps) {
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
   const [links, setLinks] = useState<Link[]>([])
   const [isChecklistLoading, setIsChecklistLoading] = useState(true)
@@ -168,7 +170,7 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived
     setSavingTaskField(field)
     setActionError('')
     try {
-      onTaskChange(await taskService.update(task.id, payload))
+      onTaskChange?.(await taskService.update(task.id, payload))
       return true
     } catch {
       setActionError(message)
@@ -383,7 +385,7 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived
     setActionError('')
     try {
       await taskService.archive(task.id)
-      onArchived()
+      onArchived?.()
     } catch {
       setActionError('Não foi possível arquivar a tarefa.')
       setIsArchiveConfirmOpen(false)
@@ -411,16 +413,18 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived
             )}
             <p><ListChecks size={17} /> Lista: <strong>{listTitle ?? `#${task.listId}`}</strong></p>
           </div>
-          <div className="task-actions-menu" ref={menuRef}>
+          {!archivedMode ? <div className="task-actions-menu" ref={menuRef}>
             <button className="icon-button task-details-more" type="button" onClick={() => { setOpenPropertyMenu(null); setIsMenuOpen((current) => !current) }} aria-expanded={isMenuOpen} aria-haspopup="menu" aria-label="Mais ações"><MoreHorizontal size={24} /></button>
             {isMenuOpen ? (
               <div className="task-actions-popover" role="menu">
                 <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); setIsArchiveConfirmOpen(true) }}><Archive size={17} />Arquivar</button>
               </div>
             ) : null}
-          </div>
+          </div> : null}
           <button className="icon-button task-details-close" type="button" onClick={closeDetails} aria-label="Voltar para a lista"><X size={25} /></button>
         </header>
+
+        {archivedMode ? <ArchivedModeBanner /> : null}
 
         {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
 
@@ -544,7 +548,7 @@ export function TaskDetails({ task, listTitle, onClose, onTaskChange, onArchived
           </aside>
         </div>
       </section>
-      {isArchiveConfirmOpen ? (
+      {!archivedMode && isArchiveConfirmOpen ? (
         <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.stopPropagation(); if (!isArchiving) setIsArchiveConfirmOpen(false) }}>
           <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-archive-title" aria-describedby="task-archive-description" onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>

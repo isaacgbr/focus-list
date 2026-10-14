@@ -35,17 +35,6 @@ export type ArchivedListDetail = {
   tasks: ArchivedTaskSummary[]
 }
 
-export type ArchivedListSummary = {
-  id: number
-  title: string
-  description: string | null
-  areaId: number
-  archivedAt: string
-  createdAt: string
-  updatedAt: string
-  _count: { tasks: number }
-}
-
 export type ArchivedTaskDetail = ArchivedTaskSummary & {
   completedAt: string | null
   listId: number
@@ -90,16 +79,6 @@ const archiveService = {
 
   async getList(id: number) {
     const { data } = await api.get<ArchivedListDetail>(`/archived/lists/${id}`)
-    return data
-  },
-
-  async getListsByArea(areaId: number) {
-    const { data } = await api.get<ArchivedListSummary[]>(`/areas/${areaId}/archived-lists`)
-    return data
-  },
-
-  async getTasksByList(listId: number) {
-    const { data } = await api.get<ArchivedTaskSummary[]>(`/lists/${listId}/archived-tasks`)
     return data
   },
 

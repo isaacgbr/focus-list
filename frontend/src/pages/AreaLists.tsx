@@ -7,14 +7,14 @@ import {
   LoaderCircle,
   Pencil,
   Plus,
-  RotateCcw,
   X,
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { ArchivedListDetails } from '../components/ArchivedItemDetails'
-import archiveService, { ArchivedListSummary } from '../services/archiveService'
+import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
+import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
+import areaService from '../services/areaService'
 import listService, { CreateListData, List } from '../services/listService'
 
 type ListForm = {
@@ -27,20 +27,20 @@ const emptyListForm: ListForm = {
   description: '',
 }
 
-export function AreaLists() {
+export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) {
   const { areaId } = useParams()
   const selectedAreaId = Number(areaId)
   const [lists, setLists] = useState<List[]>([])
-  const [archivedLists, setArchivedLists] = useState<ArchivedListSummary[]>([])
+  const [archivedArea, setArchivedArea] = useState<ArchivedAreaDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isArchiving, setIsArchiving] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditingArchivedArea, setIsEditingArchivedArea] = useState(false)
   const [editingList, setEditingList] = useState<List | null>(null)
   const [archiveCandidate, setArchiveCandidate] = useState<List | null>(null)
-  const [selectedArchivedList, setSelectedArchivedList] = useState<ArchivedListSummary | null>(null)
   const [form, setForm] = useState<ListForm>(emptyListForm)
 
   const loadLists = useCallback(async () => {
@@ -55,17 +55,22 @@ export function AreaLists() {
     }
 
     try {
-      const [allLists, archived] = await Promise.all([listService.getAll(), archiveService.getListsByArea(selectedAreaId)])
-      setLists(allLists.filter((list) => list.areaId === selectedAreaId))
-      setArchivedLists(archived)
+      if (archivedMode) {
+        const area = await archiveService.getArea(selectedAreaId)
+        setArchivedArea(area)
+        setLists(area.lists.map((list) => ({ ...list, areaId: selectedAreaId, createdAt: '', updatedAt: '' })))
+      } else {
+        const allLists = await listService.getAll()
+        setLists(allLists.filter((list) => list.areaId === selectedAreaId))
+      }
     } catch {
       setLists([])
-      setArchivedLists([])
-      setLoadError('Não foi possível carregar as listas desta área.')
+      setArchivedArea(null)
+      setLoadError(archivedMode ? 'Não foi possível carregar esta área arquivada.' : 'Não foi possível carregar as listas desta área.')
     } finally {
       setIsLoading(false)
     }
-  }, [selectedAreaId])
+  }, [archivedMode, selectedAreaId])
 
   useEffect(() => {
     void loadLists()
@@ -85,6 +90,7 @@ export function AreaLists() {
   }, [archiveCandidate, isArchiving, isModalOpen, isSaving])
 
   const openCreateModal = () => {
+    setIsEditingArchivedArea(false)
     setEditingList(null)
     setForm(emptyListForm)
     setActionError('')
@@ -92,8 +98,18 @@ export function AreaLists() {
   }
 
   const openEditModal = (list: List) => {
+    setIsEditingArchivedArea(false)
     setEditingList(list)
     setForm({ title: list.title, description: list.description ?? '' })
+    setActionError('')
+    setIsModalOpen(true)
+  }
+
+  const openArchivedAreaEdit = () => {
+    if (!archivedArea) return
+    setIsEditingArchivedArea(true)
+    setEditingList(null)
+    setForm({ title: archivedArea.title, description: archivedArea.description ?? '' })
     setActionError('')
     setIsModalOpen(true)
   }
@@ -116,8 +132,10 @@ export function AreaLists() {
     }
 
     try {
-      if (editingList) {
-        await listService.update(editingList.id, payload)
+      if (isEditingArchivedArea) {
+        await areaService.update(selectedAreaId, { title: payload.title, description: payload.description })
+      } else if (editingList) {
+        await listService.update(editingList.id, { title: payload.title, description: payload.description })
       } else {
         await listService.create(payload)
       }
@@ -125,7 +143,7 @@ export function AreaLists() {
       setIsModalOpen(false)
       await loadLists()
     } catch {
-      setActionError(`Não foi possível ${editingList ? 'salvar' : 'criar'} a lista.`)
+      setActionError(isEditingArchivedArea ? 'Não foi possível salvar a área.' : `Não foi possível ${editingList ? 'salvar' : 'criar'} a lista.`)
     } finally {
       setIsSaving(false)
     }
@@ -156,11 +174,13 @@ export function AreaLists() {
           <h1 id="lists-title">Listas</h1>
           <span>Organize as tarefas desta área em listas.</span>
         </div>
-        <button className="primary-action" type="button" onClick={openCreateModal}>
+        {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}>
           <Plus size={20} aria-hidden="true" />
           Nova Lista
-        </button>
+        </button> : <button className="secondary-action" type="button" onClick={openArchivedAreaEdit}><Pencil size={18} aria-hidden="true" />Editar Área</button>}
       </div>
+
+      {archivedMode && archivedArea ? <ArchivedModeBanner /> : null}
 
       {actionError && !isModalOpen && !archiveCandidate ? (
         <p className="lists-action-error" role="alert"><AlertCircle size={19} />{actionError}</p>
@@ -187,11 +207,11 @@ export function AreaLists() {
         <div className="lists-state">
           <span className="lists-state-icon" aria-hidden="true"><ListPlus size={38} /></span>
           <h2>Nenhuma lista criada</h2>
-          <p>Crie a primeira lista para organizar as tarefas desta área.</p>
-          <button className="primary-action" type="button" onClick={openCreateModal}>
+          <p>{archivedMode ? 'Esta área não possui listas.' : 'Crie a primeira lista para organizar as tarefas desta área.'}</p>
+          {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}>
             <Plus size={20} aria-hidden="true" />
             Criar Lista
-          </button>
+          </button> : null}
         </div>
       ) : null}
 
@@ -199,38 +219,29 @@ export function AreaLists() {
         <div className="lists-grid" aria-live="polite">
           {lists.map((list) => (
             <article className="list-card" key={list.id}>
-              <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
+              {archivedMode ? <Link className="list-card-content" to={`/arquivados/listas/${list.id}`}>
                 <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
                 <span>
                   <strong>{list.title}</strong>
                   <small>{list.description || 'Sem descrição'}</small>
                 </span>
                 <ChevronRight size={22} aria-hidden="true" />
-              </Link>
+              </Link> : <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
+                <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
+                <span><strong>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
+                <ChevronRight size={22} aria-hidden="true" />
+              </Link>}
               <div className="list-card-actions">
                 <button type="button" onClick={() => openEditModal(list)} aria-label={`Editar ${list.title}`}>
                   <Pencil size={17} aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => { setActionError(''); setArchiveCandidate(list) }} aria-label={`Arquivar ${list.title}`}>
+                {!archivedMode ? <button type="button" onClick={() => { setActionError(''); setArchiveCandidate(list) }} aria-label={`Arquivar ${list.title}`}>
                   <Archive size={17} aria-hidden="true" />
-                </button>
+                </button> : null}
               </div>
             </article>
           ))}
         </div>
-      ) : null}
-
-      {!isLoading && !loadError && archivedLists.length > 0 ? (
-        <section className="context-archived-section" aria-labelledby="archived-lists-title">
-          <header><span className="archived-category-icon is-list"><Archive size={21} /></span><div><h2 id="archived-lists-title">Arquivadas <span>{archivedLists.length}</span></h2><p>Listas preservadas nesta Área. Abra para visualizar as Tarefas.</p></div></header>
-          <div className="context-archived-items">
-            {archivedLists.map((list) => (
-              <button className="context-archived-card" type="button" onClick={() => setSelectedArchivedList(list)} key={list.id}>
-                <span className="archived-item-icon is-list"><Folder size={22} /></span><span><strong>{list.title}</strong><small>{list._count.tasks} {list._count.tasks === 1 ? 'Tarefa' : 'Tarefas'} · Arquivada em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(list.archivedAt))}</small></span><RotateCcw size={18} aria-label="Pode ser restaurada" />
-              </button>
-            ))}
-          </div>
-        </section>
       ) : null}
 
       {isModalOpen ? (
@@ -242,15 +253,15 @@ export function AreaLists() {
                 <Plus className="area-modal-heading-plus" size={17} />
               </span>
               <div>
-                <h2 id="list-modal-title">{editingList ? 'Editar Lista' : 'Nova Lista'}</h2>
-                <p>{editingList ? 'Atualize os dados desta lista.' : 'Crie uma lista para organizar as tarefas desta área.'}</p>
+                <h2 id="list-modal-title">{isEditingArchivedArea ? 'Editar Área' : editingList ? 'Editar Lista' : 'Nova Lista'}</h2>
+                <p>{isEditingArchivedArea ? 'Atualize os dados desta área.' : editingList ? 'Atualize os dados desta lista.' : 'Crie uma lista para organizar as tarefas desta área.'}</p>
               </div>
               <button className="icon-button area-modal-close" type="button" onClick={closeModal} aria-label="Fechar"><X size={24} /></button>
             </div>
 
             <form onSubmit={handleSubmit}>
               <label className="area-form-field">
-                <span>Nome da Lista <strong>*</strong></span>
+                <span>Nome da {isEditingArchivedArea ? 'Área' : 'Lista'} <strong>*</strong></span>
                 <input autoFocus maxLength={50} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: Estudos, Projetos, Rotina..." />
                 <small>{form.title.length}/50</small>
               </label>
@@ -266,7 +277,7 @@ export function AreaLists() {
                 <button className="secondary-action" type="button" onClick={closeModal} disabled={isSaving}>Cancelar</button>
                 <button className="primary-action" type="submit" disabled={isSaving || !form.title.trim()}>
                   {isSaving ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : null}
-                  {editingList ? 'Salvar alterações' : 'Criar Lista'}
+                  {isEditingArchivedArea || editingList ? 'Salvar alterações' : 'Criar Lista'}
                 </button>
               </div>
             </form>
@@ -274,7 +285,7 @@ export function AreaLists() {
         </div>
       ) : null}
 
-      {archiveCandidate ? (
+      {!archivedMode && archiveCandidate ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
           <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-archive-title" aria-describedby="list-archive-description" onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
@@ -293,8 +304,6 @@ export function AreaLists() {
           </section>
         </div>
       ) : null}
-
-      {selectedArchivedList ? <ArchivedListDetails item={selectedArchivedList} onClose={() => setSelectedArchivedList(null)} onChanged={loadLists} /> : null}
     </section>
   )
 }

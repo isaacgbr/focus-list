@@ -34,7 +34,7 @@ class LinkService {
       throw new Error("A URL do Link é obrigatória.");
     }
 
-    const task = await taskRepository.findById(data.taskId);
+    const task = await taskRepository.findAnyById(data.taskId);
 
     if (!task) {
       throw new Error("Tarefa não encontrada.");
@@ -46,14 +46,14 @@ class LinkService {
   // Atualiza um Link.
   async update(id: number, data: LinkData) {
     const link = await this.findById(id);
-    const currentTask = await taskRepository.findById(link.taskId);
+    const currentTask = await taskRepository.findAnyById(link.taskId);
 
     if (!currentTask) {
-      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+      throw new Error("Tarefa não encontrada.");
     }
 
     if (data.taskId !== undefined) {
-      const task = await taskRepository.findById(data.taskId);
+      const task = await taskRepository.findAnyById(data.taskId);
 
       if (!task) {
         throw new Error("Tarefa não encontrada.");
@@ -66,10 +66,10 @@ class LinkService {
   // Exclui um Link.
   async delete(id: number) {
     const link = await this.findById(id);
-    const task = await taskRepository.findById(link.taskId);
+    const task = await taskRepository.findAnyById(link.taskId);
 
     if (!task) {
-      throw new Error("Não é possível alterar o conteúdo de uma tarefa arquivada.");
+      throw new Error("Tarefa não encontrada.");
     }
 
     return linkRepository.delete(id);

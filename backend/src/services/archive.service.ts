@@ -17,14 +17,6 @@ class ArchiveService {
     return list;
   }
 
-  async findListsByAreaId(areaId: number) {
-    return archiveRepository.findListsByAreaId(areaId);
-  }
-
-  async findTasksByListId(listId: number) {
-    return archiveRepository.findTasksByListId(listId);
-  }
-
   async findTaskById(id: number) {
     const task = await archiveRepository.findTaskById(id);
     if (!task) throw new Error("Tarefa arquivada não encontrada.");

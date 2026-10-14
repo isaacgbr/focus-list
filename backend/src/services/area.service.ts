@@ -41,7 +41,11 @@ class AreaService {
       icon?: string;
     }
   ) {
-    await this.findById(id);
+    const area = await areaRepository.findAnyById(id);
+
+    if (!area) {
+      throw new Error("Área não encontrada.");
+    }
 
     return areaRepository.update(id, data);
   }

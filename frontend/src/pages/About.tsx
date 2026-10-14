@@ -17,6 +17,8 @@ import {
   Zap,
 } from 'lucide-react'
 
+import { Brand } from '../components/Brand'
+
 const steps = [
   { label: 'Área', description: 'Crie um espaço.', icon: Folder, tone: 'blue' },
   { label: 'Lista', description: 'Agrupe suas tarefas.', icon: ListTodo, tone: 'purple' },
@@ -41,8 +43,8 @@ export function About() {
 
       <section className="about-hero about-panel" aria-labelledby="about-title">
         <div className="about-hero-copy">
-          <span className="about-logo" aria-hidden="true"><Check size={48} strokeWidth={3.2} /></span>
-          <h2 id="about-title">Focus <span>List</span></h2>
+          <div className="about-logo"><Brand /></div>
+          <h2 id="about-title" className="sr-only">FocusList</h2>
           <strong>Organize tudo em um único lugar.</strong>
           <p>Transforme prioridades em progresso com clareza, foco e simplicidade.</p>
         </div>

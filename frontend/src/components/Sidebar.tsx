@@ -205,7 +205,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside className={`sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Navegação principal">
         <div className="sidebar-heading">
-          <Brand />
+          <Brand markSrc="/focuslist-mark-sidebar.png" />
           <button className="icon-button sidebar-close" type="button" onClick={onClose} aria-label="Fechar menu">
             <X size={22} />
           </button>

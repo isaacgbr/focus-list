@@ -1,12 +1,12 @@
-import { Check } from 'lucide-react'
+type BrandProps = {
+  markSrc?: string
+}
 
-export function Brand() {
+export function Brand({ markSrc = '/focuslist-mark.png' }: BrandProps) {
   return (
     <div className="brand" aria-label="FocusList">
-      <span className="brand-mark" aria-hidden="true">
-        <Check size={24} strokeWidth={3} />
-      </span>
-      <span>FocusList</span>
+      <img className="brand-mark" src={markSrc} alt="" aria-hidden="true" />
+      <span>Focus<span className="brand-name-accent">List</span></span>
     </div>
   )
 }

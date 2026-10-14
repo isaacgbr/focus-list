@@ -24,7 +24,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
     if (pathname === '/') return [{ label: 'Dashboard' }]
     if (pathname === '/avulsas') return [{ label: 'Avulsas' }]
     if (pathname === '/arquivados') return [{ label: 'Arquivados' }]
-    if (pathname === '/configuracoes') return [{ label: 'Configurações' }]
+    if (pathname === '/sobre') return [{ label: 'Sobre' }]
 
     const items: Breadcrumb[] = [{ label: 'Áreas', to: '/' }]
     if (areaId) items.push({ label: formatSegment(areaId), to: listId ? `/areas/${areaId}` : undefined })

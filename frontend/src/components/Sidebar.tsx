@@ -12,7 +12,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
-  Settings,
+  Info,
   Users,
   X,
 } from 'lucide-react'
@@ -34,7 +34,7 @@ const primaryItems = [
 
 const utilityItems = [
   { label: 'Arquivados', icon: Archive, to: '/arquivados' },
-  { label: 'Configurações', icon: Settings, to: '/configuracoes' },
+  { label: 'Sobre', icon: Info, to: '/sobre' },
 ]
 
 const areaIcons = {

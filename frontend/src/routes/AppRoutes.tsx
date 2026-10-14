@@ -6,6 +6,7 @@ import { Archived } from '../pages/Archived'
 import { ArchivedTask } from '../pages/ArchivedTask'
 import { Dashboard } from '../pages/Dashboard'
 import { ListTasks } from '../pages/ListTasks'
+import { About } from '../pages/About'
 import { RoutePlaceholder } from '../pages/RoutePlaceholder'
 
 export function AppRoutes() {
@@ -20,7 +21,7 @@ export function AppRoutes() {
         <Route path="arquivados/areas/:areaId" element={<AreaLists archivedMode />} />
         <Route path="arquivados/listas/:listId" element={<ListTasks archivedMode />} />
         <Route path="arquivados/tarefas/:taskId" element={<ArchivedTask />} />
-        <Route path="configuracoes" element={<RoutePlaceholder />} />
+        <Route path="sobre" element={<About />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

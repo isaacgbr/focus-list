@@ -2333,11 +2333,6 @@ button {
   background: linear-gradient(145deg, rgba(18, 91, 175, 0.7), rgba(10, 54, 113, 0.48));
 }
 
-.section-icon.is-standalone {
-  color: #a594ff;
-  background: linear-gradient(145deg, rgba(78, 57, 162, 0.72), rgba(43, 32, 107, 0.5));
-}
-
 .see-all {
   display: flex;
   flex: 0 0 auto;
@@ -2450,8 +2445,7 @@ button {
   padding: 20px 18px 14px;
 }
 
-.task-table,
-.standalone-table {
+.task-table {
   margin-top: 17px;
 }
 
@@ -2468,8 +2462,7 @@ button {
   grid-template-columns: minmax(150px, 1.25fr) minmax(112px, 1fr) 72px 24px;
 }
 
-.task-table-header,
-.standalone-header {
+.task-table-header {
   min-height: 30px;
   padding: 0 12px;
   border-bottom: 1px solid rgba(116, 154, 187, 0.23);
@@ -2477,8 +2470,7 @@ button {
   font-size: 13px;
 }
 
-.task-row,
-.standalone-row {
+.task-row {
   width: 100%;
   min-height: 48px;
   padding: 0 10px 0 12px;
@@ -2490,13 +2482,11 @@ button {
   cursor: pointer;
 }
 
-.task-row:hover,
-.standalone-row:hover {
+.task-row:hover {
   background: rgba(44, 98, 142, 0.1);
 }
 
-.task-row strong,
-.standalone-row strong {
+.task-row strong {
   overflow: hidden;
   font-size: 14px;
   font-weight: 600;
@@ -2532,8 +2522,7 @@ button {
   text-align: center;
 }
 
-.task-row > svg,
-.standalone-row > svg {
+.task-row > svg {
   color: #819ab8;
 }
 
@@ -2552,17 +2541,6 @@ button {
 .deadline {
   color: #c2d2e4;
   font-size: 14px;
-}
-
-.standalone-card {
-  margin-top: 18px;
-}
-
-.standalone-header,
-.standalone-row {
-  display: grid;
-  grid-template-columns: 1fr 24px;
-  align-items: center;
 }
 
 @media (max-width: 1180px) {

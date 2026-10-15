@@ -47,7 +47,6 @@ Rotas implementadas:
 | `/arquivados/areas/:areaId` | Área arquivada |
 | `/arquivados/listas/:listId` | Lista arquivada |
 | `/arquivados/tarefas/:taskId` | Tarefa arquivada |
-| `/avulsas` | placeholder |
 | `/configuracoes` | placeholder legado; funcionalidade descartada da V1 |
 
 Não há rota implementada para Sobre ou Landing Page.

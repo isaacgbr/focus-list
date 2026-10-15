@@ -74,4 +74,4 @@ Todas as chaves primárias são inteiros autoincrementais. As relações obrigat
 
 `archivedAt` existe apenas em Área, Lista e Tarefa. Arquivar um pai registra a data somente no pai; os descendentes são ocultados por consultas que consideram toda a hierarquia. Por isso, um filho com `archivedAt = null` pode estar invisível enquanto seu pai estiver arquivado.
 
-O modelo não possui entidade especial para Avulsas e não cria automaticamente uma Área ou Lista com esse nome.
+As tarefas seguem a hierarquia Área → Lista → Tarefa.

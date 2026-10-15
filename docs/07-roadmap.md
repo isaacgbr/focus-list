@@ -38,7 +38,6 @@ O roadmap separa entregas concluídas, decisões aprovadas ainda pendentes e ide
 ### Pendências da V1
 
 - implementar visualização em Cards conforme protótipo aprovado;
-- definir e implementar o fluxo de Avulsas ou remover o placeholder;
 - aplicar a identidade visual oficial;
 - implementar a Tela Sobre;
 - implementar a Landing Page para a publicação da V1;

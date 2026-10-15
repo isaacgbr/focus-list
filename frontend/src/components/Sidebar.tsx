@@ -2,7 +2,6 @@ import {
   AlertCircle,
   Archive,
   BriefcaseBusiness,
-  FileText,
   Folder,
   GraduationCap,
   Heart,
@@ -29,7 +28,6 @@ type SidebarProps = {
 
 const primaryItems = [
   { label: 'Dashboard', icon: Home, to: '/' },
-  { label: 'Avulsas', icon: FileText, to: '/avulsas' },
 ]
 
 const utilityItems = [

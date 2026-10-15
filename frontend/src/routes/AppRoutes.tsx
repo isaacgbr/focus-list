@@ -7,14 +7,12 @@ import { ArchivedTask } from '../pages/ArchivedTask'
 import { Dashboard } from '../pages/Dashboard'
 import { ListTasks } from '../pages/ListTasks'
 import { About } from '../pages/About'
-import { RoutePlaceholder } from '../pages/RoutePlaceholder'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<Dashboard />} />
-        <Route path="avulsas" element={<RoutePlaceholder />} />
         <Route path="areas/:areaId" element={<AreaLists />} />
         <Route path="areas/:areaId/listas/:listId" element={<ListTasks />} />
         <Route path="arquivados" element={<Archived />} />

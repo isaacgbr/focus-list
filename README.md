@@ -12,7 +12,7 @@ O núcleo funcional da V1 está em desenvolvimento e já possui frontend integra
 - Central única de Arquivados para Áreas, Listas e Tarefas;
 - edição, restauração e exclusão definitiva de itens arquivados.
 
-A tela Sobre e a identidade visual oficial estão aprovadas em protótipo, mas ainda não foram implementadas. A Landing Page também não foi implementada e permanece planejada para a publicação da V1. A rota Avulsas ainda é um placeholder.
+A tela Sobre e a identidade visual oficial estão aprovadas em protótipo, mas ainda não foram implementadas. A Landing Page também não foi implementada e permanece planejada para a publicação da V1.
 
 ## Stack
 

@@ -265,14 +265,13 @@ export function Dashboard() {
       .sort((first, second) => second.updatedAt.localeCompare(first.updatedAt))
       .slice(0, DASHBOARD_TASK_LIMIT)
       .map(toDashboardTask)
-    const standalone = pendingTasks.filter((task) => !listsById.has(task.listId)).slice(0, DASHBOARD_TASK_LIMIT).map(toDashboardTask)
     const earliestOverdue = overdue.map((task) => dateKeyFromDueDate(task.dueDate)!).sort()[0]
     const attentionItems: AttentionItem[] = [
       { id: 'overdue', count: overdue.length, label: 'vencidas', detail: earliestOverdue ? `Desde ${formatDateKey(earliestOverdue)}` : 'Nenhuma vencida', tone: 'danger' },
       { id: 'today', count: today.length, label: 'vencem hoje', detail: formatDateKey(todayKey), tone: 'warning' },
       { id: 'week', count: week.length, label: 'vencem nos próximos 7 dias', detail: `Até ${formatDateKey(weekKey)}`, tone: 'info' },
     ]
-    return { attentionItems, inProgress, upcoming, standalone }
+    return { attentionItems, inProgress, upcoming }
   }, [currentDate, data])
 
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
@@ -281,7 +280,6 @@ export function Dashboard() {
   const openTask = (task: DashboardTask) => {
     const list = data.lists.find((item) => item.id === task.listId)
     if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`)
-    else navigate('/avulsas')
   }
 
   const openFirstTaskList = () => {
@@ -343,14 +341,6 @@ export function Dashboard() {
           <TaskTable tasks={dashboard.upcoming} onOpen={openTask} showDeadline />
         </section>
       </div>
-      <section className="dashboard-card tasks-card standalone-card" aria-labelledby="standalone-title">
-        <div className="dashboard-card-topline"><SectionHeading id="standalone-title" icon={FileText} tone="standalone" title="Tarefas avulsas" description="Tarefas que não estão associadas a uma lista disponível." /><SeeAllLink onClick={() => navigate('/avulsas')} /></div>
-        <div className="standalone-table" role="table">
-          <div className="standalone-header" role="row"><span role="columnheader">Tarefa</span><span aria-hidden="true" /></div>
-          {dashboard.standalone.length === 0 ? <p className="dashboard-table-empty">Nenhuma tarefa avulsa.</p> : null}
-          {dashboard.standalone.map((task) => <button className="standalone-row" type="button" role="row" key={task.id} onClick={() => openTask(task)}><span className="dashboard-task-title" role="cell"><strong>{task.title}</strong><TaskMetadata task={task} /></span><ChevronRight size={21} aria-hidden="true" /></button>)}
-        </div>
-      </section>
     </section>
   )
 }

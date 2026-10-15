@@ -22,7 +22,6 @@ export function Header({ onOpenSidebar }: HeaderProps) {
 
   const breadcrumbs: Breadcrumb[] = (() => {
     if (pathname === '/') return [{ label: 'Dashboard' }]
-    if (pathname === '/avulsas') return [{ label: 'Avulsas' }]
     if (pathname === '/arquivados') return [{ label: 'Arquivados' }]
     if (pathname === '/sobre') return [{ label: 'Sobre' }]
 

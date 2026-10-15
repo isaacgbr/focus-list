@@ -44,7 +44,6 @@ Enquanto não há Tarefas, o Dashboard orienta a criação da próxima entidade 
 
 ## Rotas incompletas
 
-- `/avulsas`: placeholder; não há fluxo funcional de Avulsas.
 - `/configuracoes`: placeholder legado; a funcionalidade foi descartada da V1 e substituída pela Tela Sobre.
 - Tela Sobre: aprovada, mas ainda sem rota ou implementação.
 - Landing Page: planejada para a publicação da V1, ainda sem rota ou implementação.

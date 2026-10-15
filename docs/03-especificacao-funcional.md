@@ -94,5 +94,4 @@ A Etapa 17 aprovou o Conceito A: organização por camadas, visual 3D minimalist
 
 - Landing Page, planejada para a publicação da V1;
 - visualização de Tarefas em Cards;
-- fluxo de Avulsas;
 - tela Sobre e aplicação final da nova identidade visual.

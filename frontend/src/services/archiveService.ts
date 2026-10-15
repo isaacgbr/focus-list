@@ -23,7 +23,10 @@ export type ArchivedTaskSummary = {
   dueDate: string | null
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | null
   completed: boolean
+  completedAt: string | null
   archivedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export type ArchivedListDetail = {
@@ -36,10 +39,7 @@ export type ArchivedListDetail = {
 }
 
 export type ArchivedTaskDetail = ArchivedTaskSummary & {
-  completedAt: string | null
   listId: number
-  createdAt: string
-  updatedAt: string
   list: {
     id: number
     title: string

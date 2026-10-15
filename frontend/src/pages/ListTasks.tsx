@@ -65,7 +65,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
           { label: list.area.title, to: list.area.archivedAt ? `/arquivados/areas/${list.area.id}` : undefined },
           { label: list.title },
         ])
-        setTasks(list.tasks.map((task) => ({ ...task, completedAt: null, listId: selectedListId, createdAt: '', updatedAt: '' })))
+        setTasks(list.tasks.map((task) => ({ ...task, listId: selectedListId })))
       } else {
         const [allTasks, selectedList, area] = await Promise.all([
           taskService.getAll(),

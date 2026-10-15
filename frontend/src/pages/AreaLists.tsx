@@ -16,6 +16,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
+import { useBreadcrumbs } from '../components/BreadcrumbContext'
 import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService, { CreateListData, List } from '../services/listService'
@@ -42,6 +43,7 @@ const emptyListForm: ListForm = {
 export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) {
   const { areaId } = useParams()
   const selectedAreaId = Number(areaId)
+  const setBreadcrumbs = useBreadcrumbs()
   const [lists, setLists] = useState<List[]>([])
   const [archivedArea, setArchivedArea] = useState<ArchivedAreaDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -60,6 +62,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   const loadLists = useCallback(async () => {
     setIsLoading(true)
     setLoadError('')
+    setBreadcrumbs([])
 
     if (!Number.isInteger(selectedAreaId) || selectedAreaId <= 0) {
       setLists([])
@@ -72,9 +75,11 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
       if (archivedMode) {
         const area = await archiveService.getArea(selectedAreaId)
         setArchivedArea(area)
+        setBreadcrumbs([{ label: area.title }])
         setLists(area.lists.map((list) => ({ ...list, areaId: selectedAreaId, createdAt: '', updatedAt: '' })))
       } else {
-        const [allLists, allTasks] = await Promise.all([listService.getAll(), taskService.getAll()])
+        const [area, allLists, allTasks] = await Promise.all([areaService.getById(selectedAreaId), listService.getAll(), taskService.getAll()])
+        setBreadcrumbs([{ label: area.title }])
         const areaLists = allLists.filter((list) => list.areaId === selectedAreaId)
         setLists(areaLists)
         setTaskCounts(Object.fromEntries(areaLists.map((list) => {
@@ -93,7 +98,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
     } finally {
       setIsLoading(false)
     }
-  }, [archivedMode, selectedAreaId])
+  }, [archivedMode, selectedAreaId, setBreadcrumbs])
 
   useEffect(() => {
     void loadLists()

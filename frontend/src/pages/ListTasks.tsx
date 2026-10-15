@@ -3,8 +3,10 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
+import { useBreadcrumbs } from '../components/BreadcrumbContext'
 import { TaskDetails } from '../components/TaskDetails'
 import archiveService, { ArchivedListDetail } from '../services/archiveService'
+import areaService from '../services/areaService'
 import listService from '../services/listService'
 import taskService, { CreateTaskData, Task, TaskPriority } from '../services/taskService'
 
@@ -20,10 +22,12 @@ function formatDueDate(value: string | null) {
 }
 
 export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) {
-  const { listId } = useParams()
+  const { areaId, listId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
   const selectedListId = Number(listId)
+  const selectedAreaId = Number(areaId)
+  const setBreadcrumbs = useBreadcrumbs()
   const [listTitle, setListTitle] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
   const [archivedList, setArchivedList] = useState<ArchivedListDetail | null>(null)
@@ -45,6 +49,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
     setLoadError('')
+    setBreadcrumbs([])
     if (!Number.isInteger(selectedListId) || selectedListId <= 0) {
       setTasks([])
       setLoadError('Não foi possível identificar a lista selecionada.')
@@ -56,11 +61,23 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         const list = await archiveService.getList(selectedListId)
         setArchivedList(list)
         setListTitle(list.title)
+        setBreadcrumbs([
+          { label: list.area.title, to: list.area.archivedAt ? `/arquivados/areas/${list.area.id}` : undefined },
+          { label: list.title },
+        ])
         setTasks(list.tasks.map((task) => ({ ...task, completedAt: null, listId: selectedListId, createdAt: '', updatedAt: '' })))
       } else {
-        const [allTasks, selectedList] = await Promise.all([taskService.getAll(), listService.getById(selectedListId)])
+        const [allTasks, selectedList, area] = await Promise.all([
+          taskService.getAll(),
+          listService.getById(selectedListId),
+          areaService.getById(selectedAreaId),
+        ])
         setTasks(allTasks.filter((task) => task.listId === selectedListId))
         setListTitle(selectedList.title)
+        setBreadcrumbs([
+          { label: area.title, to: `/areas/${area.id}` },
+          { label: selectedList.title },
+        ])
       }
     } catch {
       setTasks([])
@@ -69,7 +86,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
     } finally {
       setIsLoading(false)
     }
-  }, [archivedMode, selectedListId])
+  }, [archivedMode, selectedAreaId, selectedListId, setBreadcrumbs])
 
   const openArchivedListEdit = () => {
     if (!archivedList) return

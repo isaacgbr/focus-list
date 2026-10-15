@@ -3,8 +3,11 @@ import {
   Archive,
   ChevronRight,
   Folder,
+  LayoutGrid,
+  List as ListIcon,
   ListPlus,
   LoaderCircle,
+  MoreHorizontal,
   Pencil,
   Plus,
   X,
@@ -16,10 +19,19 @@ import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService, { CreateListData, List } from '../services/listService'
+import taskService from '../services/taskService'
 
 type ListForm = {
   title: string
   description: string
+}
+
+type ViewMode = 'list' | 'cards'
+
+type ListTaskCount = {
+  total: number
+  pending: number
+  completed: number
 }
 
 const emptyListForm: ListForm = {
@@ -42,6 +54,8 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   const [editingList, setEditingList] = useState<List | null>(null)
   const [archiveCandidate, setArchiveCandidate] = useState<List | null>(null)
   const [form, setForm] = useState<ListForm>(emptyListForm)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [taskCounts, setTaskCounts] = useState<Record<number, ListTaskCount>>({})
 
   const loadLists = useCallback(async () => {
     setIsLoading(true)
@@ -60,8 +74,17 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
         setArchivedArea(area)
         setLists(area.lists.map((list) => ({ ...list, areaId: selectedAreaId, createdAt: '', updatedAt: '' })))
       } else {
-        const allLists = await listService.getAll()
-        setLists(allLists.filter((list) => list.areaId === selectedAreaId))
+        const [allLists, allTasks] = await Promise.all([listService.getAll(), taskService.getAll()])
+        const areaLists = allLists.filter((list) => list.areaId === selectedAreaId)
+        setLists(areaLists)
+        setTaskCounts(Object.fromEntries(areaLists.map((list) => {
+          const listTasks = allTasks.filter((task) => task.listId === list.id)
+          return [list.id, {
+            total: listTasks.length,
+            pending: listTasks.filter((task) => !task.completed).length,
+            completed: listTasks.filter((task) => task.completed).length,
+          }]
+        })))
       }
     } catch {
       setLists([])
@@ -216,32 +239,74 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
       ) : null}
 
       {!isLoading && !loadError && lists.length > 0 ? (
-        <div className="lists-grid" aria-live="polite">
-          {lists.map((list) => (
-            <article className="list-card" key={list.id}>
-              {archivedMode ? <Link className="list-card-content" to={`/arquivados/listas/${list.id}`}>
-                <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
-                <span>
-                  <strong>{list.title}</strong>
-                  <small>{list.description || 'Sem descrição'}</small>
-                </span>
-                <ChevronRight size={22} aria-hidden="true" />
-              </Link> : <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
-                <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
-                <span><strong>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
-                <ChevronRight size={22} aria-hidden="true" />
-              </Link>}
-              <div className="list-card-actions">
-                <button type="button" onClick={() => openEditModal(list)} aria-label={`Editar ${list.title}`}>
-                  <Pencil size={17} aria-hidden="true" />
-                </button>
-                {!archivedMode ? <button type="button" onClick={() => { setActionError(''); setArchiveCandidate(list) }} aria-label={`Arquivar ${list.title}`}>
-                  <Archive size={17} aria-hidden="true" />
-                </button> : null}
+        <>
+          {!archivedMode ? (
+            <div className="view-mode-toolbar">
+              <span>Visualização</span>
+              <div className="view-mode-toggle" role="group" aria-label="Modo de visualização das listas">
+                <button className={viewMode === 'list' ? 'is-active' : ''} type="button" onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'}><ListIcon size={18} />Lista</button>
+                <button className={viewMode === 'cards' ? 'is-active' : ''} type="button" onClick={() => setViewMode('cards')} aria-pressed={viewMode === 'cards'}><LayoutGrid size={18} />Cards</button>
               </div>
-            </article>
-          ))}
-        </div>
+            </div>
+          ) : null}
+
+          {!archivedMode && viewMode === 'cards' ? (
+            <div className="list-cards-grid" aria-live="polite">
+              {lists.map((list) => {
+                const count = taskCounts[list.id] ?? { total: 0, pending: 0, completed: 0 }
+                return (
+                  <article className="list-summary-card" key={list.id}>
+                    <Link className="list-summary-card-link" to={`/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
+                      <span className="list-summary-main">
+                        <span className="list-card-icon" aria-hidden="true"><Folder size={23} /></span>
+                        <strong>{list.title}</strong>
+                      </span>
+                      <span className="list-summary-status">
+                        <span>{count.total} {count.total === 1 ? 'tarefa' : 'tarefas'}</span>
+                        <span>{count.pending} {count.pending === 1 ? 'pendente' : 'pendentes'}</span>
+                        <span>{count.completed} {count.completed === 1 ? 'concluída' : 'concluídas'}</span>
+                      </span>
+                    </Link>
+                    <details className="card-actions-menu">
+                      <summary aria-label={`Ações de ${list.title}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
+                      <div>
+                        <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); openEditModal(list) }}><Pencil size={16} />Editar</button>
+                        <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); setActionError(''); setArchiveCandidate(list) }}><Archive size={16} />Arquivar</button>
+                      </div>
+                    </details>
+                  </article>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="lists-grid" aria-live="polite">
+              {lists.map((list) => (
+                <article className="list-card" key={list.id}>
+                  {archivedMode ? <Link className="list-card-content" to={`/arquivados/listas/${list.id}`}>
+                    <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
+                    <span>
+                      <strong>{list.title}</strong>
+                      <small>{list.description || 'Sem descrição'}</small>
+                    </span>
+                    <ChevronRight size={22} aria-hidden="true" />
+                  </Link> : <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
+                    <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
+                    <span><strong>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
+                    <ChevronRight size={22} aria-hidden="true" />
+                  </Link>}
+                  <div className="list-card-actions">
+                    <button type="button" onClick={() => openEditModal(list)} aria-label={`Editar ${list.title}`}>
+                      <Pencil size={17} aria-hidden="true" />
+                    </button>
+                    {!archivedMode ? <button type="button" onClick={() => { setActionError(''); setArchiveCandidate(list) }} aria-label={`Arquivar ${list.title}`}>
+                      <Archive size={17} aria-hidden="true" />
+                    </button> : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
       ) : null}
 
       {isModalOpen ? (

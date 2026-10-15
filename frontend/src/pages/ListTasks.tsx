@@ -1,6 +1,6 @@
 import { AlertCircle, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronUp, Circle, ClipboardList, LayoutGrid, List as ListIcon, LoaderCircle, Pencil, Plus, X } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import { TaskDetails } from '../components/TaskDetails'
@@ -21,6 +21,8 @@ function formatDueDate(value: string | null) {
 
 export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) {
   const { listId } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const selectedListId = Number(listId)
   const [listTitle, setListTitle] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
@@ -96,6 +98,14 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   }
 
   useEffect(() => { void loadTasks() }, [loadTasks])
+  useEffect(() => {
+    const taskId = (location.state as { taskId?: unknown } | null)?.taskId
+    if (archivedMode || isLoading || loadError || typeof taskId !== 'number') return
+
+    setSelectedTask(tasks.find((task) => task.id === taskId) ?? null)
+    navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null })
+  }, [archivedMode, isLoading, loadError, location.hash, location.pathname, location.search, location.state, navigate, tasks])
+
   useEffect(() => {
     if (!isModalOpen && !isListEditOpen) return
     const handleKeyDown = (event: KeyboardEvent) => {

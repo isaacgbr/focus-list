@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
-  ArrowRight,
   CalendarDays,
   ChevronRight,
   FileText,
@@ -109,15 +108,6 @@ function ListBadge({ color, name }: { color?: string | null; name: string }) {
       <Folder className="task-list-icon" size={20} fill={color ?? '#269cff'} color={color ?? '#269cff'} strokeWidth={1.5} aria-hidden="true" />
       {name}
     </span>
-  )
-}
-
-function SeeAllLink({ onClick }: { onClick?: () => void }) {
-  return (
-    <button className="see-all" type="button" onClick={onClick} disabled={!onClick}>
-      Ver todas
-      <ArrowRight size={19} aria-hidden="true" />
-    </button>
   )
 }
 
@@ -279,13 +269,7 @@ export function Dashboard() {
 
   const openTask = (task: DashboardTask) => {
     const list = data.lists.find((item) => item.id === task.listId)
-    if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`)
-  }
-
-  const openFirstTaskList = () => {
-    const firstTask = data.tasks[0]
-    const list = firstTask ? data.lists.find((item) => item.id === firstTask.listId) : undefined
-    if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`)
+    if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`, { state: { taskId: task.id } })
   }
 
   const renderHero = () => (
@@ -328,16 +312,16 @@ export function Dashboard() {
     <section className="dashboard" aria-labelledby="dashboard-title">
       {renderHero()}
       <section className="dashboard-card attention-card" aria-labelledby="attention-title">
-        <div className="dashboard-card-topline"><SectionHeading id="attention-title" icon={AlertCircle} tone="attention" title="Atenção" description="Tarefas que precisam da sua atenção agora." /><SeeAllLink onClick={openFirstTaskList} /></div>
+        <div className="dashboard-card-topline"><SectionHeading id="attention-title" icon={AlertCircle} tone="attention" title="Atenção" description="Tarefas que precisam da sua atenção agora." /></div>
         <div className="attention-grid">{dashboard.attentionItems.map((item) => <div className={`attention-item is-${item.tone}`} key={item.id}><strong>{item.count}</strong><span className="attention-copy"><span>{item.label}</span><small>{item.detail}</small></span><span className="attention-arrow" aria-hidden="true"><ChevronRight size={26} /></span></div>)}</div>
       </section>
       <div className="dashboard-columns">
         <section className="dashboard-card tasks-card" aria-labelledby="progress-title">
-          <div className="dashboard-card-topline"><SectionHeading id="progress-title" icon={Play} tone="progress" title="Em andamento" description="Tarefas pendentes, ordenadas pela atualização mais recente." /><SeeAllLink onClick={openFirstTaskList} /></div>
+          <div className="dashboard-card-topline"><SectionHeading id="progress-title" icon={Play} tone="progress" title="Em andamento" description="Tarefas pendentes, ordenadas pela atualização mais recente." /></div>
           <TaskTable tasks={dashboard.inProgress} onOpen={openTask} />
         </section>
         <section className="dashboard-card tasks-card" aria-labelledby="upcoming-title">
-          <div className="dashboard-card-topline"><SectionHeading id="upcoming-title" icon={CalendarDays} tone="upcoming" title="Próximos prazos" description="Tarefas que vencem nos próximos 7 dias." /><SeeAllLink onClick={openFirstTaskList} /></div>
+          <div className="dashboard-card-topline"><SectionHeading id="upcoming-title" icon={CalendarDays} tone="upcoming" title="Próximos prazos" description="Tarefas que vencem nos próximos 7 dias." /></div>
           <TaskTable tasks={dashboard.upcoming} onOpen={openTask} showDeadline />
         </section>
       </div>

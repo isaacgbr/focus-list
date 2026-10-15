@@ -19,7 +19,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
@@ -194,6 +194,12 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
     event.preventDefault()
     const description = descriptionDraft.trim()
     if (description === (task.description ?? '') || await updateTaskField('description', { description: description || null }, 'Não foi possível alterar a descrição.')) setIsEditingDescription(false)
+  }
+
+  const handleDescriptionKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || (!event.ctrlKey && !event.metaKey) || event.nativeEvent.isComposing) return
+    event.preventDefault()
+    event.currentTarget.form?.requestSubmit()
   }
 
   const handleStatusChange = async (completed: boolean) => {
@@ -437,7 +443,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
               <h3><FileText size={20} />Descrição</h3>
               {isEditingDescription ? (
                 <form className="task-description-form" onSubmit={handleDescriptionSubmit}>
-                  <textarea autoFocus maxLength={500} rows={5} value={descriptionDraft} onChange={(event) => setDescriptionDraft(event.target.value)} placeholder="Adicione uma descrição..." aria-label="Descrição da tarefa" />
+                  <textarea autoFocus maxLength={500} rows={5} value={descriptionDraft} onChange={(event) => setDescriptionDraft(event.target.value)} onKeyDown={handleDescriptionKeyDown} placeholder="Adicione uma descrição..." aria-label="Descrição da tarefa" aria-keyshortcuts="Control+Enter Meta+Enter" />
                   <div><button className="primary-action" type="submit" disabled={savingTaskField === 'description'}>{savingTaskField === 'description' ? <LoaderCircle className="spin" size={17} /> : <Save size={17} />}Salvar</button><button className="secondary-action" type="button" onClick={() => { setIsEditingDescription(false); setDescriptionDraft(task.description ?? '') }} disabled={savingTaskField === 'description'}>Cancelar</button></div>
                 </form>
               ) : (

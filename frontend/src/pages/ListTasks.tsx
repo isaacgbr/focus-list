@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronUp, Circle, ClipboardList, LayoutGrid, List as ListIcon, LoaderCircle, Pencil, Plus, X } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronUp, Circle, ClipboardList, LayoutGrid, Link2, List as ListIcon, ListChecks, LoaderCircle, Pencil, Plus, X } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
@@ -8,7 +8,9 @@ import { TaskDetails } from '../components/TaskDetails'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedListDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
+import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
 import listService from '../services/listService'
+import linkService, { Link } from '../services/linkService'
 import taskService, { CreateTaskData, Task, TaskPriority } from '../services/taskService'
 
 type TaskForm = { title: string; description: string; dueDate: string; priority: TaskPriority | '' }
@@ -16,6 +18,31 @@ type TaskForm = { title: string; description: string; dueDate: string; priority:
 const emptyTaskForm: TaskForm = { title: '', description: '', dueDate: '', priority: '' }
 const priorityLabels: Record<TaskPriority, string> = { HIGH: 'Alta', MEDIUM: 'Média', LOW: 'Baixa' }
 const INITIAL_VISIBLE_CARDS = 12
+
+type TaskContentSummary = {
+  checklistCompleted: number
+  checklistTotal: number
+  linkCount: number
+}
+
+function summarizeTaskContent(checklistItems: ChecklistItem[], links: Link[]) {
+  const summaries: Record<number, TaskContentSummary> = {}
+
+  checklistItems.forEach((item) => {
+    const summary = summaries[item.taskId] ?? { checklistCompleted: 0, checklistTotal: 0, linkCount: 0 }
+    summary.checklistTotal += 1
+    if (item.completed) summary.checklistCompleted += 1
+    summaries[item.taskId] = summary
+  })
+
+  links.forEach((link) => {
+    const summary = summaries[link.taskId] ?? { checklistCompleted: 0, checklistTotal: 0, linkCount: 0 }
+    summary.linkCount += 1
+    summaries[link.taskId] = summary
+  })
+
+  return summaries
+}
 
 function formatDueDate(value: string | null) {
   if (!value) return 'Sem prazo'
@@ -31,6 +58,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const setBreadcrumbs = useBreadcrumbs()
   const [listTitle, setListTitle] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
+  const [taskContentSummaries, setTaskContentSummaries] = useState<Record<number, TaskContentSummary>>({})
   const [archivedList, setArchivedList] = useState<ArchivedListDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -48,6 +76,14 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [completedCardsExpanded, setCompletedCardsExpanded] = useState(false)
   const taskModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
   const listEditModalRef = useModalFocusTrap<HTMLElement>(isListEditOpen)
+
+  const loadTaskContentSummaries = useCallback(async () => {
+    const [checklistItems, links] = await Promise.all([
+      checklistItemService.getAll(),
+      linkService.getAll(),
+    ])
+    setTaskContentSummaries(summarizeTaskContent(checklistItems, links))
+  }, [])
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
@@ -69,13 +105,17 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
           { label: list.title },
         ])
         setTasks(list.tasks.map((task) => ({ ...task, listId: selectedListId })))
+        setTaskContentSummaries({})
       } else {
-        const [allTasks, selectedList, area] = await Promise.all([
+        const [allTasks, selectedList, area, checklistItems, links] = await Promise.all([
           taskService.getAll(),
           listService.getById(selectedListId),
           areaService.getById(selectedAreaId),
+          checklistItemService.getAll(),
+          linkService.getAll(),
         ])
         setTasks(allTasks.filter((task) => task.listId === selectedListId))
+        setTaskContentSummaries(summarizeTaskContent(checklistItems, links))
         setListTitle(selectedList.title)
         setBreadcrumbs([
           { label: area.title, to: `/areas/${area.id}` },
@@ -188,13 +228,23 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
 
   const pendingTasks = tasks.filter((task) => !task.completed)
   const completedTasks = tasks.filter((task) => task.completed)
+  const renderContentIndicators = (task: Task) => {
+    const summary = taskContentSummaries[task.id]
+    if (!summary || (!summary.checklistTotal && !summary.linkCount)) return null
+
+    return <span className="task-content-indicators">
+      {summary.checklistTotal ? <span title={`${summary.checklistCompleted} de ${summary.checklistTotal} itens do checklist concluídos`} aria-label={`${summary.checklistCompleted} de ${summary.checklistTotal} itens do checklist concluídos`}><ListChecks size={15} aria-hidden="true" />{summary.checklistCompleted}/{summary.checklistTotal}</span> : null}
+      {summary.linkCount ? <span title={`${summary.linkCount} ${summary.linkCount === 1 ? 'link' : 'links'}`} aria-label={`${summary.linkCount} ${summary.linkCount === 1 ? 'link' : 'links'}`}><Link2 size={15} aria-hidden="true" />{summary.linkCount}</span> : null}
+    </span>
+  }
+
   const renderTask = (task: Task) => (
     <article className={`task-item${task.completed ? ' is-completed' : ''}`} key={task.id}>
       <button className="task-complete-button" type="button" onClick={() => void handleToggleCompleted(task)} disabled={updatingTaskId === task.id} aria-label={task.completed ? `Desmarcar conclusão de ${task.title}` : `Concluir ${task.title}`}>
         {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed ? <Check size={19} /> : null}
       </button>
       <button className="task-item-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
-        <strong>{task.title}</strong>{task.description ? <p>{task.description}</p> : null}
+        <strong>{task.title}</strong>{task.description ? <p>{task.description}</p> : null}{renderContentIndicators(task)}
       </button>
       <span className={`task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`}>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}</span>
       <span className="task-due-date"><CalendarDays size={17} />{formatDueDate(task.dueDate)}</span>
@@ -209,9 +259,10 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       <button className="task-card-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
         <strong>{task.title}</strong>
         {task.description ? <p>{task.description}</p> : null}
-        {task.priority || task.dueDate ? <span className="task-card-metadata">
+        {task.priority || task.dueDate || taskContentSummaries[task.id] ? <span className="task-card-metadata">
           {task.priority ? <span className={`task-priority is-${task.priority.toLowerCase()}`}>{priorityLabels[task.priority]}</span> : null}
           {task.dueDate ? <span className="task-due-date"><CalendarDays size={15} />{formatDueDate(task.dueDate)}</span> : null}
+          {renderContentIndicators(task)}
         </span> : null}
       </button>
     </article>
@@ -298,7 +349,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         </div>
       ) : null}
 
-      {selectedTask && !isModalOpen && !isListEditOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} archivedMode={archivedMode} onClose={() => setSelectedTask(null)} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
+      {selectedTask && !isModalOpen && !isListEditOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} archivedMode={archivedMode} onClose={() => { setSelectedTask(null); if (!archivedMode) void loadTaskContentSummaries() }} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
     </section>
   )
 }

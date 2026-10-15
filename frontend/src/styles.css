@@ -1512,6 +1512,27 @@ button {
   font-size: 13px;
 }
 
+.task-content-indicators {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.task-content-indicators > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #91abc3;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.task-content-indicators svg { color: #72b8f2; }
+.task-card-metadata > .task-content-indicators { margin-top: 0; }
+
 .task-item.is-completed .task-item-copy strong {
   color: #869cb2;
   text-decoration: line-through;

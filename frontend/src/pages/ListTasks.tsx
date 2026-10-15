@@ -280,7 +280,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       {!isLoading && loadError ? <div className="lists-state is-error" role="alert"><AlertCircle size={36} /><h2>Erro ao carregar</h2><p>{loadError}</p><button className="secondary-action" type="button" onClick={() => void loadTasks()}>Tentar novamente</button></div> : null}
       {!isLoading && !loadError && tasks.length === 0 ? <div className="lists-state"><span className="lists-state-icon"><ClipboardList size={38} /></span><h2>Nenhuma tarefa criada</h2><p>{archivedMode ? 'Esta lista não possui tarefas.' : 'Crie a primeira tarefa desta lista para começar.'}</p>{!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Criar Tarefa</button> : null}</div> : null}
       {!isLoading && !loadError && tasks.length > 0 ? (
-        <div className="tasks-content" aria-live="polite">
+        <div className={`tasks-content is-${viewMode}`} aria-live="polite">
           {!archivedMode ? (
             <div className="tasks-view-header">
               <div className="tasks-summary"><span><Circle size={16} />{pendingTasks.length} {pendingTasks.length === 1 ? 'pendente' : 'pendentes'}</span><span><CheckCircle2 size={17} />{completedTasks.length} {completedTasks.length === 1 ? 'concluída' : 'concluídas'}</span></div>

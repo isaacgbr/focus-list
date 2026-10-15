@@ -57,6 +57,10 @@ class ChecklistItemService {
 
     const title = data.title ?? data.text;
 
+    if (title !== undefined && !title.trim()) {
+      throw new Error("O título do item de checklist é obrigatório.");
+    }
+
     if (data.taskId !== undefined) {
       const task = await taskRepository.findAnyById(data.taskId);
 

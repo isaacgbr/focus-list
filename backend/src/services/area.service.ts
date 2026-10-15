@@ -47,6 +47,10 @@ class AreaService {
       throw new Error("Área não encontrada.");
     }
 
+    if (data.title !== undefined && !data.title.trim()) {
+      throw new Error("O título da Área é obrigatório.");
+    }
+
     return areaRepository.update(id, data);
   }
 

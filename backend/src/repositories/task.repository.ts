@@ -6,7 +6,7 @@ type TaskData = {
   dueDate?: Date | string;
   priority?: "LOW" | "MEDIUM" | "HIGH";
   completed?: boolean;
-  completedAt?: Date | string;
+  completedAt?: Date | string | null;
   listId?: number;
 };
 

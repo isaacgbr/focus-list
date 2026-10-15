@@ -52,6 +52,10 @@ class ListService {
       throw new Error("Lista não encontrada.");
     }
 
+    if (data.title !== undefined && !data.title.trim()) {
+      throw new Error("O título da Lista é obrigatório.");
+    }
+
     if (data.areaId !== undefined) {
       const area = await areaRepository.findById(data.areaId);
 

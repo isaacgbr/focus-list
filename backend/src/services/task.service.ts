@@ -7,7 +7,7 @@ type TaskData = {
   dueDate?: Date | string;
   priority?: "LOW" | "MEDIUM" | "HIGH";
   completed?: boolean;
-  completedAt?: Date | string;
+  completedAt?: Date | string | null;
   listId?: number;
 };
 
@@ -51,6 +51,10 @@ class TaskService {
       throw new Error("Tarefa não encontrada.");
     }
 
+    if (data.title !== undefined && !data.title.trim()) {
+      throw new Error("O título da Tarefa é obrigatório.");
+    }
+
     if (data.listId !== undefined) {
       const list = await listRepository.findById(data.listId);
 
@@ -59,7 +63,14 @@ class TaskService {
       }
     }
 
-    return taskRepository.update(id, data);
+    const updateData = { ...data };
+    delete updateData.completedAt;
+
+    if (data.completed !== undefined) {
+      updateData.completedAt = data.completed ? new Date() : null;
+    }
+
+    return taskRepository.update(id, updateData);
   }
 
   // Exclui uma Tarefa.

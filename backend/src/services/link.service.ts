@@ -52,6 +52,14 @@ class LinkService {
       throw new Error("Tarefa não encontrada.");
     }
 
+    if (data.title !== undefined && !data.title.trim()) {
+      throw new Error("O título do Link é obrigatório.");
+    }
+
+    if (data.url !== undefined && !data.url.trim()) {
+      throw new Error("A URL do Link é obrigatória.");
+    }
+
     if (data.taskId !== undefined) {
       const task = await taskRepository.findAnyById(data.taskId);
 

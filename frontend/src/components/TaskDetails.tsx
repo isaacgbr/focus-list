@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
 import linkService, { Link } from '../services/linkService'
 import taskService, { Task, TaskPriority, UpdateTaskData } from '../services/taskService'
@@ -107,6 +108,8 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
   const menuRef = useRef<HTMLDivElement>(null)
   const dateEditedWithKeyboardRef = useRef(false)
   const dueDateErrorRef = useRef(false)
+  const detailsModalRef = useModalFocusTrap<HTMLElement>(true)
+  const archiveModalRef = useModalFocusTrap<HTMLElement>(isArchiveConfirmOpen)
 
   const loadChecklist = useCallback(async () => {
     setIsChecklistLoading(true)
@@ -396,7 +399,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
 
   return (
     <div className="area-modal-backdrop task-details-backdrop" role="presentation" onMouseDown={closeDetails}>
-      <section className="task-details-modal" role="dialog" aria-modal="true" aria-labelledby="task-details-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section ref={detailsModalRef} className="task-details-modal" role="dialog" aria-modal="true" aria-labelledby="task-details-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
         <header className="task-details-header">
           <button className={`task-complete-button${task.completed ? ' is-completed' : ''}`} type="button" onClick={() => void handleStatusChange(!task.completed)} disabled={savingTaskField === 'status'} aria-label={task.completed ? 'Reabrir tarefa' : 'Concluir tarefa'}>
             {savingTaskField === 'status' ? <LoaderCircle className="spin" size={19} /> : task.completed ? <Check size={18} /> : null}
@@ -421,7 +424,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
               </div>
             ) : null}
           </div> : null}
-          <button className="icon-button task-details-close" type="button" onClick={closeDetails} aria-label="Voltar para a lista"><X size={25} /></button>
+          <button className="icon-button task-details-close" type="button" onClick={closeDetails} aria-label="Voltar para a lista" data-modal-initial-focus><X size={25} /></button>
         </header>
 
         {archivedMode ? <ArchivedModeBanner /> : null}
@@ -550,10 +553,10 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
       </section>
       {!archivedMode && isArchiveConfirmOpen ? (
         <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.stopPropagation(); if (!isArchiving) setIsArchiveConfirmOpen(false) }}>
-          <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-archive-title" aria-describedby="task-archive-description" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={archiveModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-archive-title" aria-describedby="task-archive-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
             <div><h2 id="task-archive-title">Arquivar este item?</h2><p id="task-archive-description">Ele deixará de aparecer normalmente, mas poderá ser restaurado posteriormente.</p></div>
-            <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsArchiveConfirmOpen(false)} disabled={isArchiving}>Cancelar</button><button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>{isArchiving ? <LoaderCircle className="spin" size={19} /> : <Archive size={19} />}Arquivar</button></div>
+            <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsArchiveConfirmOpen(false)} disabled={isArchiving} data-modal-initial-focus>Cancelar</button><button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>{isArchiving ? <LoaderCircle className="spin" size={19} /> : <Archive size={19} />}Arquivar</button></div>
           </section>
         </div>
       ) : null}

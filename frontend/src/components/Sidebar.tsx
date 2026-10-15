@@ -18,6 +18,7 @@ import {
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import areaService, { Area, CreateAreaData } from '../services/areaService'
 import { Brand } from './Brand'
 
@@ -82,6 +83,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [form, setForm] = useState<AreaForm>(emptyAreaForm)
+  const areaModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
+  const archiveModalRef = useModalFocusTrap<HTMLElement>(archiveCandidate !== null)
 
   const loadAreas = useCallback(async () => {
     setIsLoading(true)
@@ -118,15 +121,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [])
 
   useEffect(() => {
-    if (!isModalOpen) return
+    if (!isModalOpen && !archiveCandidate) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isSaving) setIsModalOpen(false)
+      if (event.key !== 'Escape') return
+      if (archiveCandidate && isArchiving === null) setArchiveCandidate(null)
+      else if (isModalOpen && !isSaving) setIsModalOpen(false)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen, isSaving])
+  }, [archiveCandidate, isArchiving, isModalOpen, isSaving])
 
   const openCreateModal = () => {
     setEditingArea(null)
@@ -309,10 +314,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {isModalOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
           <section
+            ref={areaModalRef}
             className="area-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="area-modal-title"
+            tabIndex={-1}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="area-modal-heading">
@@ -333,7 +340,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <label className="area-form-field">
                 <span>Nome da Área <strong>*</strong></span>
                 <input
-                  autoFocus
+                  data-modal-initial-focus
                   maxLength={50}
                   required
                   value={form.title}
@@ -400,11 +407,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {archiveCandidate ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
           <section
+            ref={archiveModalRef}
             className="area-delete-modal"
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="area-archive-title"
             aria-describedby="area-archive-description"
+            tabIndex={-1}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
@@ -413,7 +422,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <p id="area-archive-description">Ele deixará de aparecer normalmente, mas poderá ser restaurado posteriormente.</p>
             </div>
             <div className="area-modal-actions">
-              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving !== null}>Cancelar</button>
+              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving !== null} data-modal-initial-focus>Cancelar</button>
               <button className="primary-action" type="button" onClick={() => void handleArchive(archiveCandidate)} disabled={isArchiving !== null}>
                 {isArchiving !== null ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Archive size={19} aria-hidden="true" />}
                 Arquivar

@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import { useBreadcrumbs } from '../components/BreadcrumbContext'
 import { TaskDetails } from '../components/TaskDetails'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedListDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService from '../services/listService'
@@ -45,6 +46,8 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [visiblePendingCards, setVisiblePendingCards] = useState(INITIAL_VISIBLE_CARDS)
   const [visibleCompletedCards, setVisibleCompletedCards] = useState(INITIAL_VISIBLE_CARDS)
   const [completedCardsExpanded, setCompletedCardsExpanded] = useState(false)
+  const taskModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
+  const listEditModalRef = useModalFocusTrap<HTMLElement>(isListEditOpen)
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
@@ -261,14 +264,14 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
 
       {!archivedMode && isModalOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
-          <section className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={taskModalRef} className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
               <span className="area-modal-heading-icon"><ClipboardList size={32} /><Plus className="area-modal-heading-plus" size={17} /></span>
               <div><h2 id="task-modal-title">Nova Tarefa</h2><p>Crie uma nova tarefa para sua lista.</p></div>
               <button className="icon-button area-modal-close" type="button" onClick={closeModal} aria-label="Fechar"><X size={24} /></button>
             </div>
             <form onSubmit={handleSubmit}>
-              <label className="area-form-field"><span>Nome da Tarefa <strong>*</strong></span><input autoFocus maxLength={100} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: Estudar herança em Java" /><small>{form.title.length}/100</small></label>
+              <label className="area-form-field"><span>Nome da Tarefa <strong>*</strong></span><input data-modal-initial-focus maxLength={100} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: Estudar herança em Java" /><small>{form.title.length}/100</small></label>
               <label className="area-form-field"><span>Descrição</span><textarea maxLength={500} rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Ex.: Revisar exemplos, fazer exercícios e anotações." /><small>{form.description.length}/500</small></label>
               <div className="task-form-row">
                 <label className="area-form-field"><span>Prazo</span><input type="date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} /></label>
@@ -283,10 +286,10 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
 
       {archivedMode && isListEditOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isSaving && setIsListEditOpen(false)}>
-          <section className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="archived-list-edit-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={listEditModalRef} className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="archived-list-edit-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading"><span className="area-modal-heading-icon" aria-hidden="true"><ClipboardList size={31} /></span><div><h2 id="archived-list-edit-title">Editar Lista</h2><p>Atualize os dados desta lista.</p></div><button className="icon-button area-modal-close" type="button" onClick={() => setIsListEditOpen(false)} aria-label="Fechar"><X size={24} /></button></div>
             <form onSubmit={handleArchivedListEdit}>
-              <label className="area-form-field"><span>Nome da Lista <strong>*</strong></span><input autoFocus maxLength={50} required value={listEditForm.title} onChange={(event) => setListEditForm((current) => ({ ...current, title: event.target.value }))} /><small>{listEditForm.title.length}/50</small></label>
+              <label className="area-form-field"><span>Nome da Lista <strong>*</strong></span><input data-modal-initial-focus maxLength={50} required value={listEditForm.title} onChange={(event) => setListEditForm((current) => ({ ...current, title: event.target.value }))} /><small>{listEditForm.title.length}/50</small></label>
               <label className="area-form-field"><span>Descrição</span><textarea maxLength={200} rows={3} value={listEditForm.description} onChange={(event) => setListEditForm((current) => ({ ...current, description: event.target.value }))} /><small>{listEditForm.description.length}/200</small></label>
               {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
               <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsListEditOpen(false)} disabled={isSaving}>Cancelar</button><button className="primary-action" type="submit" disabled={isSaving || !listEditForm.title.trim()}>{isSaving ? <LoaderCircle className="spin" size={19} /> : null}Salvar alterações</button></div>

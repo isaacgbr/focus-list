@@ -17,6 +17,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import { useBreadcrumbs } from '../components/BreadcrumbContext'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService, { CreateListData, List } from '../services/listService'
@@ -58,6 +59,8 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   const [form, setForm] = useState<ListForm>(emptyListForm)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [taskCounts, setTaskCounts] = useState<Record<number, ListTaskCount>>({})
+  const formModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
+  const archiveModalRef = useModalFocusTrap<HTMLElement>(archiveCandidate !== null)
 
   const loadLists = useCallback(async () => {
     setIsLoading(true)
@@ -316,7 +319,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
 
       {isModalOpen ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
-          <section className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="list-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={formModalRef} className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="list-modal-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
               <span className="area-modal-heading-icon" aria-hidden="true">
                 <Folder size={31} />
@@ -332,7 +335,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
             <form onSubmit={handleSubmit}>
               <label className="area-form-field">
                 <span>Nome da {isEditingArchivedArea ? 'Área' : 'Lista'} <strong>*</strong></span>
-                <input autoFocus maxLength={50} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: Estudos, Projetos, Rotina..." />
+                <input data-modal-initial-focus maxLength={50} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: Estudos, Projetos, Rotina..." />
                 <small>{form.title.length}/50</small>
               </label>
               <label className="area-form-field">
@@ -357,7 +360,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
 
       {!archivedMode && archiveCandidate ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
-          <section className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-archive-title" aria-describedby="list-archive-description" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={archiveModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-archive-title" aria-describedby="list-archive-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
             <div>
               <h2 id="list-archive-title">Arquivar este item?</h2>
@@ -365,7 +368,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
               {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
             </div>
             <div className="area-modal-actions">
-              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving}>Cancelar</button>
+              <button className="secondary-action" type="button" onClick={() => setArchiveCandidate(null)} disabled={isArchiving} data-modal-initial-focus>Cancelar</button>
               <button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>
                 {isArchiving ? <LoaderCircle className="spin" size={19} aria-hidden="true" /> : <Archive size={19} aria-hidden="true" />}
                 Arquivar

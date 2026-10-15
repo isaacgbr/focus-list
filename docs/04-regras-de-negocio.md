@@ -15,14 +15,16 @@
 - Lista só pode ser criada ou movida para uma Área ativa.
 - Tarefa só pode ser criada ou movida para uma Lista ativa.
 - Prioridade aceita `LOW`, `MEDIUM` ou `HIGH`.
-- Títulos e URLs não são revalidados como não vazios em todas as atualizações da API.
+- Na atualização, títulos de Área, Lista, Tarefa e item de checklist continuam obrigatórios quando enviados.
+- Na atualização de Link, título e URL continuam obrigatórios quando enviados; o backend não valida o formato da URL.
+- Checklist e Link só podem ser criados ou movidos para uma Tarefa ativa.
 
 ## Conclusão de Tarefas
 
 - Uma Tarefa pode estar A fazer ou Concluída.
 - `completed` inicia como `false`.
-- A interface define `completedAt` ao concluir e remove o valor ao reabrir.
-- O backend aceita `completed` e `completedAt`, mas não sincroniza automaticamente esses campos.
+- Ao receber uma mudança em `completed`, o backend define `completedAt` com a data atual ao concluir e remove o valor ao reabrir.
+- `completedAt` enviado isoladamente é ignorado pelo backend, preservando a consistência com `completed`.
 
 ## Arquivamento
 
@@ -55,9 +57,11 @@
 - Sem Tarefas, o Estado Vazio Inteligente deve orientar a próxima criação necessária.
 - Com Tarefas, o Dashboard deve usar dados reais e não apresentar métricas fictícias.
 
-## Decisões visuais obrigatórias
+## Interface e acessibilidade
 
-- A tela Sobre deve seguir a estrutura e o conteúdo aprovados na Etapa 16.
-- A identidade oficial deve seguir o Conceito A aprovado na Etapa 17.
+- A tela Sobre segue a estrutura e o conteúdo aprovados na Etapa 16.
+- A identidade oficial segue o Conceito A aprovado na Etapa 17.
 - A versão não aparece no Hero da tela Sobre; aparece apenas no rodapé.
-- A Landing Page permanece planejada para a V1 e não deve ser descrita como implementada.
+- Os breadcrumbs devem representar a hierarquia e o contexto da rota atual.
+- Modais devem conter o foco do teclado enquanto abertos, fechar por `Escape` e devolver o foco ao elemento anterior.
+- A Landing Page permanece planejada para depois do refinamento visual completo e não deve ser descrita como implementada.

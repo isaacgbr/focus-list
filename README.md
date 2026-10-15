@@ -4,15 +4,19 @@ Aplicação web desktop-first para organização pessoal em uma hierarquia simpl
 
 ## Estado atual
 
-O núcleo funcional da V1 está em desenvolvimento e já possui frontend integrado à API para:
+O núcleo funcional da V1 está implementado, com frontend integrado à API para:
 
 - Dashboard com dados reais e estados vazio, carregando e erro;
 - criação e edição de Áreas, Listas e Tarefas;
+- visualizações em Lista e Cards para Listas e Tarefas, com Pendentes e Concluídas;
 - conclusão de Tarefas, prioridades, prazos, checklist e links;
 - Central única de Arquivados para Áreas, Listas e Tarefas;
-- edição, restauração e exclusão definitiva de itens arquivados.
+- edição, restauração e exclusão definitiva de itens arquivados;
+- tela Sobre e identidade visual oficial aplicadas;
+- navegação do Dashboard diretamente para os detalhes da Tarefa;
+- breadcrumbs contextuais e modais com gerenciamento acessível de foco.
 
-A tela Sobre e a identidade visual oficial estão aprovadas em protótipo, mas ainda não foram implementadas. A Landing Page também não foi implementada e permanece planejada para a publicação da V1.
+Tarefas Avulsas e Configurações não fazem parte da V1. As correções funcionais estão concluídas; permanecem como próximas etapas o refinamento visual completo, a Landing Page e o deploy/publicação final.
 
 ## Stack
 

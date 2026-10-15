@@ -11,12 +11,14 @@ Este documento diferencia explicitamente o que está implementado, aprovado e pl
 - Com Lista e sem Tarefas, orienta criar a primeira Tarefa.
 - Com Tarefas, exibe indicadores de vencidas, vencimento hoje e próximos sete dias, além de agrupamentos de pendentes.
 - Permite abrir os detalhes de uma Tarefa.
+- Navega para a Lista de origem e abre diretamente os detalhes da Tarefa selecionada.
 
 ## Áreas — implementado
 
 - criar, consultar e editar;
 - arquivar com confirmação;
 - abrir suas Listas;
+- alternar a visualização das Listas entre Lista e Cards;
 - editar também quando arquivada;
 - restaurar ou excluir definitivamente pela Central de Arquivados.
 
@@ -35,13 +37,14 @@ Campos: título e Área obrigatórios; descrição opcional.
 ## Tarefas — implementado
 
 - criar e editar título, descrição, prazo e prioridade;
+- alternar a visualização entre Lista e Cards; em Cards, usar composição em board com Pendentes e Concluídas;
 - marcar como concluída ou reabrir;
 - mover para outra Lista pela API;
 - arquivar com confirmação;
 - editar normalmente quando arquivada, incluindo status, prioridade, prazo, checklist e links;
 - restaurar ou excluir definitivamente pela Central de Arquivados.
 
-Os detalhes mostram datas de criação, última atualização e conclusão, quando existente. A interface preenche ou remove `completedAt` ao alternar a conclusão; a API também aceita atualização direta de `completed` e `completedAt`.
+Os detalhes mostram datas de criação, última atualização e conclusão, quando existente. Ao alternar `completed`, o backend define ou remove `completedAt`; valores enviados diretamente para `completedAt` não substituem essa regra.
 
 ## Checklist — implementado
 
@@ -68,7 +71,7 @@ Os detalhes mostram datas de criação, última atualização e conclusão, quan
 
 Arquivar o pai não grava `archivedAt` nos filhos: eles ficam ocultos da organização ativa e são acessados pelo contexto do pai. Ao restaurar o pai, os filhos que não foram arquivados diretamente voltam a aparecer.
 
-## Tela Sobre — aprovada, não implementada
+## Tela Sobre — implementada
 
 Estrutura oficial da Etapa 16:
 
@@ -86,12 +89,17 @@ Regras aprovadas:
 - autoria: Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, GitHub e LinkedIn;
 - visual definido em `PROTOTIPO_SOBRE_V1_APROVADO.png`.
 
-## Identidade Visual — aprovada, aplicação pendente
+## Identidade Visual — aplicada
 
-A Etapa 17 aprovou o Conceito A: organização por camadas, visual 3D minimalista, azul como cor principal e aparência premium e moderna. Check, prancheta, calendário e lista não devem ser usados como símbolo principal.
+A interface aplica o Conceito A aprovado na Etapa 17: organização por camadas, visual 3D minimalista, azul como cor principal e aparência premium e moderna. Check, prancheta, calendário e lista não são usados como símbolo principal.
 
-## Não implementado
+## Acessibilidade e consistência — implementado
 
-- Landing Page, planejada para a publicação da V1;
-- visualização de Tarefas em Cards;
-- tela Sobre e aplicação final da nova identidade visual.
+- breadcrumbs contextuais corrigidos;
+- modais com papéis e rótulos acessíveis;
+- foco inicial, contenção de foco, fechamento por `Escape` e restauração do foco ao fechar.
+
+## Fora do produto atual
+
+- Tarefas Avulsas e Configurações não fazem parte da V1;
+- Landing Page ainda não implementada, prevista depois do refinamento visual completo.

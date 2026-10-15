@@ -1,6 +1,6 @@
 # Roadmap
 
-O roadmap separa entregas concluídas, decisões aprovadas ainda pendentes e ideias futuras.
+O roadmap registra o estado concluído da V1 funcional e a sequência restante até sua publicação.
 
 ## Concluído
 
@@ -10,56 +10,20 @@ O roadmap separa entregas concluídas, decisões aprovadas ainda pendentes e ide
 - integração do frontend com dados reais;
 - Dashboard e Estado Vazio Inteligente;
 - telas de Área, Lista e detalhes da Tarefa;
+- visualizações em Lista e Cards para Listas;
+- visualizações em Lista e Cards para Tarefas, com composição em board e separação entre Pendentes e Concluídas;
 - checklist, links, prazo, prioridade e conclusão de Tarefas;
-- fluxo completo de Arquivados aprovado: central única, hierarquia, edição, restauração e exclusão definitiva.
+- fluxo completo de Arquivados: central única, hierarquia, edição, restauração e exclusão definitiva;
+- tela Sobre e identidade visual oficial;
+- breadcrumbs e navegação do Dashboard aos detalhes da Tarefa;
+- validações reforçadas do backend;
+- acessibilidade e focus trap dos modais;
+- correções funcionais da Etapa 19B.
 
-## Aprovado e pendente de implementação
+## Próximas etapas
 
-### Etapa 16 — Tela Sobre
+1. Refinamento visual completo.
+2. Landing Page.
+3. Deploy e publicação final.
 
-- Hero;
-- O que é;
-- Como funciona;
-- Recursos principais com descrições extremamente curtas;
-- Desenvolvido por Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, com GitHub e LinkedIn;
-- versão removida do Hero e mantida apenas no rodapé;
-- visual aprovado em `PROTOTIPO_SOBRE_V1_APROVADO.png`.
-
-### Etapa 17 — Identidade Visual
-
-- Conceito A;
-- organização por camadas;
-- visual 3D minimalista;
-- azul como cor principal;
-- aparência premium e moderna;
-- sem check, prancheta, calendário ou lista como símbolo principal;
-- conceito aprovado em `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png`.
-
-### Pendências da V1
-
-- implementar visualização em Cards conforme protótipo aprovado;
-- aplicar a identidade visual oficial;
-- implementar a Tela Sobre;
-- implementar a Landing Page para a publicação da V1;
-- validar responsividade;
-- realizar o deploy.
-
-## V1.1 — possibilidades
-
-- pesquisa de Tarefas;
-- filtros avançados;
-- ordenação personalizada;
-- atalhos de produtividade;
-- microanimações e refinamentos de interface.
-
-## Versões futuras — possibilidades
-
-- login e autenticação;
-- sincronização entre dispositivos;
-- compartilhamento e colaboração;
-- notificações;
-- aplicativo mobile ou PWA;
-- etiquetas e temas;
-- integrações e automações.
-
-Itens futuros não estão aprovados para implementação imediata. Qualquer inclusão deve preservar a simplicidade e ser registrada na documentação antes de ser tratada como escopo oficial.
+Não há outras etapas ou funcionalidades incluídas neste roadmap.

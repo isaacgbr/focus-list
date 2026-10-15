@@ -12,8 +12,9 @@ Dashboard
 - O Dashboard é a rota inicial (`/`).
 - Uma Área abre em `/areas/:areaId`.
 - Uma Lista abre em `/areas/:areaId/listas/:listId`.
-- Os detalhes de uma Tarefa abrem em modal, preservando o contexto da Lista.
+- Os detalhes de uma Tarefa abrem em modal, preservando o contexto da Lista. O Dashboard também navega para a Lista correta e abre diretamente esse modal.
 - Criação e edição de entidades também usam modais.
+- Os breadcrumbs refletem corretamente Dashboard, Área, Lista, Arquivados e Sobre conforme a rota e o contexto atuais.
 
 ## Central de Arquivados
 
@@ -42,12 +43,14 @@ Lista → Nova Tarefa → Tarefa criada como A fazer
 
 Enquanto não há Tarefas, o Dashboard orienta a criação da próxima entidade necessária. Quando existem Tarefas, apresenta indicadores e agrupamentos com dados reais. Uma Tarefa pode ser aberta diretamente pelo Dashboard.
 
-## Rotas incompletas
+## Outras rotas
 
-- `/configuracoes`: placeholder legado; a funcionalidade foi descartada da V1 e substituída pela Tela Sobre.
-- Tela Sobre: aprovada, mas ainda sem rota ou implementação.
-- Landing Page: planejada para a publicação da V1, ainda sem rota ou implementação.
+- `/sobre`: tela Sobre implementada.
+- A Landing Page permanece como etapa posterior, antes do deploy/publicação final, e ainda não possui rota na aplicação.
+- Configurações não faz parte da V1 e não possui rota.
 
 ## Modos de visualização
 
-A lista de Tarefas possui atualmente apenas visualização em lista. O modo Cards tem protótipo aprovado, mas ainda não está implementado.
+- Na tela da Área, as Listas podem ser exibidas nos modos Lista ou Cards.
+- Na tela da Lista, as Tarefas podem ser exibidas nos modos Lista ou Cards.
+- O modo Cards de Tarefas usa composição em board e separa Pendentes de Concluídas.

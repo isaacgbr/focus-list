@@ -24,28 +24,33 @@ Estão implementados:
 
 - Dashboard integrado a dados reais;
 - CRUD de Áreas, Listas e Tarefas;
+- visualização de Listas em Lista ou Cards;
+- visualização de Tarefas em Lista ou Cards, separadas em Pendentes e Concluídas;
 - conclusão e reabertura de Tarefas;
 - prazo e prioridade;
 - itens de checklist e links de referência;
 - Central única de Arquivados;
 - arquivamento de Área, Lista e Tarefa;
 - edição de itens arquivados;
-- restauração e exclusão definitiva de itens arquivados.
+- restauração e exclusão definitiva de itens arquivados;
+- tela Sobre;
+- identidade visual oficial;
+- breadcrumbs contextuais e abertura dos detalhes da Tarefa pelo Dashboard;
+- gerenciamento acessível de foco nos modais.
 
 O backend persiste os dados em PostgreSQL e expõe uma API REST. O frontend React consome essa API.
 
-## Decisões aprovadas com implementação pendente
+## Decisões aprovadas e implementadas
 
-- **Tela Sobre — Etapa 16:** visual aprovado com Hero, O que é, Como funciona, Recursos principais e Desenvolvido por.
-- **Identidade Visual — Etapa 17:** Conceito A aprovado, com organização por camadas, visual 3D minimalista e azul como cor principal.
-- **Visualização em Cards:** possui protótipo aprovado, mas a tela atual de Tarefas implementa somente a visualização em lista.
+- **Tela Sobre — Etapa 16:** Hero, O que é, Como funciona, Recursos principais e Desenvolvido por.
+- **Identidade Visual — Etapa 17:** Conceito A, com organização por camadas, visual 3D minimalista e azul como cor principal.
+- **Visualizações:** modos Lista e Cards implementados para Listas e Tarefas; os Cards de Tarefas usam composição em board.
 
-## Planejado para a V1
+## Próximas etapas da V1
 
-- implementar a tela Sobre aprovada;
-- aplicar a identidade visual aprovada;
-- implementar a Landing Page antes da publicação;
-- concluir os itens de interface ainda pendentes e realizar o deploy.
+- realizar o refinamento visual completo;
+- implementar a Landing Page;
+- realizar o deploy e a publicação final.
 
 ## Fora do escopo atual
 
@@ -55,6 +60,8 @@ O backend persiste os dados em PostgreSQL e expõe uma API REST. O frontend Reac
 - notificações;
 - aplicativo mobile nativo;
 - integrações externas.
+- Tarefas Avulsas;
+- Configurações.
 
 ## Princípios
 

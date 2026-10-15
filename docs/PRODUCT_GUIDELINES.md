@@ -32,6 +32,8 @@ Essa hierarquia deve permanecer compreensível na navegação, nos breadcrumbs, 
 - Botões indisponíveis permanecem desabilitados.
 - Estados vazios explicam o contexto e indicam o próximo passo.
 - Modais seguem estrutura, comportamento, linguagem e hierarquia consistentes.
+- Modais contêm o foco do teclado, fecham por `Escape` e restauram o foco ao serem fechados.
+- Breadcrumbs representam a hierarquia e o contexto da rota atual.
 - Dados fictícios ou ações inexistentes não devem aparecer como funcionalidades reais.
 
 ## Dashboard
@@ -82,9 +84,9 @@ O modo arquivado exibe discretamente:
 
 Restauração respeita a hierarquia: primeiro a Área, depois a Lista e então a Tarefa, quando cada uma tiver sido arquivada diretamente. Mensagens de confirmação devem explicar precisamente as consequências.
 
-## Tela Sobre — Etapa 16 aprovada
+## Tela Sobre — Etapa 16 aprovada e implementada
 
-A tela ainda não está implementada. Sua estrutura oficial é:
+Sua estrutura oficial é:
 
 1. Hero;
 2. O que é;
@@ -102,7 +104,7 @@ Decisões obrigatórias:
 - disponibilizar GitHub e LinkedIn;
 - seguir o visual de `PROTOTIPO_SOBRE_V1_APROVADO.png`.
 
-## Identidade Visual — Etapa 17 aprovada
+## Identidade Visual — Etapa 17 aprovada e aplicada
 
 O conceito oficial é o **Conceito A**:
 
@@ -115,19 +117,19 @@ O conceito oficial é o **Conceito A**:
 - sem calendário;
 - sem lista.
 
-O protótipo oficial é `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png`. A aprovação do conceito não significa que ele já esteja aplicado ao frontend atual.
+O protótipo oficial é `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png` e orienta a identidade aplicada ao frontend.
 
 ## Direção visual
 
-- manter a experiência dark atual até a aplicação validada da identidade oficial;
+- preservar a identidade oficial aplicada;
 - seguir fielmente protótipos aprovados;
 - manter consistência de cores, tipografia, espaçamentos, componentes e estados;
 - evitar mudanças criativas sem validação.
 
 ## Landing Page
 
-A Landing Page **não está implementada**. Ela permanece planejada para a publicação da V1 e não deve ser apresentada como funcionalidade atual.
+A Landing Page **não está implementada**. Ela permanece planejada para depois do refinamento visual completo e antes do deploy/publicação final, e não deve ser apresentada como funcionalidade atual.
 
 ## Possibilidades futuras
 
-Onboarding, Kanban, pesquisa, Dashboard da Área, responsividade refinada e microanimações são possibilidades, não funcionalidades implementadas nem autorização automática para desenvolvimento.
+Tarefas Avulsas e Configurações não fazem parte da V1. Possibilidades futuras não são funcionalidades implementadas nem autorização automática para desenvolvimento.

@@ -47,9 +47,11 @@ Rotas implementadas:
 | `/arquivados/areas/:areaId` | Área arquivada |
 | `/arquivados/listas/:listId` | Lista arquivada |
 | `/arquivados/tarefas/:taskId` | Tarefa arquivada |
-| `/configuracoes` | placeholder legado; funcionalidade descartada da V1 |
+| `/sobre` | Tela Sobre |
 
-Não há rota implementada para Sobre ou Landing Page.
+Não há rota de Configurações, pois a funcionalidade não faz parte da V1. A Landing Page ainda não integra esta aplicação.
+
+O estado de navegação permite que o Dashboard encaminhe à Lista de origem e abra diretamente os detalhes da Tarefa. O layout mantém breadcrumbs contextuais. Os modais compartilham gerenciamento de foco para foco inicial, contenção pelo teclado, fechamento por `Escape` e restauração do foco.
 
 ## Backend
 
@@ -64,6 +66,8 @@ Route → Controller → Service → Repository → Prisma → PostgreSQL
 - O middleware global responde erros com status `400` e `{ "message": "..." }`.
 - CORS e JSON estão habilitados globalmente.
 - `PORT` possui fallback para `3000`; a conexão usa `DATABASE_URL`.
+
+As validações de serviço rejeitam títulos vazios também nas atualizações, validam título e URL de Links, impedem vínculos com pais inexistentes ou arquivados, sincronizam `completedAt` com `completed` e protegem restauração e exclusão definitiva conforme a hierarquia.
 
 ## API REST
 

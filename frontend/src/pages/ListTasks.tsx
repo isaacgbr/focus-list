@@ -57,6 +57,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const selectedAreaId = Number(areaId)
   const setBreadcrumbs = useBreadcrumbs()
   const [listTitle, setListTitle] = useState('')
+  const [listDescription, setListDescription] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
   const [taskContentSummaries, setTaskContentSummaries] = useState<Record<number, TaskContentSummary>>({})
   const [archivedList, setArchivedList] = useState<ArchivedListDetail | null>(null)
@@ -100,6 +101,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         const list = await archiveService.getList(selectedListId)
         setArchivedList(list)
         setListTitle(list.title)
+        setListDescription(list.description ?? '')
         setBreadcrumbs([
           { label: list.area.title, to: list.area.archivedAt ? `/arquivados/areas/${list.area.id}` : undefined },
           { label: list.title },
@@ -117,6 +119,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         setTasks(allTasks.filter((task) => task.listId === selectedListId))
         setTaskContentSummaries(summarizeTaskContent(checklistItems, links))
         setListTitle(selectedList.title)
+        setListDescription(selectedList.description ?? '')
         setBreadcrumbs([
           { label: area.title, to: `/areas/${area.id}` },
           { label: selectedList.title },
@@ -125,6 +128,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
     } catch {
       setTasks([])
       setArchivedList(null)
+      setListDescription('')
       setLoadError(archivedMode ? 'Não foi possível carregar esta lista arquivada.' : 'Não foi possível carregar as tarefas desta lista.')
     } finally {
       setIsLoading(false)
@@ -246,8 +250,10 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       <button className="task-item-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
         <strong>{task.title}</strong>{task.description ? <p>{task.description}</p> : null}{renderContentIndicators(task)}
       </button>
-      <span className={`task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`}>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}</span>
-      <span className="task-due-date"><CalendarDays size={17} />{formatDueDate(task.dueDate)}</span>
+      <span className="task-item-metadata">
+        <span className={`task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`}>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}</span>
+        <span className="task-due-date"><CalendarDays size={17} aria-hidden="true" />{formatDueDate(task.dueDate)}</span>
+      </span>
     </article>
   )
 
@@ -271,8 +277,12 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   return (
     <section className="lists-page tasks-page" aria-labelledby="tasks-title">
       <div className="lists-page-heading">
-        <div><p>{listTitle || 'Lista selecionada'}</p><h1 id="tasks-title">Tarefas</h1><span>Organize e acompanhe as tarefas desta lista.</span></div>
-        {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} />Nova Tarefa</button> : <button className="secondary-action" type="button" onClick={openArchivedListEdit}><Pencil size={18} />Editar Lista</button>}
+        <div className="lists-page-heading-copy">
+          <p><ListIcon size={14} aria-hidden="true" />Lista</p>
+          <h1 id="tasks-title" title={listTitle}>{listTitle || 'Lista selecionada'}</h1>
+          <span>{listDescription || 'Organize e acompanhe as tarefas desta lista.'}</span>
+        </div>
+        {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}><Plus size={20} aria-hidden="true" />Nova Tarefa</button> : <button className="secondary-action" type="button" onClick={openArchivedListEdit}><Pencil size={18} aria-hidden="true" />Editar Lista</button>}
       </div>
       {archivedMode && archivedList ? <ArchivedModeBanner /> : null}
       {actionError && !isModalOpen ? <p className="lists-action-error" role="alert"><AlertCircle size={19} />{actionError}</p> : null}

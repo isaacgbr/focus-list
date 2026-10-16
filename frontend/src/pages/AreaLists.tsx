@@ -5,6 +5,7 @@ import {
   Folder,
   LayoutGrid,
   List as ListIcon,
+  ListChecks,
   ListPlus,
   LoaderCircle,
   MoreHorizontal,
@@ -46,6 +47,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   const selectedAreaId = Number(areaId)
   const setBreadcrumbs = useBreadcrumbs()
   const [lists, setLists] = useState<List[]>([])
+  const [areaHeading, setAreaHeading] = useState({ title: '', description: '' })
   const [archivedArea, setArchivedArea] = useState<ArchivedAreaDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -78,10 +80,17 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
       if (archivedMode) {
         const area = await archiveService.getArea(selectedAreaId)
         setArchivedArea(area)
+        setAreaHeading({ title: area.title, description: area.description ?? '' })
         setBreadcrumbs([{ label: area.title }])
         setLists(area.lists.map((list) => ({ ...list, areaId: selectedAreaId, createdAt: '', updatedAt: '' })))
+        setTaskCounts(Object.fromEntries(area.lists.map((list) => [list.id, {
+          total: list.tasks.length,
+          pending: list.tasks.filter((task) => !task.completed).length,
+          completed: list.tasks.filter((task) => task.completed).length,
+        }])))
       } else {
         const [area, allLists, allTasks] = await Promise.all([areaService.getById(selectedAreaId), listService.getAll(), taskService.getAll()])
+        setAreaHeading({ title: area.title, description: area.description ?? '' })
         setBreadcrumbs([{ label: area.title }])
         const areaLists = allLists.filter((list) => list.areaId === selectedAreaId)
         setLists(areaLists)
@@ -97,6 +106,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
     } catch {
       setLists([])
       setArchivedArea(null)
+      setAreaHeading({ title: '', description: '' })
       setLoadError(archivedMode ? 'Não foi possível carregar esta área arquivada.' : 'Não foi possível carregar as listas desta área.')
     } finally {
       setIsLoading(false)
@@ -200,10 +210,10 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   return (
     <section className="lists-page" aria-labelledby="lists-title">
       <div className="lists-page-heading">
-        <div>
-          <p>Área selecionada</p>
-          <h1 id="lists-title">Listas</h1>
-          <span>Organize as tarefas desta área em listas.</span>
+        <div className="lists-page-heading-copy">
+          <p><Folder size={14} aria-hidden="true" />Área</p>
+          <h1 id="lists-title" title={areaHeading.title}>{areaHeading.title || 'Listas'}</h1>
+          <span>{areaHeading.description || 'Organize as tarefas desta área em listas.'}</span>
         </div>
         {!archivedMode ? <button className="primary-action" type="button" onClick={openCreateModal}>
           <Plus size={20} aria-hidden="true" />
@@ -265,15 +275,18 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                 return (
                   <article className="list-summary-card" key={list.id}>
                     <Link className="list-summary-card-link" to={`/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
-                      <span className="list-summary-main">
-                        <span className="list-card-icon" aria-hidden="true"><Folder size={23} /></span>
-                        <strong>{list.title}</strong>
+                      <span className="list-summary-card-topline">
+                        <span className="list-card-icon" aria-hidden="true"><ListChecks size={23} /></span>
+                        <span className="list-summary-card-kicker">Lista</span>
                       </span>
+                      <strong title={list.title}>{list.title}</strong>
+                      <small>{list.description || 'Sem descrição'}</small>
                       <span className="list-summary-status">
-                        <span>{count.total} {count.total === 1 ? 'tarefa' : 'tarefas'}</span>
-                        <span>{count.pending} {count.pending === 1 ? 'pendente' : 'pendentes'}</span>
-                        <span>{count.completed} {count.completed === 1 ? 'concluída' : 'concluídas'}</span>
+                        <span><strong>{count.total}</strong>{count.total === 1 ? 'tarefa' : 'tarefas'}</span>
+                        <span><strong>{count.pending}</strong>{count.pending === 1 ? 'pendente' : 'pendentes'}</span>
+                        <span><strong>{count.completed}</strong>{count.completed === 1 ? 'concluída' : 'concluídas'}</span>
                       </span>
+                      <span className="list-summary-progress" aria-hidden="true"><i style={{ width: `${count.total > 0 ? (count.completed / count.total) * 100 : 0}%` }} /></span>
                     </Link>
                     <details className="card-actions-menu">
                       <summary aria-label={`Ações de ${list.title}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
@@ -288,18 +301,21 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
             </div>
           ) : (
             <div className="lists-grid" aria-live="polite">
-              {lists.map((list) => (
-                <article className="list-card" key={list.id}>
+              {lists.map((list) => {
+                const count = taskCounts[list.id] ?? { total: 0, pending: 0, completed: 0 }
+                return <article className="list-card" key={list.id}>
                   {archivedMode ? <Link className="list-card-content" to={`/arquivados/listas/${list.id}`}>
-                    <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
+                    <span className="list-card-icon" aria-hidden="true"><ListChecks size={24} /></span>
                     <span>
-                      <strong>{list.title}</strong>
+                      <strong title={list.title}>{list.title}</strong>
                       <small>{list.description || 'Sem descrição'}</small>
                     </span>
+                    <span className="list-row-count"><strong>{count.total}</strong>{count.total === 1 ? 'tarefa' : 'tarefas'}</span>
                     <ChevronRight size={22} aria-hidden="true" />
                   </Link> : <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
-                    <span className="list-card-icon" aria-hidden="true"><Folder size={26} /></span>
-                    <span><strong>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
+                    <span className="list-card-icon" aria-hidden="true"><ListChecks size={24} /></span>
+                    <span><strong title={list.title}>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
+                    <span className="list-row-count"><strong>{count.total}</strong>{count.total === 1 ? 'tarefa' : 'tarefas'}</span>
                     <ChevronRight size={22} aria-hidden="true" />
                   </Link>}
                   <div className="list-card-actions">
@@ -311,7 +327,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                     </button> : null}
                   </div>
                 </article>
-              ))}
+              })}
             </div>
           )}
         </>

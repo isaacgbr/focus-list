@@ -1,13 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   CalendarDays,
+  CalendarRange,
+  Check,
+  CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
+  CircleDashed,
   FileText,
   Folder,
+  LayoutGrid,
   Link2,
   ListChecks,
+  ListTodo,
   LoaderCircle,
+  Pencil,
   Play,
   Plus,
 } from 'lucide-react'
@@ -21,8 +30,11 @@ import taskService, { Task } from '../services/taskService'
 
 const DATA_CHANGED_EVENT = 'focuslist:data-changed'
 const DASHBOARD_TASK_LIMIT = 3
+const DASHBOARD_AREA_LIMIT = 6
+const HERO_THEME_STORAGE_KEY = 'focuslist:dashboard-hero-theme'
 
 type DayPeriod = 'morning' | 'afternoon' | 'night'
+type HeroTheme = 'auto' | DayPeriod
 
 const dayPeriodContent: Record<DayPeriod, { greeting: string }> = {
   morning: { greeting: 'Bom dia' },
@@ -32,8 +44,8 @@ const dayPeriodContent: Record<DayPeriod, { greeting: string }> = {
 
 function getDayPeriod(date: Date): DayPeriod {
   const hour = date.getHours()
-  if (hour < 12) return 'morning'
-  if (hour < 18) return 'afternoon'
+  if (hour >= 5 && hour < 12) return 'morning'
+  if (hour >= 12 && hour < 18) return 'afternoon'
   return 'night'
 }
 
@@ -64,6 +76,26 @@ type AttentionItem = {
   label: string
   detail: string
   tone: 'danger' | 'warning' | 'info'
+}
+
+type AreaSummary = {
+  id: number
+  title: string
+  color: string | null
+  listsTotal: number
+  tasksTotal: number
+}
+
+const heroThemeOptions: { value: HeroTheme; label: string }[] = [
+  { value: 'auto', label: 'Automática' },
+  { value: 'morning', label: 'Manhã' },
+  { value: 'afternoon', label: 'Tarde' },
+  { value: 'night', label: 'Noite' },
+]
+
+function getStoredHeroTheme(): HeroTheme {
+  const storedTheme = window.localStorage.getItem(HERO_THEME_STORAGE_KEY)
+  return heroThemeOptions.some((option) => option.value === storedTheme) ? storedTheme as HeroTheme : 'auto'
 }
 
 const emptyDashboardData: DashboardData = {
@@ -147,6 +179,12 @@ function TaskMetadata({ task }: { task: DashboardTask }) {
   )
 }
 
+function AttentionIcon({ id }: { id: AttentionItem['id'] }) {
+  if (id === 'week') return <CalendarRange size={17} strokeWidth={1.9} />
+  if (id === 'today') return <CalendarDays size={17} strokeWidth={1.9} />
+  return <AlertCircle size={17} strokeWidth={1.9} />
+}
+
 function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTask[]; onOpen: (task: DashboardTask) => void; showDeadline?: boolean }) {
   return (
     <div className={`task-table ${showDeadline ? 'has-deadline' : ''}`} role="table">
@@ -172,10 +210,23 @@ function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTa
 export function Dashboard() {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(() => new Date())
+  const [heroTheme, setHeroTheme] = useState<HeroTheme>(getStoredHeroTheme)
+  const [isThemePopoverOpen, setIsThemePopoverOpen] = useState(false)
+  const [areAreasExpanded, setAreAreasExpanded] = useState(false)
   const [data, setData] = useState<DashboardData>(emptyDashboardData)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const heroThemeControlRef = useRef<HTMLDivElement>(null)
+  const heroThemeButtonRef = useRef<HTMLButtonElement>(null)
   const dayPeriod = getDayPeriod(currentDate)
+  const coverPeriod = heroTheme === 'auto' ? dayPeriod : heroTheme
+
+  const selectHeroTheme = (theme: HeroTheme) => {
+    setHeroTheme(theme)
+    window.localStorage.setItem(HERO_THEME_STORAGE_KEY, theme)
+    setIsThemePopoverOpen(false)
+    window.requestAnimationFrame(() => heroThemeButtonRef.current?.focus())
+  }
 
   const loadDashboard = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true)
@@ -193,6 +244,31 @@ export function Dashboard() {
   }, [])
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
+
+  useEffect(() => {
+    if (!isThemePopoverOpen) return
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!heroThemeControlRef.current?.contains(event.target as Node)) setIsThemePopoverOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setIsThemePopoverOpen(false)
+      heroThemeButtonRef.current?.focus()
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    window.requestAnimationFrame(() => heroThemeControlRef.current?.querySelector<HTMLButtonElement>('.hero-theme-option.is-active')?.focus())
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isThemePopoverOpen])
+
+  useEffect(() => {
+    if (data.areas.length <= DASHBOARD_AREA_LIMIT) setAreAreasExpanded(false)
+  }, [data.areas.length])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setCurrentDate(new Date()), 60_000)
@@ -261,7 +337,25 @@ export function Dashboard() {
       { id: 'today', count: today.length, label: 'vencem hoje', detail: formatDateKey(todayKey), tone: 'warning' },
       { id: 'week', count: week.length, label: 'vencem nos próximos 7 dias', detail: `Até ${formatDateKey(weekKey)}`, tone: 'info' },
     ]
-    return { attentionItems, inProgress, upcoming }
+    const completedTasks = data.tasks.filter((task) => task.completed).length
+    const overview = {
+      total: data.tasks.length,
+      pending: pendingTasks.length,
+      completed: completedTasks,
+      completionPercentage: data.tasks.length > 0 ? Math.round((completedTasks / data.tasks.length) * 100) : 0,
+    }
+    const areaSummaries: AreaSummary[] = data.areas.map((area) => {
+      const areaLists = data.lists.filter((list) => list.areaId === area.id)
+      const areaListIds = new Set(areaLists.map((list) => list.id))
+      return {
+        id: area.id,
+        title: area.title,
+        color: area.color,
+        listsTotal: areaLists.length,
+        tasksTotal: data.tasks.filter((task) => areaListIds.has(task.listId)).length,
+      }
+    }).sort((first, second) => second.tasksTotal - first.tasksTotal || second.listsTotal - first.listsTotal)
+    return { attentionItems, inProgress, upcoming, overview, areaSummaries }
   }, [currentDate, data])
 
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
@@ -272,13 +366,35 @@ export function Dashboard() {
     if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`, { state: { taskId: task.id } })
   }
 
+  const visibleAreaSummaries = areAreasExpanded ? dashboard.areaSummaries : dashboard.areaSummaries.slice(0, DASHBOARD_AREA_LIMIT)
+
   const renderHero = () => (
-    <div className={`dashboard-hero is-${dayPeriod}`}>
+    <div className={`dashboard-hero is-${coverPeriod}`}>
       <div className="hero-stars" aria-hidden="true" />
       <div className="hero-mountain hero-mountain-back" aria-hidden="true" />
       <div className="hero-mountain hero-mountain-front" aria-hidden="true" />
-      <p className="dashboard-date"><CalendarDays size={20} aria-hidden="true" />{formattedDate}</p>
-      <h1 id="dashboard-title">{dayPeriodContent[dayPeriod].greeting}, <span>Isaac.</span></h1>
+      <div className="dashboard-hero-copy">
+        <p className="dashboard-date"><CalendarDays size={20} aria-hidden="true" />{formattedDate}</p>
+        <h1 id="dashboard-title">{dayPeriodContent[dayPeriod].greeting}, <span>Isaac.</span></h1>
+      </div>
+      <div className="hero-cover-control" ref={heroThemeControlRef}>
+        <button ref={heroThemeButtonRef} className="hero-cover-button" type="button" aria-label="Personalizar capa" aria-haspopup="dialog" aria-expanded={isThemePopoverOpen} aria-controls="hero-cover-popover" onClick={() => setIsThemePopoverOpen((current) => !current)}>
+          <Pencil size={15} aria-hidden="true" />
+        </button>
+        {isThemePopoverOpen ? (
+          <div className="hero-cover-popover" id="hero-cover-popover" role="dialog" aria-label="Personalizar capa">
+            <strong>Personalizar capa</strong>
+            <div className="hero-theme-options" role="radiogroup" aria-label="Tema da capa">
+              {heroThemeOptions.map((option) => (
+                <button className={`hero-theme-option ${heroTheme === option.value ? 'is-active' : ''}`} type="button" role="radio" aria-checked={heroTheme === option.value} onClick={() => selectHeroTheme(option.value)} key={option.value}>
+                  <span>{option.label}</span>
+                  {heroTheme === option.value ? <Check size={14} aria-hidden="true" /> : null}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 
@@ -313,7 +429,7 @@ export function Dashboard() {
       {renderHero()}
       <section className="dashboard-card attention-card" aria-labelledby="attention-title">
         <div className="dashboard-card-topline"><SectionHeading id="attention-title" icon={AlertCircle} tone="attention" title="Atenção" description="Tarefas que precisam da sua atenção agora." /></div>
-        <div className="attention-grid">{dashboard.attentionItems.map((item) => <div className={`attention-item is-${item.tone}`} key={item.id}><strong>{item.count}</strong><span className="attention-copy"><span>{item.label}</span><small>{item.detail}</small></span><span className="attention-arrow" aria-hidden="true"><ChevronRight size={26} /></span></div>)}</div>
+        <div className="attention-grid">{dashboard.attentionItems.map((item) => <div className={`attention-item is-${item.tone}${item.count === 0 ? ' is-empty' : ''}`} key={item.id}><span className="attention-status-icon" aria-hidden="true"><AttentionIcon id={item.id} /></span><strong>{item.count}</strong><span className="attention-copy"><span>{item.label}</span><small>{item.detail}</small></span></div>)}</div>
       </section>
       <div className="dashboard-columns">
         <section className="dashboard-card tasks-card" aria-labelledby="progress-title">
@@ -323,6 +439,37 @@ export function Dashboard() {
         <section className="dashboard-card tasks-card" aria-labelledby="upcoming-title">
           <div className="dashboard-card-topline"><SectionHeading id="upcoming-title" icon={CalendarDays} tone="upcoming" title="Próximos prazos" description="Tarefas que vencem nos próximos 7 dias." /></div>
           <TaskTable tasks={dashboard.upcoming} onOpen={openTask} showDeadline />
+        </section>
+      </div>
+      <div className="dashboard-insights">
+        <section className="dashboard-card overview-card" aria-labelledby="overview-title">
+          <div className="dashboard-card-topline"><SectionHeading id="overview-title" icon={LayoutGrid} tone="overview" title="Visão geral" description="Panorama das suas tarefas." /></div>
+          <div className="overview-metrics">
+            <div><span className="overview-metric-icon is-total"><ListTodo size={17} /></span><span><strong>{dashboard.overview.total}</strong><small>Total de tarefas</small></span></div>
+            <div><span className="overview-metric-icon is-pending"><CircleDashed size={17} /></span><span><strong>{dashboard.overview.pending}</strong><small>Pendentes</small></span></div>
+            <div><span className="overview-metric-icon is-completed"><CheckCircle2 size={17} /></span><span><strong>{dashboard.overview.completed}</strong><small>Concluídas</small></span></div>
+            <div className="overview-completion"><span><strong>{dashboard.overview.completionPercentage}%</strong><small>Concluído</small></span><div className="overview-progress" role="progressbar" aria-label="Percentual de tarefas concluídas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={dashboard.overview.completionPercentage}><span style={{ width: `${dashboard.overview.completionPercentage}%` }} /></div></div>
+          </div>
+        </section>
+        <section className="dashboard-card areas-card" aria-labelledby="areas-title">
+          <div className="dashboard-card-topline"><SectionHeading id="areas-title" icon={Folder} tone="areas" title="Áreas e listas" description="Como suas tarefas estão distribuídas." /></div>
+          <div className={`dashboard-area-list ${areAreasExpanded ? 'is-expanded' : ''}`}>
+            {dashboard.areaSummaries.length === 0 ? <p className="dashboard-table-empty">Nenhuma Área criada.</p> : null}
+            {visibleAreaSummaries.map((area) => (
+              <button className="dashboard-area-row" type="button" onClick={() => navigate(`/areas/${area.id}`)} key={area.id}>
+                <span className="dashboard-area-mark" style={{ '--area-color': area.color ?? '#269cff' } as CSSProperties}><Folder size={18} fill="currentColor" /></span>
+                <span className="dashboard-area-copy"><strong>{area.title}</strong><small>{area.listsTotal} {area.listsTotal === 1 ? 'lista' : 'listas'} · {area.tasksTotal} {area.tasksTotal === 1 ? 'tarefa' : 'tarefas'}</small></span>
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+          {dashboard.areaSummaries.length > DASHBOARD_AREA_LIMIT ? (
+            <button className="dashboard-area-toggle" type="button" aria-expanded={areAreasExpanded} onClick={() => setAreAreasExpanded((current) => !current)}>
+              {areAreasExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+              {areAreasExpanded ? 'Recolher' : 'Ver todas'}
+              <span>{dashboard.areaSummaries.length}</span>
+            </button>
+          ) : null}
         </section>
       </div>
     </section>

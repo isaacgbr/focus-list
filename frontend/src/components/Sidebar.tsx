@@ -2,6 +2,8 @@ import {
   AlertCircle,
   Archive,
   BriefcaseBusiness,
+  ChevronDown,
+  ChevronUp,
   Folder,
   GraduationCap,
   Heart,
@@ -35,6 +37,8 @@ const utilityItems = [
   { label: 'Arquivados', icon: Archive, to: '/arquivados' },
   { label: 'Sobre', icon: Info, to: '/sobre' },
 ]
+
+const SIDEBAR_AREA_LIMIT = 6
 
 const areaIcons = {
   briefcase: BriefcaseBusiness,
@@ -74,6 +78,7 @@ function toAreaPayload(form: AreaForm): CreateAreaData {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate()
   const [areas, setAreas] = useState<Area[]>([])
+  const [areAreasExpanded, setAreAreasExpanded] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
@@ -102,6 +107,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     void loadAreas()
   }, [loadAreas])
+
+  useEffect(() => {
+    if (areas.length <= SIDEBAR_AREA_LIMIT) setAreAreasExpanded(false)
+  }, [areas.length])
 
   useEffect(() => {
     const handleDataChanged = () => void loadAreas()
@@ -197,6 +206,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }
 
+  const visibleAreas = areAreasExpanded ? areas : areas.slice(0, SIDEBAR_AREA_LIMIT)
+
   return (
     <>
       <button
@@ -237,58 +248,68 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </div>
 
-          <div className="nav-group area-nav" aria-live="polite">
-            {isLoading ? (
-              <div className="area-nav-state">
-                <LoaderCircle className="spin" size={18} aria-hidden="true" />
-                <span>Carregando áreas...</span>
-              </div>
-            ) : null}
-
-            {!isLoading && loadError ? (
-              <div className="area-nav-error" role="alert">
-                <AlertCircle size={18} aria-hidden="true" />
-                <span>{loadError}</span>
-                <button type="button" onClick={() => void loadAreas()}>Tentar novamente</button>
-              </div>
-            ) : null}
-
-            {!isLoading && !loadError && areas.length === 0 ? (
-              <div className="area-nav-state area-nav-empty">
-                <Folder size={18} aria-hidden="true" />
-                <span>Nenhuma área criada.</span>
-              </div>
-            ) : null}
-
-            {!isLoading && !loadError ? areas.map((area) => {
-              const Icon = area.icon && area.icon in areaIcons ? areaIcons[area.icon as AreaIcon] : Folder
-
-              return (
-                <div className="area-nav-item" key={area.id}>
-                  <NavLink
-                    className={({ isActive }) => `nav-link area-nav-link ${isActive ? 'is-active' : ''}`}
-                    onClick={onClose}
-                    to={`/areas/${area.id}`}
-                  >
-                    <Icon aria-hidden="true" size={22} style={{ color: area.color ?? undefined }} />
-                    <span>{area.title}</span>
-                  </NavLink>
-                  <div className="area-nav-actions">
-                    <button type="button" onClick={() => openEditModal(area)} aria-label={`Editar ${area.title}`}>
-                      <Pencil size={16} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setArchiveCandidate(area)}
-                      aria-label={`Arquivar ${area.title}`}
-                      disabled={isArchiving === area.id}
-                    >
-                      {isArchiving === area.id ? <LoaderCircle className="spin" size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
-                    </button>
-                  </div>
+          <div className={`area-nav-shell ${areAreasExpanded ? 'is-expanded' : ''}`}>
+            <div className="nav-group area-nav" aria-live="polite">
+              {isLoading ? (
+                <div className="area-nav-state">
+                  <LoaderCircle className="spin" size={18} aria-hidden="true" />
+                  <span>Carregando áreas...</span>
                 </div>
-              )
-            }) : null}
+              ) : null}
+
+              {!isLoading && loadError ? (
+                <div className="area-nav-error" role="alert">
+                  <AlertCircle size={18} aria-hidden="true" />
+                  <span>{loadError}</span>
+                  <button type="button" onClick={() => void loadAreas()}>Tentar novamente</button>
+                </div>
+              ) : null}
+
+              {!isLoading && !loadError && areas.length === 0 ? (
+                <div className="area-nav-state area-nav-empty">
+                  <Folder size={18} aria-hidden="true" />
+                  <span>Nenhuma área criada.</span>
+                </div>
+              ) : null}
+
+              {!isLoading && !loadError ? visibleAreas.map((area) => {
+                const Icon = area.icon && area.icon in areaIcons ? areaIcons[area.icon as AreaIcon] : Folder
+
+                return (
+                  <div className="area-nav-item" key={area.id}>
+                    <NavLink
+                      className={({ isActive }) => `nav-link area-nav-link ${isActive ? 'is-active' : ''}`}
+                      onClick={onClose}
+                      to={`/areas/${area.id}`}
+                    >
+                      <Icon aria-hidden="true" size={22} style={{ color: area.color ?? undefined }} />
+                      <span>{area.title}</span>
+                    </NavLink>
+                    <div className="area-nav-actions">
+                      <button type="button" onClick={() => openEditModal(area)} aria-label={`Editar ${area.title}`}>
+                        <Pencil size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setArchiveCandidate(area)}
+                        aria-label={`Arquivar ${area.title}`}
+                        disabled={isArchiving === area.id}
+                      >
+                        {isArchiving === area.id ? <LoaderCircle className="spin" size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
+                      </button>
+                    </div>
+                  </div>
+                )
+              }) : null}
+            </div>
+
+            {!isLoading && !loadError && areas.length > SIDEBAR_AREA_LIMIT ? (
+              <button className="area-nav-toggle" type="button" aria-expanded={areAreasExpanded} onClick={() => setAreAreasExpanded((current) => !current)}>
+                {areAreasExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+                {areAreasExpanded ? 'Recolher' : 'Ver todas'}
+                <span>{areas.length}</span>
+              </button>
+            ) : null}
           </div>
 
           {actionError && !isModalOpen ? <p className="sidebar-action-error" role="alert">{actionError}</p> : null}

@@ -405,7 +405,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
 
   return (
     <div className="area-modal-backdrop task-details-backdrop" role="presentation" onMouseDown={closeDetails}>
-      <section ref={detailsModalRef} className="task-details-modal" role="dialog" aria-modal="true" aria-labelledby="task-details-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
+      <section ref={detailsModalRef} className={`task-details-modal${task.completed ? ' is-completed' : ''}${archivedMode ? ' is-archived' : ''}`} role="dialog" aria-modal="true" aria-label={task.title} tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
         <header className="task-details-header">
           <button className={`task-complete-button${task.completed ? ' is-completed' : ''}`} type="button" onClick={() => void handleStatusChange(!task.completed)} disabled={savingTaskField === 'status'} aria-label={task.completed ? 'Reabrir tarefa' : 'Concluir tarefa'}>
             {savingTaskField === 'status' ? <LoaderCircle className="spin" size={19} /> : task.completed ? <Check size={18} /> : null}
@@ -420,7 +420,10 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
             ) : (
               <button className="task-title-button" type="button" onClick={() => setIsEditingTitle(true)} aria-label="Editar título da tarefa"><h2 id="task-details-title">{task.title}</h2><Pencil size={16} /></button>
             )}
-            <p><ListChecks size={17} /> Lista: <strong>{listTitle ?? `#${task.listId}`}</strong></p>
+            <div className="task-title-context">
+              <span><ListChecks size={16} />Lista: <strong>{listTitle ?? `#${task.listId}`}</strong></span>
+              <span className={`task-status-badge${task.completed ? ' is-completed' : ''}`}><i />{task.completed ? 'Concluída' : 'A fazer'}</span>
+            </div>
           </div>
           {!archivedMode ? <div className="task-actions-menu" ref={menuRef}>
             <button className="icon-button task-details-more" type="button" onClick={() => { setOpenPropertyMenu(null); setIsMenuOpen((current) => !current) }} aria-expanded={isMenuOpen} aria-haspopup="menu" aria-label="Mais ações"><MoreHorizontal size={24} /></button>
@@ -455,7 +458,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
               <button className="task-detail-section-heading" type="button" onClick={() => setIsChecklistOpen((current) => !current)} aria-expanded={isChecklistOpen}>
                 <span><CheckSquare size={21} /><strong>Checklist</strong></span><span className="task-detail-heading-meta">{checklistItems.length ? `${completedItems}/${checklistItems.length} concluídos` : 'Opcional'}{isChecklistOpen ? <ChevronUp size={19} /> : <ChevronDown size={19} />}</span>
               </button>
-              <div className="checklist-progress" aria-label={`${progress}% do checklist concluído`}><span><i style={{ width: `${progress}%` }} /></span><strong>{progress}%</strong></div>
+              {checklistItems.length ? <div className="checklist-progress" aria-label={`${progress}% do checklist concluído`}><span><i style={{ width: `${progress}%` }} /></span><strong>{progress}%</strong></div> : null}
               {isChecklistOpen ? (
                 <div className="task-detail-section-body">
                   <form className="checklist-form" onSubmit={handleChecklistCreate}>
@@ -511,7 +514,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
                         </form>
                       ) : (
                         <div className="link-item" key={link.id}>
-                          <a className="link-item-open" href={safeUrl(link.url) ?? undefined} target="_blank" rel="noreferrer" aria-label={`Abrir ${link.title} em nova aba`}><Link2 size={18} /><strong>{link.title}</strong><ExternalLink size={16} /></a>
+                          <a className="link-item-open" href={safeUrl(link.url) ?? undefined} target="_blank" rel="noreferrer" aria-label={`Abrir ${link.title} em nova aba`}><Link2 size={18} /><span><strong>{link.title}</strong><small>{link.url}</small></span><ExternalLink size={16} /></a>
                           <div className="task-item-actions"><button type="button" onClick={() => startLinkEdit(link)} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Editar ${link.title}`}><Pencil size={15} /></button><button type="button" onClick={() => void handleLinkDelete(link)} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Excluir ${link.title}`}>{deletingLinkId === link.id ? <LoaderCircle className="spin" size={15} /> : <Trash2 size={15} />}</button></div>
                         </div>
                       ))}
@@ -523,31 +526,34 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
           </div>
 
           <aside className="task-details-aside">
-            <section className="task-detail-card task-property-card">
-              <span className="task-property-label">Status</span>
-              <div className="task-property-dropdown">
-                <button className="task-property-control" type="button" onClick={() => { setIsMenuOpen(false); setOpenPropertyMenu((current) => current === 'status' ? null : 'status') }} disabled={savingTaskField !== null} aria-haspopup="menu" aria-expanded={openPropertyMenu === 'status'}>
-                  <i className={task.completed ? 'is-completed' : ''} />{savingTaskField === 'status' ? <LoaderCircle className="spin" size={17} /> : null}<span>{task.completed ? 'Concluída' : 'A fazer'}</span><ChevronDown size={17} />
-                </button>
-                {openPropertyMenu === 'status' ? <div className="task-property-popover" role="menu"><button type="button" role="menuitem" onClick={() => void handleStatusChange(false)}><i className="status-dot" />A fazer{!task.completed ? <Check size={16} /> : null}</button><button type="button" role="menuitem" onClick={() => void handleStatusChange(true)}><i className="status-dot is-completed" />Concluída{task.completed ? <Check size={16} /> : null}</button></div> : null}
+            <section className="task-detail-card task-properties-card" aria-label="Propriedades da tarefa">
+              <h3>Detalhes</h3>
+              <div className="task-property-row">
+                <span className="task-property-label">Status</span>
+                <div className="task-property-dropdown">
+                  <button className="task-property-control" type="button" onClick={() => { setIsMenuOpen(false); setOpenPropertyMenu((current) => current === 'status' ? null : 'status') }} disabled={savingTaskField !== null} aria-haspopup="menu" aria-expanded={openPropertyMenu === 'status'}>
+                    <i className={task.completed ? 'is-completed' : ''} />{savingTaskField === 'status' ? <LoaderCircle className="spin" size={17} /> : null}<span>{task.completed ? 'Concluída' : 'A fazer'}</span><ChevronDown size={17} />
+                  </button>
+                  {openPropertyMenu === 'status' ? <div className="task-property-popover" role="menu"><button type="button" role="menuitem" onClick={() => void handleStatusChange(false)}><i className="status-dot" />A fazer{!task.completed ? <Check size={16} /> : null}</button><button type="button" role="menuitem" onClick={() => void handleStatusChange(true)}><i className="status-dot is-completed" />Concluída{task.completed ? <Check size={16} /> : null}</button></div> : null}
+                </div>
               </div>
-            </section>
-            <section className="task-detail-card task-property-card">
-              <span className="task-property-label">Prioridade</span>
-              <div className="task-property-dropdown">
-                <button className={`task-property-control task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`} type="button" onClick={() => { setIsMenuOpen(false); setOpenPropertyMenu((current) => current === 'priority' ? null : 'priority') }} disabled={savingTaskField !== null} aria-haspopup="menu" aria-expanded={openPropertyMenu === 'priority'}>
-                  {savingTaskField === 'priority' ? <LoaderCircle className="spin" size={17} /> : null}<span>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}</span><ChevronDown size={17} />
-                </button>
-                {openPropertyMenu === 'priority' ? <div className="task-property-popover" role="menu">{[['', 'Sem prioridade'], ...Object.entries(priorityLabels)].map(([value, label]) => <button type="button" role="menuitem" key={value || 'none'} onClick={() => void handlePriorityChange(value)}><i className={`priority-mark${value ? ` is-${value.toLowerCase()}` : ''}`} />{label}{(task.priority ?? '') === value ? <Check size={16} /> : null}</button>)}</div> : null}
+              <div className="task-property-row">
+                <span className="task-property-label">Prioridade</span>
+                <div className="task-property-dropdown">
+                  <button className={`task-property-control task-priority${task.priority ? ` is-${task.priority.toLowerCase()}` : ''}`} type="button" onClick={() => { setIsMenuOpen(false); setOpenPropertyMenu((current) => current === 'priority' ? null : 'priority') }} disabled={savingTaskField !== null} aria-haspopup="menu" aria-expanded={openPropertyMenu === 'priority'}>
+                    {savingTaskField === 'priority' ? <LoaderCircle className="spin" size={17} /> : null}<span>{task.priority ? priorityLabels[task.priority] : 'Sem prioridade'}</span><ChevronDown size={17} />
+                  </button>
+                  {openPropertyMenu === 'priority' ? <div className="task-property-popover" role="menu">{[['', 'Sem prioridade'], ...Object.entries(priorityLabels)].map(([value, label]) => <button type="button" role="menuitem" key={value || 'none'} onClick={() => void handlePriorityChange(value)}><i className={`priority-mark${value ? ` is-${value.toLowerCase()}` : ''}`} />{label}{(task.priority ?? '') === value ? <Check size={16} /> : null}</button>)}</div> : null}
+                </div>
               </div>
-            </section>
-            <section className="task-detail-card task-property-card">
-              <span className="task-property-label"><CalendarDays size={18} />Prazo</span>
-              <div className="task-property-dropdown">
-                <button className="task-property-control" type="button" onClick={() => { setIsMenuOpen(false); setDueDateDraft(task.dueDate?.slice(0, 10) ?? ''); dueDateErrorRef.current = false; setDueDateError(''); dateEditedWithKeyboardRef.current = false; setOpenPropertyMenu((current) => current === 'dueDate' ? null : 'dueDate') }} disabled={savingTaskField !== null} aria-haspopup="dialog" aria-expanded={openPropertyMenu === 'dueDate'}>
-                  {savingTaskField === 'dueDate' ? <LoaderCircle className="spin" size={17} /> : <CalendarDays size={17} />}<span>{formatDate(task.dueDate)}</span><ChevronDown size={17} />
-                </button>
-                {openPropertyMenu === 'dueDate' ? <div className="task-property-popover task-date-popover" role="dialog" aria-label="Selecionar prazo"><input autoFocus className={dueDateError ? 'is-error' : ''} type="date" min="2000-01-01" max="2100-12-31" value={dueDateDraft} onPointerDown={() => { dateEditedWithKeyboardRef.current = false }} onKeyDown={(event) => { dateEditedWithKeyboardRef.current = true; if (event.key === 'Enter') { event.preventDefault(); void saveDueDate(event.currentTarget.value) } }} onInput={(event) => handleDueDateInput(event.currentTarget.value, !event.currentTarget.validity.valid)} onBlur={(event) => void saveDueDate(event.currentTarget.value)} disabled={savingTaskField !== null} aria-label="Data do prazo" aria-invalid={Boolean(dueDateError)} aria-describedby={dueDateError ? 'task-due-date-error' : undefined} />{dueDateError ? <span className="task-date-error" id="task-due-date-error" role="alert"><AlertCircle size={14} />{dueDateError}</span> : null}{task.dueDate ? <button className="task-date-clear" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void removeDueDate()} disabled={savingTaskField !== null}><X size={16} />Sem prazo</button> : null}</div> : null}
+              <div className="task-property-row">
+                <span className="task-property-label"><CalendarDays size={16} />Prazo</span>
+                <div className="task-property-dropdown">
+                  <button className="task-property-control" type="button" onClick={() => { setIsMenuOpen(false); setDueDateDraft(task.dueDate?.slice(0, 10) ?? ''); dueDateErrorRef.current = false; setDueDateError(''); dateEditedWithKeyboardRef.current = false; setOpenPropertyMenu((current) => current === 'dueDate' ? null : 'dueDate') }} disabled={savingTaskField !== null} aria-haspopup="dialog" aria-expanded={openPropertyMenu === 'dueDate'}>
+                    {savingTaskField === 'dueDate' ? <LoaderCircle className="spin" size={17} /> : <CalendarDays size={17} />}<span>{formatDate(task.dueDate)}</span><ChevronDown size={17} />
+                  </button>
+                  {openPropertyMenu === 'dueDate' ? <div className="task-property-popover task-date-popover" role="dialog" aria-label="Selecionar prazo"><input autoFocus className={dueDateError ? 'is-error' : ''} type="date" min="2000-01-01" max="2100-12-31" value={dueDateDraft} onPointerDown={() => { dateEditedWithKeyboardRef.current = false }} onKeyDown={(event) => { dateEditedWithKeyboardRef.current = true; if (event.key === 'Enter') { event.preventDefault(); void saveDueDate(event.currentTarget.value) } }} onInput={(event) => handleDueDateInput(event.currentTarget.value, !event.currentTarget.validity.valid)} onBlur={(event) => void saveDueDate(event.currentTarget.value)} disabled={savingTaskField !== null} aria-label="Data do prazo" aria-invalid={Boolean(dueDateError)} aria-describedby={dueDateError ? 'task-due-date-error' : undefined} />{dueDateError ? <span className="task-date-error" id="task-due-date-error" role="alert"><AlertCircle size={14} />{dueDateError}</span> : null}{task.dueDate ? <button className="task-date-clear" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void removeDueDate()} disabled={savingTaskField !== null}><X size={16} />Sem prazo</button> : null}</div> : null}
+                </div>
               </div>
             </section>
             <section className="task-detail-card task-information-card">

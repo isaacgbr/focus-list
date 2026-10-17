@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronUp, Circle, ClipboardList, LayoutGrid, Link2, List as ListIcon, ListChecks, LoaderCircle, Pencil, Plus, X } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronUp, Circle, ClipboardList, LayoutGrid, Link2, List as ListIcon, ListChecks, LoaderCircle, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
@@ -81,6 +81,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [isSaving, setIsSaving] = useState(false)
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false)
   const [isListEditOpen, setIsListEditOpen] = useState(false)
   const [listEditForm, setListEditForm] = useState({ title: '', description: '' })
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -91,7 +92,9 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [completedListExpanded, setCompletedListExpanded] = useState(false)
   const [completedCardsExpanded, setCompletedCardsExpanded] = useState(false)
   const taskModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
+  const discardModalRef = useModalFocusTrap<HTMLElement>(isDiscardConfirmOpen)
   const listEditModalRef = useModalFocusTrap<HTMLElement>(isListEditOpen)
+  const hasUnsavedTaskChanges = Object.values(form).some((value) => value !== '')
 
   const loadTaskContentSummaries = useCallback(async () => {
     const [checklistItems, links] = await Promise.all([
@@ -186,23 +189,40 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   }, [archivedMode, isLoading, loadError, location.hash, location.pathname, location.search, location.state, navigate, tasks])
 
   useEffect(() => {
-    if (!isModalOpen && !isListEditOpen) return
+    if (!isModalOpen && !isListEditOpen && !isDiscardConfirmOpen) return
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || isSaving) return
-      if (isListEditOpen) setIsListEditOpen(false)
+      if (isDiscardConfirmOpen) setIsDiscardConfirmOpen(false)
+      else if (isListEditOpen) setIsListEditOpen(false)
+      else if (hasUnsavedTaskChanges) setIsDiscardConfirmOpen(true)
       else setIsModalOpen(false)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isListEditOpen, isModalOpen, isSaving])
+  }, [hasUnsavedTaskChanges, isDiscardConfirmOpen, isListEditOpen, isModalOpen, isSaving])
 
   const openCreateModal = () => {
     setForm(emptyTaskForm)
     setActionError('')
+    setIsDiscardConfirmOpen(false)
     setIsModalOpen(true)
   }
 
-  const closeModal = () => { if (!isSaving) setIsModalOpen(false) }
+  const closeModal = () => {
+    if (isSaving) return
+    if (hasUnsavedTaskChanges) {
+      setIsDiscardConfirmOpen(true)
+      return
+    }
+    setIsModalOpen(false)
+  }
+
+  const discardTaskCreation = () => {
+    setIsDiscardConfirmOpen(false)
+    setIsModalOpen(false)
+    setForm(emptyTaskForm)
+    setActionError('')
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -218,6 +238,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
     }
     try {
       await taskService.create(commonPayload as CreateTaskData)
+      setIsDiscardConfirmOpen(false)
       setIsModalOpen(false)
       await loadTasks()
     } catch {
@@ -336,7 +357,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       ) : null}
 
       {!archivedMode && isModalOpen ? (
-        <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
+        <div className="area-modal-backdrop" role="presentation" onMouseDown={(event) => { event.preventDefault(); closeModal() }}>
           <section ref={taskModalRef} className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
               <span className="area-modal-heading-icon"><ClipboardList size={32} /><Plus className="area-modal-heading-plus" size={17} /></span>
@@ -353,6 +374,16 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
               {actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}
               <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={closeModal} disabled={isSaving}>Cancelar</button><button className="primary-action" type="submit" disabled={isSaving || !form.title.trim()}>{isSaving ? <LoaderCircle className="spin" size={19} /> : null}Criar Tarefa</button></div>
             </form>
+          </section>
+        </div>
+      ) : null}
+
+      {!archivedMode && isModalOpen && isDiscardConfirmOpen ? (
+        <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setIsDiscardConfirmOpen(false) }}>
+          <section ref={discardModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-discard-title" aria-describedby="task-discard-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
+            <span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span>
+            <div><h2 id="task-discard-title">Descartar nova tarefa?</h2><p id="task-discard-description">Você possui alterações que ainda não foram salvas.</p></div>
+            <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsDiscardConfirmOpen(false)} data-modal-initial-focus>Continuar editando</button><button className="danger-action" type="button" onClick={discardTaskCreation}><Trash2 size={19} />Descartar</button></div>
           </section>
         </div>
       ) : null}

@@ -16,7 +16,6 @@ import {
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { ArchivedModeBanner } from '../components/ArchivedModeBanner'
 import { useBreadcrumbs } from '../components/BreadcrumbContext'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
@@ -211,7 +210,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
     <section className="lists-page" aria-labelledby="lists-title">
       <div className="lists-page-heading">
         <div className="lists-page-heading-copy">
-          <p><Folder size={14} aria-hidden="true" />Área</p>
+          <p><Folder size={14} aria-hidden="true" />Área{archivedMode ? <><span className="archived-heading-separator" aria-hidden="true">•</span><span className="archived-heading-status">Arquivada</span></> : null}</p>
           <h1 id="lists-title" title={areaHeading.title}>{areaHeading.title || 'Listas'}</h1>
           <span>{areaHeading.description || 'Organize as tarefas desta área em listas.'}</span>
         </div>
@@ -220,8 +219,6 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
           Nova Lista
         </button> : <button className="secondary-action" type="button" onClick={openArchivedAreaEdit}><Pencil size={18} aria-hidden="true" />Editar Área</button>}
       </div>
-
-      {archivedMode && archivedArea ? <ArchivedModeBanner /> : null}
 
       {actionError && !isModalOpen && !archiveCandidate ? (
         <p className="lists-action-error" role="alert"><AlertCircle size={19} />{actionError}</p>
@@ -258,23 +255,18 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
 
       {!isLoading && !loadError && lists.length > 0 ? (
         <>
-          {!archivedMode ? (
-            <div className="view-mode-toolbar">
-              <span>Visualização</span>
-              <div className="view-mode-toggle" role="group" aria-label="Modo de visualização das listas">
-                <button className={viewMode === 'list' ? 'is-active' : ''} type="button" onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'}><ListIcon size={18} />Lista</button>
-                <button className={viewMode === 'cards' ? 'is-active' : ''} type="button" onClick={() => setViewMode('cards')} aria-pressed={viewMode === 'cards'}><LayoutGrid size={18} />Cards</button>
-              </div>
-            </div>
-          ) : null}
+          <div className="view-mode-toggle lists-view-mode-toggle" role="group" aria-label="Modo de visualização das listas">
+            <button className={viewMode === 'list' ? 'is-active' : ''} type="button" onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'}><ListIcon size={18} />Lista</button>
+            <button className={viewMode === 'cards' ? 'is-active' : ''} type="button" onClick={() => setViewMode('cards')} aria-pressed={viewMode === 'cards'}><LayoutGrid size={18} />Cards</button>
+          </div>
 
-          {!archivedMode && viewMode === 'cards' ? (
+          {viewMode === 'cards' ? (
             <div className="list-cards-grid" aria-live="polite">
               {lists.map((list) => {
                 const count = taskCounts[list.id] ?? { total: 0, pending: 0, completed: 0 }
                 return (
                   <article className="list-summary-card" key={list.id}>
-                    <Link className="list-summary-card-link" to={`/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
+                    <Link className="list-summary-card-link" to={archivedMode ? `/arquivados/listas/${list.id}` : `/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
                       <span className="list-summary-card-topline">
                         <span className="list-card-icon" aria-hidden="true"><ListChecks size={23} /></span>
                         <span className="list-summary-card-kicker">Lista</span>
@@ -292,7 +284,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                       <summary aria-label={`Ações de ${list.title}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
                       <div>
                         <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); openEditModal(list) }}><Pencil size={16} />Editar</button>
-                        <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); setActionError(''); setArchiveCandidate(list) }}><Archive size={16} />Arquivar</button>
+                        {!archivedMode ? <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); setActionError(''); setArchiveCandidate(list) }}><Archive size={16} />Arquivar</button> : null}
                       </div>
                     </details>
                   </article>

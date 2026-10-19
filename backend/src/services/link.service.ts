@@ -9,8 +9,8 @@ type LinkData = {
 
 class LinkService {
   // Lista todos os Links.
-  async findAll() {
-    return linkRepository.findAll();
+  async findAll(filters: { taskId?: number; listId?: number } = {}) {
+    return linkRepository.findAll(filters);
   }
 
   // Busca um Link pelo ID.

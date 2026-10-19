@@ -6,7 +6,18 @@ class TaskController {
   // Lista todas as Tarefas.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const tasks = await taskService.findAll();
+      const listId = req.query.listId === undefined ? undefined : Number(req.query.listId);
+      const areaId = req.query.areaId === undefined ? undefined : Number(req.query.areaId);
+
+      if (listId !== undefined && (!Number.isInteger(listId) || listId <= 0)) {
+        throw new Error("O filtro de Lista é inválido.");
+      }
+
+      if (areaId !== undefined && (!Number.isInteger(areaId) || areaId <= 0)) {
+        throw new Error("O filtro de Área é inválido.");
+      }
+
+      const tasks = await taskService.findAll({ listId, areaId });
 
       return res.status(200).json(tasks);
     } catch (error) {

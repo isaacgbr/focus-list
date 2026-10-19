@@ -3,8 +3,8 @@ import listRepository from "../repositories/list.repository.js";
 
 class ListService {
   // Lista todas as Listas.
-  async findAll() {
-    return listRepository.findAll();
+  async findAll(areaId?: number) {
+    return listRepository.findAll(areaId);
   }
 
   // Busca uma Lista pelo ID.

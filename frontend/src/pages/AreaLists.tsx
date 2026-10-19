@@ -88,13 +88,12 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
           completed: list.tasks.filter((task) => task.completed).length,
         }])))
       } else {
-        const [area, allLists, allTasks] = await Promise.all([areaService.getById(selectedAreaId), listService.getAll(), taskService.getAll()])
+        const [area, areaLists, areaTasks] = await Promise.all([areaService.getById(selectedAreaId), listService.getAll({ areaId: selectedAreaId }), taskService.getAll({ areaId: selectedAreaId })])
         setAreaHeading({ title: area.title, description: area.description ?? '' })
         setBreadcrumbs([{ label: area.title }])
-        const areaLists = allLists.filter((list) => list.areaId === selectedAreaId)
         setLists(areaLists)
         setTaskCounts(Object.fromEntries(areaLists.map((list) => {
-          const listTasks = allTasks.filter((task) => task.listId === list.id)
+          const listTasks = areaTasks.filter((task) => task.listId === list.id)
           return [list.id, {
             total: listTasks.length,
             pending: listTasks.filter((task) => !task.completed).length,

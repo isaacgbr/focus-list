@@ -21,8 +21,8 @@ export type CreateChecklistItemData = {
 export type UpdateChecklistItemData = Partial<CreateChecklistItemData>;
 
 const checklistItemService = {
-  async getAll() {
-    const { data } = await api.get<ChecklistItem[]>("/checklist-items");
+  async getAll(filters: { taskId?: number; listId?: number } = {}) {
+    const { data } = await api.get<ChecklistItem[]>("/checklist-items", { params: filters });
     return data;
   },
 

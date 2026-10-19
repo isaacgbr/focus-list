@@ -8,8 +8,12 @@ type LinkData = {
 
 class LinkRepository {
   // Retorna todos os Links ordenados por título.
-  async findAll() {
+  async findAll({ taskId, listId }: { taskId?: number; listId?: number } = {}) {
     return prisma.link.findMany({
+      where: {
+        taskId,
+        task: listId === undefined ? undefined : { listId, archivedAt: null },
+      },
       orderBy: {
         title: "asc",
       },

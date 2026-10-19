@@ -115,8 +115,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
     setIsChecklistLoading(true)
     setChecklistError('')
     try {
-      const items = await checklistItemService.getAll()
-      setChecklistItems(items.filter((item) => item.taskId === task.id))
+      setChecklistItems(await checklistItemService.getAll({ taskId: task.id }))
     } catch {
       setChecklistError('Não foi possível carregar o checklist desta tarefa.')
     } finally {
@@ -128,8 +127,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
     setIsLinksLoading(true)
     setLinksError('')
     try {
-      const allLinks = await linkService.getAll()
-      setLinks(allLinks.filter((link) => link.taskId === task.id))
+      setLinks(await linkService.getAll({ taskId: task.id }))
     } catch {
       setLinksError('Não foi possível carregar os links desta tarefa.')
     } finally {

@@ -98,11 +98,11 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
 
   const loadTaskContentSummaries = useCallback(async () => {
     const [checklistItems, links] = await Promise.all([
-      checklistItemService.getAll(),
-      linkService.getAll(),
+      checklistItemService.getAll({ listId: selectedListId }),
+      linkService.getAll({ listId: selectedListId }),
     ])
     setTaskContentSummaries(summarizeTaskContent(checklistItems, links))
-  }, [])
+  }, [selectedListId])
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true)
@@ -127,14 +127,14 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         setTasks(list.tasks.map((task) => ({ ...task, listId: selectedListId })))
         setTaskContentSummaries({})
       } else {
-        const [allTasks, selectedList, area, checklistItems, links] = await Promise.all([
-          taskService.getAll(),
+        const [listTasks, selectedList, area, checklistItems, links] = await Promise.all([
+          taskService.getAll({ listId: selectedListId }),
           listService.getById(selectedListId),
           areaService.getById(selectedAreaId),
-          checklistItemService.getAll(),
-          linkService.getAll(),
+          checklistItemService.getAll({ listId: selectedListId }),
+          linkService.getAll({ listId: selectedListId }),
         ])
-        setTasks(allTasks.filter((task) => task.listId === selectedListId))
+        setTasks(listTasks)
         setTaskContentSummaries(summarizeTaskContent(checklistItems, links))
         setListTitle(selectedList.title)
         setListDescription(selectedList.description ?? '')

@@ -38,8 +38,8 @@ export type UpdateTaskData = Partial<Omit<CreateTaskData, "description" | "dueDa
 };
 
 const taskService = {
-  async getAll() {
-    const { data } = await api.get<Task[]>("/tasks");
+  async getAll(filters: { listId?: number; areaId?: number } = {}) {
+    const { data } = await api.get<Task[]>("/tasks", { params: filters });
     return data;
   },
 

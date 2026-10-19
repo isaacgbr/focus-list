@@ -12,9 +12,13 @@ type TaskData = {
 
 class TaskRepository {
   // Retorna todas as Tarefas ordenadas por título.
-  async findAll() {
+  async findAll({ listId, areaId }: { listId?: number; areaId?: number } = {}) {
     return prisma.task.findMany({
-      where: { archivedAt: null, list: { archivedAt: null, area: { archivedAt: null } } },
+      where: {
+        archivedAt: null,
+        listId,
+        list: { archivedAt: null, areaId, area: { archivedAt: null } },
+      },
       orderBy: {
         title: "asc",
       },

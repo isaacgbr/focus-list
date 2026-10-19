@@ -6,7 +6,18 @@ class LinkController {
   // Lista todos os Links.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const links = await linkService.findAll();
+      const taskId = req.query.taskId === undefined ? undefined : Number(req.query.taskId);
+      const listId = req.query.listId === undefined ? undefined : Number(req.query.listId);
+
+      if (taskId !== undefined && (!Number.isInteger(taskId) || taskId <= 0)) {
+        throw new Error("O filtro de Tarefa é inválido.");
+      }
+
+      if (listId !== undefined && (!Number.isInteger(listId) || listId <= 0)) {
+        throw new Error("O filtro de Lista é inválido.");
+      }
+
+      const links = await linkService.findAll({ taskId, listId });
 
       return res.status(200).json(links);
     } catch (error) {

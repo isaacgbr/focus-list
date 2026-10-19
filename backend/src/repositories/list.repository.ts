@@ -2,9 +2,9 @@ import prisma from "../config/prisma.js";
 
 class ListRepository {
   // Retorna todas as Listas ordenadas por título.
-  async findAll() {
+  async findAll(areaId?: number) {
     return prisma.list.findMany({
-      where: { archivedAt: null, area: { archivedAt: null } },
+      where: { archivedAt: null, areaId, area: { archivedAt: null } },
       orderBy: {
         title: "asc",
       },

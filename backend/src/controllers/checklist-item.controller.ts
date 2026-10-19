@@ -6,7 +6,18 @@ class ChecklistItemController {
   // Lista todos os itens de checklist.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const checklistItems = await checklistItemService.findAll();
+      const taskId = req.query.taskId === undefined ? undefined : Number(req.query.taskId);
+      const listId = req.query.listId === undefined ? undefined : Number(req.query.listId);
+
+      if (taskId !== undefined && (!Number.isInteger(taskId) || taskId <= 0)) {
+        throw new Error("O filtro de Tarefa é inválido.");
+      }
+
+      if (listId !== undefined && (!Number.isInteger(listId) || listId <= 0)) {
+        throw new Error("O filtro de Lista é inválido.");
+      }
+
+      const checklistItems = await checklistItemService.findAll({ taskId, listId });
 
       return res.status(200).json(checklistItems);
     } catch (error) {

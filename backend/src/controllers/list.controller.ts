@@ -6,7 +6,13 @@ class ListController {
   // Lista todas as Listas.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const lists = await listService.findAll();
+      const areaId = req.query.areaId === undefined ? undefined : Number(req.query.areaId);
+
+      if (areaId !== undefined && (!Number.isInteger(areaId) || areaId <= 0)) {
+        throw new Error("O filtro de Área é inválido.");
+      }
+
+      const lists = await listService.findAll(areaId);
 
       return res.status(200).json(lists);
     } catch (error) {

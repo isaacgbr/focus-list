@@ -13,8 +13,8 @@ type TaskData = {
 
 class TaskService {
   // Lista todas as Tarefas.
-  async findAll() {
-    return taskRepository.findAll();
+  async findAll(filters: { listId?: number; areaId?: number } = {}) {
+    return taskRepository.findAll(filters);
   }
 
   // Busca uma Tarefa pelo ID.

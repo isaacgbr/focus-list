@@ -8,8 +8,12 @@ type ChecklistItemData = {
 
 class ChecklistItemRepository {
   // Retorna todos os itens de checklist ordenados por título.
-  async findAll() {
+  async findAll({ taskId, listId }: { taskId?: number; listId?: number } = {}) {
     return prisma.checklistItem.findMany({
+      where: {
+        taskId,
+        task: listId === undefined ? undefined : { listId, archivedAt: null },
+      },
       orderBy: {
         title: "asc",
       },

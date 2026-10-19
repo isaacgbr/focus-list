@@ -10,8 +10,8 @@ type ChecklistItemData = {
 
 class ChecklistItemService {
   // Lista todos os itens de checklist.
-  async findAll() {
-    return checklistItemRepository.findAll();
+  async findAll(filters: { taskId?: number; listId?: number } = {}) {
+    return checklistItemRepository.findAll(filters);
   }
 
   // Busca um item de checklist pelo ID.

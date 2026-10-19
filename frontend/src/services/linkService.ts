@@ -21,8 +21,8 @@ export type CreateLinkData = {
 export type UpdateLinkData = Partial<CreateLinkData>;
 
 const linkService = {
-  async getAll() {
-    const { data } = await api.get<Link[]>("/links");
+  async getAll(filters: { taskId?: number; listId?: number } = {}) {
+    const { data } = await api.get<Link[]>("/links", { params: filters });
     return data;
   },
 

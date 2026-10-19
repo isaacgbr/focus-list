@@ -23,8 +23,8 @@ export type CreateListData = {
 export type UpdateListData = Partial<CreateListData>;
 
 const listService = {
-  async getAll() {
-    const { data } = await api.get<List[]>("/lists");
+  async getAll(filters: { areaId?: number } = {}) {
+    const { data } = await api.get<List[]>("/lists", { params: filters });
     return data;
   },
 

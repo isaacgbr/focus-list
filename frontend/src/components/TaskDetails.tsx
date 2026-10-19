@@ -146,8 +146,17 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (isArchiveConfirmOpen && !isArchiving) setIsArchiveConfirmOpen(false)
-      else if (isMenuOpen) setIsMenuOpen(false)
-      else if (openPropertyMenu) setOpenPropertyMenu(null)
+      else if (isMenuOpen) {
+        menuRef.current?.querySelector<HTMLElement>('.task-details-more')?.focus({ preventScroll: true })
+        setIsMenuOpen(false)
+      }
+      else if (openPropertyMenu) {
+        const propertyControl = event.target instanceof HTMLElement
+          ? event.target.closest('.task-property-dropdown')?.querySelector<HTMLElement>('.task-property-control')
+          : null
+        propertyControl?.focus({ preventScroll: true })
+        setOpenPropertyMenu(null)
+      }
       else if (isEditingTitle) { setIsEditingTitle(false); setTitleDraft(task.title) }
       else if (isEditingDescription) { setIsEditingDescription(false); setDescriptionDraft(task.description ?? '') }
       else if (!savingTaskField && savingChecklistId === null && savingLinkId === null) onClose()
@@ -429,7 +438,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
             <button className="icon-button task-details-more" type="button" onClick={() => { setOpenPropertyMenu(null); setIsMenuOpen((current) => !current) }} aria-expanded={isMenuOpen} aria-haspopup="menu" aria-label="Mais ações"><MoreHorizontal size={24} /></button>
             {isMenuOpen ? (
               <div className="task-actions-popover" role="menu">
-                <button type="button" role="menuitem" onClick={() => { setIsMenuOpen(false); setIsArchiveConfirmOpen(true) }}><Archive size={17} />Arquivar</button>
+                <button type="button" role="menuitem" onClick={() => { menuRef.current?.querySelector<HTMLElement>('.task-details-more')?.focus({ preventScroll: true }); setIsMenuOpen(false); setIsArchiveConfirmOpen(true) }}><Archive size={17} />Arquivar</button>
               </div>
             ) : null}
           </div> : null}

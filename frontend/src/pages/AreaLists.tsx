@@ -283,8 +283,8 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                     <details className="card-actions-menu">
                       <summary aria-label={`Ações de ${list.title}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
                       <div>
-                        <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); openEditModal(list) }}><Pencil size={16} />Editar</button>
-                        {!archivedMode ? <button type="button" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); setActionError(''); setArchiveCandidate(list) }}><Archive size={16} />Arquivar</button> : null}
+                        <button type="button" onClick={(event) => { const menu = event.currentTarget.closest('details'); menu?.removeAttribute('open'); menu?.querySelector<HTMLElement>('summary')?.focus(); openEditModal(list) }}><Pencil size={16} />Editar</button>
+                        {!archivedMode ? <button type="button" onClick={(event) => { const menu = event.currentTarget.closest('details'); menu?.removeAttribute('open'); menu?.querySelector<HTMLElement>('summary')?.focus(); setActionError(''); setArchiveCandidate(list) }}><Archive size={16} />Arquivar</button> : null}
                       </div>
                     </details>
                   </article>

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
 export function useSidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
 
-  const close = () => setIsOpen(false)
-  const open = () => setIsOpen(true)
+  const close = useCallback(() => setIsOpen(false), [])
+  const open = useCallback(() => setIsOpen(true), [])
 
   return {
     close,

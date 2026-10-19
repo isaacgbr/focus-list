@@ -20,7 +20,7 @@ export function AppLayout() {
       <div className="app-shell">
         <Sidebar isOpen={sidebar.isOpen} onClose={sidebar.close} />
         <div className="app-workspace">
-          <Header contextualBreadcrumbs={contextualBreadcrumbs} onOpenSidebar={sidebar.open} />
+          <Header contextualBreadcrumbs={contextualBreadcrumbs} isSidebarOpen={sidebar.isOpen} onOpenSidebar={sidebar.open} />
           <main className="app-content" key={sidebar.locationKey}>
             <Outlet />
           </main>

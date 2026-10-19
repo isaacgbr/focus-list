@@ -114,7 +114,7 @@ export function Archived() {
             <button className="restore-action" type="button" onClick={() => void restoreItem(item)} disabled={processingKey !== null}>{processingKey === key ? <LoaderCircle className="spin" size={17} /> : <RotateCcw size={17} />}Restaurar</button>
             <details className="archived-actions-menu" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute('open') }} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.removeAttribute('open'); event.currentTarget.querySelector('summary')?.focus() } }}>
               <summary aria-label={`Mais ações para ${typeLabels[item.type]} ${item.title}`}><MoreHorizontal size={19} aria-hidden="true" /></summary>
-              <div role="menu"><button className="archive-delete-action" type="button" role="menuitem" onClick={(event) => { event.currentTarget.closest('details')?.removeAttribute('open'); setActionError(''); setDeleteCandidate(item) }} disabled={processingKey !== null}><Trash2 size={16} />Excluir definitivamente</button></div>
+              <div role="menu"><button className="archive-delete-action" type="button" role="menuitem" onClick={(event) => { const menu = event.currentTarget.closest('details'); menu?.removeAttribute('open'); menu?.querySelector<HTMLElement>('summary')?.focus(); setActionError(''); setDeleteCandidate(item) }} disabled={processingKey !== null}><Trash2 size={16} />Excluir definitivamente</button></div>
             </details>
           </div>
         </article>

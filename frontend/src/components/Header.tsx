@@ -5,10 +5,11 @@ import { Breadcrumb } from './BreadcrumbContext'
 
 type HeaderProps = {
   contextualBreadcrumbs: Breadcrumb[]
+  isSidebarOpen: boolean
   onOpenSidebar: () => void
 }
 
-export function Header({ contextualBreadcrumbs, onOpenSidebar }: HeaderProps) {
+export function Header({ contextualBreadcrumbs, isSidebarOpen, onOpenSidebar }: HeaderProps) {
   const { pathname } = useLocation()
 
   const breadcrumbs: Breadcrumb[] = (() => {
@@ -24,7 +25,7 @@ export function Header({ contextualBreadcrumbs, onOpenSidebar }: HeaderProps) {
 
   return (
     <header className="header">
-      <button className="icon-button menu-button" type="button" onClick={onOpenSidebar} aria-label="Abrir menu">
+      <button className="icon-button menu-button" type="button" onClick={onOpenSidebar} aria-controls="focuslist-sidebar" aria-expanded={isSidebarOpen} aria-label="Abrir menu">
         <Menu size={24} />
       </button>
 

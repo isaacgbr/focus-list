@@ -17,7 +17,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
@@ -39,6 +39,7 @@ const utilityItems = [
 ]
 
 const SIDEBAR_AREA_LIMIT = 6
+const sidebarFocusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 const areaIcons = {
   briefcase: BriefcaseBusiness,
@@ -77,6 +78,7 @@ function toAreaPayload(form: AreaForm): CreateAreaData {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate()
+  const sidebarRef = useRef<HTMLElement>(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [areAreasExpanded, setAreAreasExpanded] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -88,6 +90,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [form, setForm] = useState<AreaForm>(emptyAreaForm)
+  const isSidebarModalOpenRef = useRef(false)
+  isSidebarModalOpenRef.current = isModalOpen || archiveCandidate !== null
   const areaModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
   const archiveModalRef = useModalFocusTrap<HTMLElement>(archiveCandidate !== null)
 
@@ -141,6 +145,59 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [archiveCandidate, isArchiving, isModalOpen, isSaving])
+
+  useEffect(() => {
+    if (!isOpen || !sidebarRef.current) return
+
+    const sidebar = sidebarRef.current
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const getFocusableElements = () => Array.from(sidebar.querySelectorAll<HTMLElement>(sidebarFocusableSelector))
+      .filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0)
+    const closeButton = sidebar.querySelector<HTMLElement>('.sidebar-close')
+
+    closeButton?.focus({ preventScroll: true })
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isSidebarModalOpenRef.current) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const focusableElements = getFocusableElements()
+      if (focusableElements.length === 0) {
+        event.preventDefault()
+        sidebar.focus({ preventScroll: true })
+        return
+      }
+
+      const first = focusableElements[0]
+      const last = focusableElements[focusableElements.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus({ preventScroll: true })
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus({ preventScroll: true })
+      }
+    }
+
+    const handleFocusIn = (event: FocusEvent) => {
+      if (!isSidebarModalOpenRef.current && !sidebar.contains(event.target as Node)) closeButton?.focus({ preventScroll: true })
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('focusin', handleFocusIn)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('focusin', handleFocusIn)
+      queueMicrotask(() => {
+        if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
+      })
+    }
+  }, [isOpen, onClose])
 
   const openCreateModal = () => {
     setEditingArea(null)
@@ -213,11 +270,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <button
         className={`sidebar-backdrop ${isOpen ? 'is-visible' : ''}`}
         type="button"
-        aria-label="Fechar menu"
+        aria-hidden="true"
+        tabIndex={-1}
         onClick={onClose}
       />
 
-      <aside className={`sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Navegação principal">
+      <aside ref={sidebarRef} className={`sidebar ${isOpen ? 'is-open' : ''}`} id="focuslist-sidebar" aria-label="Navegação principal" tabIndex={-1}>
         <div className="sidebar-heading">
           <Brand markSrc="/focuslist-mark-sidebar.png" />
           <button className="icon-button sidebar-close" type="button" onClick={onClose} aria-label="Fechar menu">

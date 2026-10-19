@@ -1,0 +1,220 @@
+{
+  "stage": "21B.2",
+  "measuredAt": "2026-10-19T14:41:49.230Z",
+  "database": "focuslist_benchmark",
+  "profile": "medium",
+  "label": "Médio",
+  "dataset": {
+    "areas": 20,
+    "lists": 200,
+    "tasks": 2000,
+    "checklistItems": 8000,
+    "links": 2000
+  },
+  "method": {
+    "warmupRuns": 3,
+    "measuredRuns": 20,
+    "requestConcurrency": 1,
+    "payloadMeasurement": "response body bytes",
+    "pageValues": "derived from measured API endpoints used by the frontend"
+  },
+  "endpoints": {
+    "areas": {
+      "path": "/areas",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 1.14,
+      "medianMs": 1.08,
+      "p95Ms": 1.48,
+      "minMs": 0.92,
+      "maxMs": 1.52,
+      "payloadBytes": 4552,
+      "payloadBytesStable": true
+    },
+    "lists": {
+      "path": "/lists",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 2.88,
+      "medianMs": 2.81,
+      "p95Ms": 3.41,
+      "minMs": 2.51,
+      "maxMs": 3.97,
+      "payloadBytes": 38080,
+      "payloadBytesStable": true
+    },
+    "tasks": {
+      "path": "/tasks",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 29.46,
+      "medianMs": 28.07,
+      "p95Ms": 33.94,
+      "minMs": 26.87,
+      "maxMs": 34.48,
+      "payloadBytes": 583394,
+      "payloadBytesStable": true
+    },
+    "checklistItems": {
+      "path": "/checklist-items",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 47.72,
+      "medianMs": 45.91,
+      "p95Ms": 54.71,
+      "minMs": 43.46,
+      "maxMs": 56.17,
+      "payloadBytes": 999800,
+      "payloadBytesStable": true
+    },
+    "links": {
+      "path": "/links",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 12.73,
+      "medianMs": 12.56,
+      "p95Ms": 13.66,
+      "minMs": 12.01,
+      "maxMs": 14.35,
+      "payloadBytes": 299787,
+      "payloadBytesStable": true
+    },
+    "areaDetail": {
+      "path": "/areas/1",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 1.35,
+      "medianMs": 1.32,
+      "p95Ms": 1.57,
+      "minMs": 1.09,
+      "maxMs": 1.7,
+      "payloadBytes": 238,
+      "payloadBytesStable": true
+    },
+    "listDetail": {
+      "path": "/lists/1",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 1.05,
+      "medianMs": 1.06,
+      "p95Ms": 1.35,
+      "minMs": 0.86,
+      "maxMs": 1.38,
+      "payloadBytes": 198,
+      "payloadBytesStable": true
+    },
+    "taskDetail": {
+      "path": "/tasks/1",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 1.18,
+      "medianMs": 1.16,
+      "p95Ms": 1.45,
+      "minMs": 0.99,
+      "maxMs": 1.57,
+      "payloadBytes": 295,
+      "payloadBytesStable": true
+    },
+    "archived": {
+      "path": "/archived",
+      "requests": 20,
+      "errors": 0,
+      "statusCodes": [
+        200
+      ],
+      "meanMs": 2.79,
+      "medianMs": 2.53,
+      "p95Ms": 3.05,
+      "minMs": 2.23,
+      "maxMs": 7.7,
+      "payloadBytes": 1186,
+      "payloadBytesStable": true
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "endpoints": {
+        "areas": 2,
+        "lists": 1,
+        "tasks": 1,
+        "checklistItems": 1,
+        "links": 1
+      },
+      "payloadBytes": 1930165,
+      "sequentialMedianSumMs": 91.51,
+      "slowestEndpointByMedian": "checklistItems",
+      "slowestEndpointMedianMs": 45.91
+    },
+    "area": {
+      "endpoints": {
+        "areas": 1,
+        "areaDetail": 1,
+        "lists": 1,
+        "tasks": 1
+      },
+      "payloadBytes": 626264,
+      "sequentialMedianSumMs": 33.28,
+      "slowestEndpointByMedian": "tasks",
+      "slowestEndpointMedianMs": 28.07
+    },
+    "list": {
+      "endpoints": {
+        "areas": 1,
+        "areaDetail": 1,
+        "listDetail": 1,
+        "tasks": 1,
+        "checklistItems": 1,
+        "links": 1
+      },
+      "payloadBytes": 1887969,
+      "sequentialMedianSumMs": 90,
+      "slowestEndpointByMedian": "checklistItems",
+      "slowestEndpointMedianMs": 45.91
+    },
+    "taskDetailsIncremental": {
+      "endpoints": {
+        "checklistItems": 1,
+        "links": 1
+      },
+      "payloadBytes": 1299587,
+      "sequentialMedianSumMs": 58.47,
+      "slowestEndpointByMedian": "checklistItems",
+      "slowestEndpointMedianMs": 45.91
+    },
+    "archive": {
+      "endpoints": {
+        "areas": 1,
+        "archived": 1
+      },
+      "payloadBytes": 5738,
+      "sequentialMedianSumMs": 3.61,
+      "slowestEndpointByMedian": "archived",
+      "slowestEndpointMedianMs": 2.53
+    }
+  },
+  "errors": []
+}

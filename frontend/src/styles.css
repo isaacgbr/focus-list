@@ -4675,3 +4675,192 @@ button.archived-item-main:focus-visible { outline: 3px solid rgba(75, 169, 255, 
   .about-footer > p { max-width: 270px; line-height: 1.45; }
   .about-version { right: 18px; left: 18px; }
 }
+
+/* Microinterações */
+.motion-presence {
+  display: contents;
+}
+
+.motion-presence > .area-modal-backdrop {
+  animation: motion-backdrop-in 160ms ease-out both;
+}
+
+.motion-presence > .area-modal-backdrop > .area-modal,
+.motion-presence > .area-modal-backdrop > .area-delete-modal,
+.motion-presence > .area-modal-backdrop > .task-details-modal {
+  animation: motion-dialog-in 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+  transform-origin: center;
+}
+
+.motion-presence.is-exiting > .area-modal-backdrop {
+  pointer-events: none;
+  animation: motion-backdrop-out 140ms ease-in both;
+}
+
+.motion-presence.is-exiting > .area-modal-backdrop > .area-modal,
+.motion-presence.is-exiting > .area-modal-backdrop > .area-delete-modal,
+.motion-presence.is-exiting > .area-modal-backdrop > .task-details-modal {
+  animation: motion-dialog-out 140ms ease-in both;
+}
+
+.task-actions-popover,
+.task-property-popover,
+.hero-cover-popover,
+.card-actions-menu[open] > div,
+.archived-actions-menu[open] > div {
+  animation: motion-popover-in 140ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+  transform-origin: top right;
+}
+
+.task-detail-section-body,
+.task-information-card dl,
+.completed-tasks > .tasks-list,
+.completed-task-cards > .task-cards-grid,
+.completed-task-cards > .task-cards-more,
+.area-nav-item,
+.dashboard-area-row {
+  animation: motion-section-in 160ms ease-out both;
+}
+
+.list-cards-grid,
+.lists-grid,
+.task-card-sections,
+.tasks-page > .tasks-list {
+  animation: motion-view-in 160ms ease-out both;
+}
+
+.view-mode-toggle button:active {
+  transform: scale(0.97);
+}
+
+.view-mode-toggle button.is-active {
+  animation: motion-toggle-select 150ms ease-out both;
+}
+
+.list-card:hover {
+  transform: translateY(-1px);
+}
+
+.task-item.is-completing,
+.task-card.is-completing {
+  border-color: rgba(45, 207, 157, 0.46);
+  background: linear-gradient(135deg, rgba(14, 55, 52, 0.94), rgba(7, 31, 36, 0.88));
+  animation: motion-task-complete 180ms ease-out both;
+}
+
+.task-item.is-completing .task-complete-button,
+.task-card.is-completing .task-complete-button,
+.checklist-item.is-completed .task-complete-button,
+.task-details-modal.is-completed .task-details-header > .task-complete-button {
+  border-color: #1dcf98;
+  background: #0cac7d;
+}
+
+.task-item.is-completing .task-complete-button svg,
+.task-card.is-completing .task-complete-button svg,
+.checklist-item.is-completed .task-complete-button svg,
+.task-details-modal.is-completed .task-details-header > .task-complete-button svg {
+  animation: motion-check-in 180ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.dashboard-hero.is-morning { animation: motion-cover-morning 240ms ease-out both; }
+.dashboard-hero.is-afternoon { animation: motion-cover-afternoon 240ms ease-out both; }
+.dashboard-hero.is-night { animation: motion-cover-night 240ms ease-out both; }
+
+@media (max-width: 800px) {
+  .sidebar {
+    transition-duration: 190ms;
+    transition-timing-function: cubic-bezier(0.2, 0.75, 0.3, 1);
+    will-change: transform;
+  }
+
+  .sidebar-backdrop {
+    transition-duration: 190ms;
+  }
+
+  .sidebar.is-open .sidebar-navigation {
+    animation: motion-sidebar-content-in 180ms 35ms ease-out both;
+  }
+}
+
+@keyframes motion-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes motion-dialog-in {
+  from { opacity: 0; transform: translateY(7px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes motion-dialog-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(4px) scale(0.99); }
+}
+
+@keyframes motion-popover-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes motion-section-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes motion-view-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes motion-toggle-select {
+  from { transform: scale(0.97); }
+  to { transform: scale(1); }
+}
+
+@keyframes motion-task-complete {
+  0% { transform: scale(1); }
+  55% { transform: scale(0.995); }
+  100% { transform: scale(1); }
+}
+
+@keyframes motion-check-in {
+  from { opacity: 0; transform: scale(0.55); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes motion-cover-morning {
+  from { opacity: 0.88; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-cover-afternoon {
+  from { opacity: 0.88; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-cover-night {
+  from { opacity: 0.88; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-sidebar-content-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

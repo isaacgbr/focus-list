@@ -3,6 +3,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { useBreadcrumbs } from '../components/BreadcrumbContext'
+import { MotionPresence } from '../components/MotionPresence'
 import { TaskDetails } from '../components/TaskDetails'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedListDetail } from '../services/archiveService'
@@ -87,6 +88,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [form, setForm] = useState<TaskForm>(emptyTaskForm)
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list')
+  const [completedFeedbackTaskId, setCompletedFeedbackTaskId] = useState<number | null>(null)
   const [visiblePendingCards, setVisiblePendingCards] = useState(INITIAL_VISIBLE_CARDS)
   const [visibleCompletedCards, setVisibleCompletedCards] = useState(INITIAL_VISIBLE_CARDS)
   const [completedListExpanded, setCompletedListExpanded] = useState(false)
@@ -253,10 +255,16 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
     setActionError('')
     try {
       await taskService.update(task.id, { completed: !task.completed, completedAt: task.completed ? null : new Date().toISOString() })
+      if (!task.completed) {
+        setUpdatingTaskId(null)
+        setCompletedFeedbackTaskId(task.id)
+        await new Promise((resolve) => window.setTimeout(resolve, 180))
+      }
       await loadTasks()
     } catch {
       setActionError(`Não foi possível ${task.completed ? 'reabrir' : 'concluir'} a tarefa.`)
     } finally {
+      setCompletedFeedbackTaskId(null)
       setUpdatingTaskId(null)
     }
   }
@@ -279,9 +287,9 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   }
 
   const renderTask = (task: Task) => (
-    <article className={`task-item${task.completed ? ' is-completed' : ''}`} key={task.id}>
+    <article className={`task-item${task.completed ? ' is-completed' : ''}${completedFeedbackTaskId === task.id ? ' is-completing' : ''}`} key={task.id}>
       <button className="task-complete-button" type="button" onClick={() => void handleToggleCompleted(task)} disabled={updatingTaskId === task.id} aria-label={task.completed ? `Desmarcar conclusão de ${task.title}` : `Concluir ${task.title}`}>
-        {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed ? <Check size={19} /> : null}
+        {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed || completedFeedbackTaskId === task.id ? <Check size={19} /> : null}
       </button>
       <button className="task-item-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
         <strong>{task.title}</strong>{task.description ? <p>{task.description}</p> : null}{renderContentIndicators(task)}
@@ -294,9 +302,9 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   )
 
   const renderTaskCard = (task: Task) => (
-    <article className={`task-card${task.completed ? ' is-completed' : ''}`} key={task.id}>
+    <article className={`task-card${task.completed ? ' is-completed' : ''}${completedFeedbackTaskId === task.id ? ' is-completing' : ''}`} key={task.id}>
       <button className="task-complete-button" type="button" onClick={() => void handleToggleCompleted(task)} disabled={updatingTaskId === task.id} aria-label={task.completed ? `Desmarcar conclusão de ${task.title}` : `Concluir ${task.title}`}>
-        {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed ? <Check size={19} /> : null}
+        {updatingTaskId === task.id ? <LoaderCircle className="spin" size={22} /> : task.completed || completedFeedbackTaskId === task.id ? <Check size={19} /> : null}
       </button>
       <button className="task-card-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
         <strong>{task.title}</strong>
@@ -356,7 +364,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         </div>
       ) : null}
 
-      {!archivedMode && isModalOpen ? (
+      <MotionPresence present={!archivedMode && isModalOpen}>
         <div className="area-modal-backdrop" role="presentation" onMouseDown={(event) => { event.preventDefault(); closeModal() }}>
           <section ref={taskModalRef} className="area-modal task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
@@ -376,9 +384,9 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
             </form>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
 
-      {!archivedMode && isModalOpen && isDiscardConfirmOpen ? (
+      <MotionPresence present={!archivedMode && isModalOpen && isDiscardConfirmOpen}>
         <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setIsDiscardConfirmOpen(false) }}>
           <section ref={discardModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-discard-title" aria-describedby="task-discard-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span>
@@ -386,9 +394,9 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
             <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsDiscardConfirmOpen(false)} data-modal-initial-focus>Continuar editando</button><button className="danger-action" type="button" onClick={discardTaskCreation}><Trash2 size={19} />Descartar</button></div>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
 
-      {archivedMode && isListEditOpen ? (
+      <MotionPresence present={archivedMode && isListEditOpen}>
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isSaving && setIsListEditOpen(false)}>
           <section ref={listEditModalRef} className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="archived-list-edit-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading"><span className="area-modal-heading-icon" aria-hidden="true"><ClipboardList size={31} /></span><div><h2 id="archived-list-edit-title">Editar Lista</h2><p>Atualize os dados desta lista.</p></div><button className="icon-button area-modal-close" type="button" onClick={() => setIsListEditOpen(false)} aria-label="Fechar"><X size={24} /></button></div>
@@ -400,9 +408,11 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
             </form>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
 
-      {selectedTask && !isModalOpen && !isListEditOpen ? <TaskDetails task={selectedTask} listTitle={listTitle} archivedMode={archivedMode} onClose={() => { setSelectedTask(null); if (!archivedMode) void loadTaskContentSummaries() }} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
+      <MotionPresence present={Boolean(selectedTask) && !isModalOpen && !isListEditOpen}>
+        {selectedTask ? <TaskDetails task={selectedTask} listTitle={listTitle} archivedMode={archivedMode} onClose={() => { setSelectedTask(null); if (!archivedMode) void loadTaskContentSummaries() }} onTaskChange={updateSelectedTask} onArchived={() => { setSelectedTask(null); void loadTasks() }} /> : null}
+      </MotionPresence>
     </section>
   )
 }

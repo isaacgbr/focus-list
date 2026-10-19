@@ -23,6 +23,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import areaService, { Area, CreateAreaData } from '../services/areaService'
 import { Brand } from './Brand'
+import { MotionPresence } from './MotionPresence'
 
 type SidebarProps = {
   isOpen: boolean
@@ -390,7 +391,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
       </aside>
 
-      {isModalOpen ? (
+      <MotionPresence present={isModalOpen}>
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
           <section
             ref={areaModalRef}
@@ -481,9 +482,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </form>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
 
-      {archiveCandidate ? (
+      <MotionPresence present={Boolean(archiveCandidate)}>
+        {archiveCandidate ? (
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
           <section
             ref={archiveModalRef}
@@ -509,7 +511,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           </section>
         </div>
-      ) : null}
+        ) : null}
+      </MotionPresence>
     </>
   )
 }

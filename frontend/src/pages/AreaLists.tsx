@@ -17,6 +17,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { useBreadcrumbs } from '../components/BreadcrumbContext'
+import { MotionPresence } from '../components/MotionPresence'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
 import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
@@ -324,7 +325,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
         </>
       ) : null}
 
-      {isModalOpen ? (
+      <MotionPresence present={isModalOpen}>
         <div className="area-modal-backdrop" role="presentation" onMouseDown={closeModal}>
           <section ref={formModalRef} className="area-modal list-modal" role="dialog" aria-modal="true" aria-labelledby="list-modal-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <div className="area-modal-heading">
@@ -363,9 +364,9 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
             </form>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
 
-      {!archivedMode && archiveCandidate ? (
+      <MotionPresence present={!archivedMode && Boolean(archiveCandidate)}>
         <div className="area-modal-backdrop" role="presentation" onMouseDown={() => !isArchiving && setArchiveCandidate(null)}>
           <section ref={archiveModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="list-archive-title" aria-describedby="list-archive-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
@@ -383,7 +384,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
             </div>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
     </section>
   )
 }

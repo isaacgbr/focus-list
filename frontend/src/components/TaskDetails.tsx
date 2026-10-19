@@ -26,6 +26,7 @@ import checklistItemService, { ChecklistItem } from '../services/checklistItemSe
 import linkService, { Link } from '../services/linkService'
 import taskService, { Task, TaskPriority, UpdateTaskData } from '../services/taskService'
 import { ArchivedModeBanner } from './ArchivedModeBanner'
+import { MotionPresence } from './MotionPresence'
 
 type TaskDetailsProps = {
   task: Task
@@ -570,7 +571,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
           </aside>
         </div>
       </section>
-      {!archivedMode && isArchiveConfirmOpen ? (
+      <MotionPresence present={!archivedMode && isArchiveConfirmOpen}>
         <div className="area-modal-backdrop nested-confirm-backdrop" role="presentation" onMouseDown={(event) => { event.stopPropagation(); if (!isArchiving) setIsArchiveConfirmOpen(false) }}>
           <section ref={archiveModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="task-archive-title" aria-describedby="task-archive-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <span className="area-delete-icon archive-confirm-icon" aria-hidden="true"><Archive size={29} /></span>
@@ -578,7 +579,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
             <div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setIsArchiveConfirmOpen(false)} disabled={isArchiving} data-modal-initial-focus>Cancelar</button><button className="primary-action" type="button" onClick={() => void handleArchive()} disabled={isArchiving}>{isArchiving ? <LoaderCircle className="spin" size={19} /> : <Archive size={19} />}Arquivar</button></div>
           </section>
         </div>
-      ) : null}
+      </MotionPresence>
     </div>
   )
 }

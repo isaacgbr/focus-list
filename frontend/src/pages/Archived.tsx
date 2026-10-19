@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
+import { MotionPresence } from '../components/MotionPresence'
 import archiveService, { ArchivedItem } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService from '../services/listService'
@@ -120,6 +121,8 @@ export function Archived() {
         </article>
       })}</div>
     </div> : null}
-    {deleteCandidate ? <div className="area-modal-backdrop permanent-delete-backdrop" role="presentation" onMouseDown={() => processingKey === null && setDeleteCandidate(null)}><section ref={deleteModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="permanent-delete-title" aria-describedby="permanent-delete-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}><span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span><div><h2 id="permanent-delete-title">Excluir esta {typeLabels[deleteCandidate.type].toLowerCase()} definitivamente?</h2><p id="permanent-delete-description">“{deleteCandidate.title}” e todo o conteúdo associado serão removidos. Esta ação não poderá ser desfeita.</p>{actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}</div><div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setDeleteCandidate(null)} disabled={processingKey !== null} data-modal-initial-focus>Cancelar</button><button className="danger-action" type="button" onClick={() => void permanentlyDeleteItem()} disabled={processingKey !== null}>{processingKey !== null ? <LoaderCircle className="spin" size={19} /> : <Trash2 size={19} />}Excluir definitivamente</button></div></section></div> : null}
+    <MotionPresence present={Boolean(deleteCandidate)}>
+      {deleteCandidate ? <div className="area-modal-backdrop permanent-delete-backdrop" role="presentation" onMouseDown={() => processingKey === null && setDeleteCandidate(null)}><section ref={deleteModalRef} className="area-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="permanent-delete-title" aria-describedby="permanent-delete-description" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}><span className="area-delete-icon" aria-hidden="true"><Trash2 size={29} /></span><div><h2 id="permanent-delete-title">Excluir esta {typeLabels[deleteCandidate.type].toLowerCase()} definitivamente?</h2><p id="permanent-delete-description">“{deleteCandidate.title}” e todo o conteúdo associado serão removidos. Esta ação não poderá ser desfeita.</p>{actionError ? <p className="area-form-error" role="alert"><AlertCircle size={18} />{actionError}</p> : null}</div><div className="area-modal-actions"><button className="secondary-action" type="button" onClick={() => setDeleteCandidate(null)} disabled={processingKey !== null} data-modal-initial-focus>Cancelar</button><button className="danger-action" type="button" onClick={() => void permanentlyDeleteItem()} disabled={processingKey !== null}>{processingKey !== null ? <LoaderCircle className="spin" size={19} /> : <Trash2 size={19} />}Excluir definitivamente</button></div></section></div> : null}
+    </MotionPresence>
   </section>
 }

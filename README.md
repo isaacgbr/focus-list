@@ -1,51 +1,56 @@
 # FocusList
 
-Aplicação web desktop-first para organização pessoal em uma hierarquia simples de **Áreas → Listas → Tarefas**.
+Aplicação web responsiva, desktop-first, para organização pessoal na hierarquia **Áreas → Listas → Tarefas**. O FocusList combina um Dashboard orientado a prioridades com fluxos diretos para planejar, acompanhar, concluir e arquivar atividades.
 
-## Estado atual
+## Principais recursos
 
-O núcleo funcional da V1 está implementado, com frontend integrado à API para:
-
-- Dashboard com dados reais e estados vazio, carregando e erro;
+- Dashboard com dados reais, prazos, progresso, resumo por Área e capa personalizável;
 - criação e edição de Áreas, Listas e Tarefas;
-- visualizações em Lista e Cards para Listas e Tarefas, com Pendentes e Concluídas;
-- conclusão de Tarefas, prioridades, prazos, checklist e links;
-- Central única de Arquivados para Áreas, Listas e Tarefas;
-- edição, restauração e exclusão definitiva de itens arquivados;
-- tela Sobre e identidade visual oficial aplicadas;
-- navegação do Dashboard diretamente para os detalhes da Tarefa;
-- breadcrumbs contextuais e modais com gerenciamento acessível de foco.
+- visualizações em Lista e Cards para Listas e Tarefas;
+- prioridade, prazo, conclusão, checklist e links de referência;
+- Central de Arquivados com restauração e exclusão definitiva;
+- interface web responsiva, sidebar adaptável e modais com tratamento de foco;
+- tela Sobre e identidade visual própria.
 
-Tarefas Avulsas e Configurações não fazem parte da V1. As correções funcionais estão concluídas; permanecem como próximas etapas o refinamento visual completo, a Landing Page e o deploy/publicação final.
+## Stack e arquitetura
 
-## Stack
-
-- Frontend: React 19, TypeScript, Vite, React Router e Axios;
-- Estilos: CSS próprio; Tailwind CSS está instalado no projeto;
-- Backend: Node.js, Express 5 e TypeScript;
-- Dados: PostgreSQL e Prisma 7;
-- Arquitetura: monorepo com frontend e backend em camadas.
-
-## Estrutura
-
-```text
-FocusList/
-├── assets/
-├── backend/
-├── docs/
-├── frontend/
-├── prototipos/
-├── .gitignore
-└── README.md
-```
-
-## Documentação
-
-O índice completo e o estado oficial do produto estão em [`docs/00-indice.md`](docs/00-indice.md). As decisões de Produto, UX e identidade visual estão em [`docs/PRODUCT_GUIDELINES.md`](docs/PRODUCT_GUIDELINES.md).
+- **Frontend:** React 19, TypeScript, Vite, React Router, Axios e CSS próprio;
+- **Backend:** Node.js, Express 5 e TypeScript;
+- **Dados:** PostgreSQL e Prisma 7;
+- **Organização:** monorepo com frontend e backend independentes; a API segue as camadas Route → Controller → Service → Repository.
 
 ## Execução local
 
-Frontend e backend possuem seus próprios `package.json`. O frontend usa `VITE_API_URL`, com fallback para `http://localhost:3000`; o backend usa `DATABASE_URL` e aceita `PORT`, com fallback para `3000`.
+Pré-requisitos: Node.js, npm e uma instância PostgreSQL.
+
+1. Configure `DATABASE_URL` no ambiente do backend. `PORT` é opcional e usa `3000` por padrão.
+2. Em um terminal, execute o backend:
+
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+
+3. Em outro terminal, execute o frontend:
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+O frontend usa `VITE_API_URL` quando definida e, caso contrário, acessa `http://localhost:3000`.
+
+## Estado atual
+
+O núcleo funcional da V1 e o refinamento final da experiência desktop estão concluídos. A interface se adapta a larguras menores, mas **Mobile/PWA Real ainda não foi validado em aparelho físico**. PWA, offline, Landing Page, Área Demo, testes de carga, preparação para publicação e deploy permanecem futuros.
+
+Tarefas Avulsas e Configurações não fazem parte da V1.
+
+## Documentação
+
+Consulte o [índice da documentação](docs/00-indice.md) para visão geral, navegação, especificação funcional, regras de negócio, modelo de dados, arquitetura e roadmap. As decisões de UX e identidade estão nas [Diretrizes de Produto](docs/PRODUCT_GUIDELINES.md).
 
 ## Licença
 

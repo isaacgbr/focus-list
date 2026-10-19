@@ -1,19 +1,18 @@
 # Diretrizes de Produto do FocusList
 
-Este documento é a fonte oficial para decisões de Produto, UX e identidade visual. Em caso de divergência, deve ser atualizado junto da decisão aprovada antes de orientar uma implementação.
+Esta é a fonte oficial para princípios de Produto, UX, identidade e padrões visuais. O código atual e estas diretrizes prevalecem sobre protótipos antigos.
 
-## Filosofia
-
-O FocusList ajuda pessoas a organizar tarefas e prioridades com clareza, foco e baixo esforço.
+## Princípios
 
 - simplicidade acima da quantidade de funcionalidades;
 - interface limpa, moderna e objetiva;
-- fluxos previsíveis e fáceis de aprender;
-- informações apenas quando relevantes ao contexto;
-- feedback claro para ações, estados e resultados;
-- consistência de linguagem, comportamento e apresentação.
+- foco no próximo passo e nas informações relevantes ao contexto;
+- fluxos previsíveis, feedback claro e linguagem consistente;
+- dados reais no lugar de conteúdo fictício;
+- acessibilidade e responsividade tratadas como qualidades transversais;
+- evolução incremental sem apresentar planejamento como funcionalidade pronta.
 
-## Hierarquia do produto
+## Hierarquia e navegação
 
 ```text
 Área
@@ -21,115 +20,87 @@ O FocusList ajuda pessoas a organizar tarefas e prioridades com clareza, foco e 
     └── Tarefa
 ```
 
-Essa hierarquia deve permanecer compreensível na navegação, nos breadcrumbs, no arquivamento e na restauração.
-
-## Navegação e interface
-
-- Clicar em uma Tarefa abre seus Detalhes.
-- A edição da Tarefa acontece nos Detalhes.
-- A listagem prioriza navegação e marcação rápida de conclusão.
-- Ações secundárias usam menus contextuais quando isso reduz ruído visual.
-- Botões indisponíveis permanecem desabilitados.
+- A hierarquia deve permanecer clara na sidebar, nos breadcrumbs, no arquivamento e na restauração.
+- Clicar em uma Tarefa abre seus Detalhes; a edição acontece em `TaskDetails`.
+- Listagens priorizam navegação, leitura rápida e conclusão.
+- Ações secundárias usam menus contextuais quando isso reduz ruído.
 - Estados vazios explicam o contexto e indicam o próximo passo.
-- Modais seguem estrutura, comportamento, linguagem e hierarquia consistentes.
-- Modais contêm o foco do teclado, fecham por `Escape` e restauram o foco ao serem fechados.
-- Breadcrumbs representam a hierarquia e o contexto da rota atual.
-- Dados fictícios ou ações inexistentes não devem aparecer como funcionalidades reais.
+- Botões indisponíveis permanecem desabilitados.
+- A criação de Tarefa protege dados preenchidos antes de descartá-los.
 
 ## Dashboard
 
-- O Dashboard usa dados reais.
-- O Estado Vazio Inteligente orienta a criação de Área, Lista ou Tarefa conforme o estado atual.
-- O Dashboard Completo apresenta informações relevantes sem sobrecarga visual.
+- Usa apenas dados ativos e reais.
+- O Estado Vazio Inteligente orienta a criação de Área, Lista ou Tarefa.
+- A composição deve oferecer visão de atenção, andamento, próximos prazos, progresso e Áreas sem sobrecarga.
+- Listas resumidas podem aplicar limites e controles de expansão para preservar densidade.
+- A capa pode usar tema Automático, Manhã, Tarde ou Noite; o modo Automático acompanha o período atual e a escolha é persistida localmente.
 
-## Arquivados — fluxo aprovado e implementado
+## Lista, Cards e densidade
 
-### Conceito
+- Listas e Tarefas oferecem modos Lista e Cards quando ambos ajudam a leitura.
+- Tarefas permanecem separadas em Pendentes e Concluídas.
+- Concluídas iniciam recolhidas para manter foco no trabalho pendente.
+- Cards usam limite inicial e controles **Ver mais/Recolher** quando a quantidade comprometer a leitura.
+- A interface deve equilibrar densidade, respiro, hierarquia tipográfica e aproveitamento da tela.
 
-Arquivar remove um item da organização principal sem perder seu conteúdo. Não bloqueia edição, não transforma o item em somente leitura e não equivale a uma lixeira.
+## Arquivados
 
-Existe uma única **Central de Arquivados**, destinada a:
+Arquivar remove um item da organização ativa sem apagar seu conteúdo. Não equivale a lixeira nem transforma automaticamente todo conteúdo em somente leitura.
 
-- localizar itens arquivados;
-- abrir e editar normalmente;
-- restaurar;
-- excluir definitivamente.
-
-Não existem centrais separadas por Área ou Lista. A exclusão definitiva de Área, Lista e Tarefa só fica disponível após o arquivamento.
+Existe uma única **Central de Arquivados** para localizar itens diretamente arquivados, abri-los, restaurá-los e excluí-los definitivamente.
 
 ### Hierarquia
 
-- Área arquivada: somente a Área aparece na central; suas Listas e Tarefas ficam dentro desse contexto.
-- Lista arquivada com Área ativa: somente a Lista aparece; suas Tarefas ficam dentro desse contexto.
+- Área arquivada: somente a Área aparece na central; Listas e Tarefas ficam dentro do contexto.
+- Lista arquivada com Área ativa: somente a Lista aparece; Tarefas ficam dentro do contexto.
 - Tarefa arquivada com pais ativos: somente a Tarefa aparece.
-- Filhos nunca aparecem separadamente enquanto um pai está arquivado.
+- Filhos não aparecem como entradas independentes enquanto um pai está arquivado.
+- Restaurar um pai recupera descendentes sem arquivamento próprio; filhos diretamente arquivados permanecem arquivados.
 
-Arquivar um pai não arquiva diretamente cada filho. Ao restaurar o pai, descendentes sem arquivamento próprio retornam à organização principal. Um filho arquivado diretamente permanece arquivado.
+### Apresentação e edição
 
-### Conteúdo e ações
+- Área e Lista arquivadas exibem o indicador **Arquivada** integrado ao cabeçalho, sem banner genérico separado.
+- `TaskDetails` possui tratamento visual próprio para Tarefa arquivada.
+- Área arquivada permite editar título e descrição, mas não oferece a edição completa de cor e ícone do fluxo ativo.
+- Lista arquivada permite editar título e descrição.
+- Tarefa arquivada mantém as edições oferecidas por `TaskDetails`, inclusive status, prioridade, prazo, checklist e links.
+- Checklist e links podem ser adicionados, alterados e removidos em Tarefas arquivadas, conforme permitido pela implementação.
+- Restauração e exclusão definitiva permanecem ações da Central de Arquivados.
 
-Os cards apresentam contexto suficiente:
+## Responsividade e acessibilidade
 
-- Área: nome, quantidade de Listas e Tarefas e data de arquivamento;
-- Lista: nome, Área de origem, quantidade de Tarefas e data;
-- Tarefa: nome, Área, Lista e data.
+- O produto atual é uma **interface web responsiva**, desktop-first.
+- Em larguras menores, a sidebar se torna drawer e o conteúdo reorganiza grades, ações e detalhes.
+- Drawer e modais contêm o foco, fecham por `Escape` quando permitido e devolvem o foco anterior.
+- Componentes interativos devem possuir nome acessível, estado exposto e foco visível.
+- O movimento deve respeitar `prefers-reduced-motion`.
+- Não denominar o estado atual como aplicativo mobile, PWA ou experiência mobile validada em aparelho real.
 
-Área, Lista e Tarefa podem ser editadas normalmente quando arquivadas. Para Tarefas, isso inclui título, descrição, status, prioridade, prazo, checklist e links.
+## Identidade visual
 
-O modo arquivado exibe discretamente:
-
-> Arquivado
->
-> Este item não aparece na organização principal.
-
-Restauração respeita a hierarquia: primeiro a Área, depois a Lista e então a Tarefa, quando cada uma tiver sido arquivada diretamente. Mensagens de confirmação devem explicar precisamente as consequências.
-
-## Tela Sobre — Etapa 16 aprovada e implementada
-
-Sua estrutura oficial é:
-
-1. Hero;
-2. O que é;
-3. Como funciona;
-4. Recursos principais;
-5. Desenvolvido por.
-
-Decisões obrigatórias:
-
-- remover a versão do Hero;
-- manter a versão apenas no rodapé;
-- usar descrições extremamente curtas em Recursos principais;
-- apresentar “Isaac Gabriel”;
-- apresentar “Estudante de Análise e Desenvolvimento de Sistemas”;
-- disponibilizar GitHub e LinkedIn;
-- seguir o visual de `PROTOTIPO_SOBRE_V1_APROVADO.png`.
-
-## Identidade Visual — Etapa 17 aprovada e aplicada
-
-O conceito oficial é o **Conceito A**:
+A identidade deriva do **Conceito A**:
 
 - organização por camadas;
 - visual 3D minimalista;
 - azul como cor principal;
-- identidade premium e moderna;
-- sem check como símbolo principal;
-- sem prancheta;
-- sem calendário;
-- sem lista.
+- aparência premium e moderna;
+- sem check, prancheta, calendário ou lista como símbolo principal.
 
-O protótipo oficial é `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png` e orienta a identidade aplicada ao frontend.
+Cores, tipografia, espaçamentos, componentes e estados devem permanecer consistentes com a interface refinada na Etapa 19C.
 
-## Direção visual
+## Tela Sobre
 
-- preservar a identidade oficial aplicada;
-- seguir fielmente protótipos aprovados;
-- manter consistência de cores, tipografia, espaçamentos, componentes e estados;
-- evitar mudanças criativas sem validação.
+A estrutura é Hero, O que é, Como funciona, Recursos principais e Desenvolvido por. A versão não aparece no Hero; fica somente no rodapé. A autoria apresenta Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, com GitHub e LinkedIn.
 
-## Landing Page
+## Uso dos protótipos
 
-A Landing Page **não está implementada**. Ela permanece planejada para depois do refinamento visual completo e antes do deploy/publicação final, e não deve ser apresentada como funcionalidade atual.
+Protótipos em `prototipos/` registram decisões históricas e bases conceituais. Refinamentos posteriores de escala, densidade, composição, responsividade, Arquivados e `TaskDetails` os superaram parcialmente. Eles não devem ser usados como representação exata da interface atual.
 
-## Possibilidades futuras
+## Trabalho futuro
 
-Tarefas Avulsas e Configurações não fazem parte da V1. Possibilidades futuras não são funcionalidades implementadas nem autorização automática para desenvolvimento.
+PWA, offline, Mobile/PWA Real, microinterações adicionais, Landing Page, Área Demo, testes de carga/escalabilidade, preparação para publicação e deploy ainda não estão implementados.
+
+A futura Área Demo deverá ser completa, não afetar métricas ou dados do Dashboard, não aparecer na Central de Arquivados, oferecer **Ocultar demonstração** e preservar a liberdade de criação dos próprios dados. Detalhes técnicos ainda não estão decididos.
+
+Tarefas Avulsas e Configurações não fazem parte da V1.

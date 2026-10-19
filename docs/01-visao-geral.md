@@ -1,8 +1,8 @@
 # Visão Geral
 
-## Produto
+## Objetivo e proposta
 
-O FocusList é uma aplicação web de organização pessoal. Sua estrutura principal é:
+O FocusList é uma aplicação web de organização pessoal baseada em uma hierarquia curta:
 
 ```text
 Área
@@ -10,63 +10,35 @@ O FocusList é uma aplicação web de organização pessoal. Sua estrutura princ
     └── Tarefa
 ```
 
-O produto busca oferecer clareza, foco e baixo esforço, sem excesso de funcionalidades ou poluição visual.
+Seu objetivo é tornar prioridades e próximos passos visíveis com pouco esforço. A proposta favorece foco, previsibilidade e baixa carga visual em vez de acumular recursos.
 
-## Público-alvo
+O público inclui estudantes, profissionais, desenvolvedores e pessoas que organizam atividades pessoais ou projetos individuais.
 
-- estudantes;
-- desenvolvedores e profissionais;
-- pessoas que desejam organizar atividades pessoais e projetos.
+## Escopo atual
 
-## Escopo funcional atual
+O produto possui um núcleo funcional integrado a dados reais: Dashboard, gerenciamento de Áreas, Listas e Tarefas, modos Lista e Cards, prazos e prioridades, checklist, links e uma Central de Arquivados. A Etapa 19C concluiu o refinamento da experiência desktop e consolidou consistência visual e acessibilidade.
 
-Estão implementados:
+A interface web é responsiva e inclui sidebar adaptável, reorganização de conteúdo e modais adequados a larguras menores. Isso não equivale a um aplicativo mobile, PWA ou experiência mobile validada em aparelho físico.
 
-- Dashboard integrado a dados reais;
-- CRUD de Áreas, Listas e Tarefas;
-- visualização de Listas em Lista ou Cards;
-- visualização de Tarefas em Lista ou Cards, separadas em Pendentes e Concluídas;
-- conclusão e reabertura de Tarefas;
-- prazo e prioridade;
-- itens de checklist e links de referência;
-- Central única de Arquivados;
-- arquivamento de Área, Lista e Tarefa;
-- edição de itens arquivados;
-- restauração e exclusão definitiva de itens arquivados;
-- tela Sobre;
-- identidade visual oficial;
-- breadcrumbs contextuais e abertura dos detalhes da Tarefa pelo Dashboard;
-- gerenciamento acessível de foco nos modais.
+O detalhamento das funcionalidades existentes está na [Especificação Funcional](03-especificacao-funcional.md). As regras obrigatórias estão em [Regras de Negócio](04-regras-de-negocio.md).
 
-O backend persiste os dados em PostgreSQL e expõe uma API REST. O frontend React consome essa API.
+## Limites atuais
 
-## Decisões aprovadas e implementadas
+Não fazem parte da V1:
 
-- **Tela Sobre — Etapa 16:** Hero, O que é, Como funciona, Recursos principais e Desenvolvido por.
-- **Identidade Visual — Etapa 17:** Conceito A, com organização por camadas, visual 3D minimalista e azul como cor principal.
-- **Visualizações:** modos Lista e Cards implementados para Listas e Tarefas; os Cards de Tarefas usam composição em board.
-
-## Próximas etapas da V1
-
-- realizar o refinamento visual completo;
-- implementar a Landing Page;
-- realizar o deploy e a publicação final.
-
-## Fora do escopo atual
-
-- login e cadastro;
-- sincronização entre dispositivos;
-- colaboração e compartilhamento;
-- notificações;
-- aplicativo mobile nativo;
-- integrações externas.
 - Tarefas Avulsas;
-- Configurações.
+- Configurações;
+- autenticação e contas;
+- colaboração e compartilhamento;
+- notificações e integrações externas;
+- aplicativo mobile nativo.
 
-## Princípios
+Também ainda não estão implementados PWA, funcionamento offline, Mobile/PWA Real, Landing Page, Área Demo, microinterações futuras, testes de carga ou escalabilidade, preparação final para publicação e deploy.
 
-- simplicidade acima da quantidade de recursos;
-- interface limpa, moderna e consistente;
-- organização por Área, Lista e Tarefa;
-- desktop-first;
-- evolução incremental com documentação atualizada.
+## Princípios de escopo
+
+- toda Tarefa pertence a uma Lista, e toda Lista pertence a uma Área;
+- o Dashboard representa apenas dados ativos e reais;
+- arquivar preserva conteúdo sem confundir arquivamento com exclusão;
+- o produto evolui de forma incremental, com documentação coerente com o código;
+- referências visuais antigas orientam conceitos, mas não substituem o estado atual da implementação.

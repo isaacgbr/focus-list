@@ -1,105 +1,104 @@
 # Especificação Funcional
 
-Este documento diferencia explicitamente o que está implementado, aprovado e planejado.
+Esta é a fonte principal das funcionalidades presentes no código atual.
 
-## Dashboard — implementado
+## Dashboard
 
-- Consome Áreas, Listas e Tarefas reais da API.
-- Exibe carregamento, erro com nova tentativa e Estado Vazio Inteligente.
-- Sem Áreas, orienta criar a primeira Área.
-- Com Área e sem Listas, orienta criar a primeira Lista.
-- Com Lista e sem Tarefas, orienta criar a primeira Tarefa.
-- Com Tarefas, exibe indicadores de vencidas, vencimento hoje e próximos sete dias, além de agrupamentos de pendentes.
-- Permite abrir os detalhes de uma Tarefa.
-- Navega para a Lista de origem e abre diretamente os detalhes da Tarefa selecionada.
+- carrega Áreas, Listas, Tarefas, checklist e links da API;
+- possui estados de carregamento, erro com nova tentativa e Estado Vazio Inteligente;
+- orienta criar Área, Lista ou Tarefa conforme a próxima lacuna da hierarquia;
+- apresenta Tarefas vencidas, com vencimento hoje e nos próximos sete dias;
+- mostra até três Tarefas em **Em andamento** e até três em **Próximos prazos**;
+- apresenta visão geral de Tarefas e resumo de até seis Áreas, expansível quando necessário;
+- abre uma Tarefa navegando à Lista de origem e aos seus detalhes;
+- permite personalizar a capa com tema Automático, Manhã, Tarde ou Noite; a preferência fica no armazenamento local do navegador;
+- no modo Automático, saudação e capa acompanham o período do dia.
 
-## Áreas — implementado
+## Áreas
 
-- criar, consultar e editar;
+- criar com título obrigatório e descrição, cor e ícone opcionais;
+- consultar, editar e arquivar com confirmação;
+- acessar as Listas da Área;
+- alternar Listas entre os modos Lista e Cards;
+- exibir contagens de Tarefas e progresso nos Cards;
+- limitar a seis Áreas visíveis inicialmente na sidebar, com **Ver todas/Recolher** quando aplicável.
+
+Em uma Área arquivada, o estado **Arquivada** aparece integrado ao cabeçalho. É possível navegar pelas Listas e editar apenas título e descrição da Área nessa tela; cor e ícone não estão disponíveis nesse fluxo. Restauração e exclusão definitiva são feitas pela Central de Arquivados.
+
+## Listas
+
+- criar dentro de uma Área ativa, com título obrigatório e descrição opcional;
+- consultar, editar e arquivar com confirmação;
+- acessar as Tarefas da Lista;
+- apresentar resumo de Tarefas nos modos Lista e Cards.
+
+Em uma Lista arquivada, o estado **Arquivada** aparece integrado ao cabeçalho. É possível navegar pelas Tarefas e editar título e descrição. Restauração e exclusão definitiva são feitas pela Central de Arquivados.
+
+## Tarefas
+
+- criar com título obrigatório e descrição, prazo e prioridade opcionais;
+- proteger contra descarte acidental durante a criação quando houver campos preenchidos;
+- abrir e editar título, descrição, status, prioridade e prazo em `TaskDetails`;
+- concluir ou reabrir, com atualização automática da data de conclusão;
 - arquivar com confirmação;
-- abrir suas Listas;
-- alternar a visualização das Listas entre Lista e Cards;
-- editar também quando arquivada;
-- restaurar ou excluir definitivamente pela Central de Arquivados.
-
-Campos: título obrigatório; descrição, cor e ícone opcionais.
-
-## Listas — implementado
-
-- criar dentro de uma Área, consultar e editar;
-- arquivar com confirmação;
-- abrir suas Tarefas;
-- editar também quando arquivada;
-- restaurar ou excluir definitivamente pela Central de Arquivados.
-
-Campos: título e Área obrigatórios; descrição opcional.
-
-## Tarefas — implementado
-
-- criar e editar título, descrição, prazo e prioridade;
-- alternar a visualização entre Lista e Cards; em Cards, usar composição em board com Pendentes e Concluídas;
-- marcar como concluída ou reabrir;
 - mover para outra Lista pela API;
-- arquivar com confirmação;
-- editar normalmente quando arquivada, incluindo status, prioridade, prazo, checklist e links;
-- restaurar ou excluir definitivamente pela Central de Arquivados.
+- mostrar datas de criação, atualização e, quando aplicável, conclusão;
+- apresentar resumo de checklist e links nos itens da Lista e no Dashboard quando disponível.
 
-Os detalhes mostram datas de criação, última atualização e conclusão, quando existente. Ao alternar `completed`, o backend define ou remove `completedAt`; valores enviados diretamente para `completedAt` não substituem essa regra.
+### Modos Lista e Cards
 
-## Checklist — implementado
+- Tarefas são separadas em Pendentes e Concluídas nos dois modos.
+- No modo Lista, Pendentes ficam visíveis e Concluídas iniciam recolhidas.
+- No modo Cards, o layout usa composição em board; Pendentes mostram inicialmente até 12 Cards e Concluídas iniciam recolhidas.
+- Cada grupo com mais de 12 Cards oferece **Ver mais** e **Recolher**.
 
-- adicionar, editar e remover itens;
-- marcar ou desmarcar cada item;
-- exibir progresso;
+### Tarefa arquivada
+
+`TaskDetails` aplica tratamento visual próprio ao estado arquivado e não mostra a ação de arquivar novamente. As edições disponibilizadas nos detalhes permanecem funcionais, inclusive conclusão/reabertura, título, descrição, prioridade, prazo, checklist e links. A restauração e a exclusão definitiva continuam centralizadas em Arquivados.
+
+## Checklist
+
+- listar os itens da Tarefa;
+- adicionar, editar e remover;
+- marcar e desmarcar cada item;
+- exibir contagem e progresso;
 - recolher e expandir a seção.
 
-## Links — implementado
+Essas operações também são permitidas em Tarefas arquivadas, pois a implementação valida a existência da Tarefa sem exigir que ela esteja ativa.
 
-- adicionar, editar e remover links;
-- exibir o título como acesso ao endereço;
+## Links
+
+- listar links da Tarefa;
+- adicionar, editar e remover;
+- abrir o endereço pelo título;
 - recolher e expandir a seção.
 
-## Central de Arquivados — implementado e aprovado
+Essas operações também são permitidas em Tarefas arquivadas pela mesma regra de existência aplicada ao checklist.
 
-- central única para Área, Lista e Tarefa;
-- ordenação por data de arquivamento, da mais recente para a mais antiga;
-- cards com tipo, contexto, contagens aplicáveis e data;
-- descendentes ocultos quando o pai está arquivado;
-- visualização e edição do conteúdo arquivado;
-- restauração que respeita a hierarquia;
-- exclusão definitiva somente para itens arquivados.
+## Central de Arquivados
 
-Arquivar o pai não grava `archivedAt` nos filhos: eles ficam ocultos da organização ativa e são acessados pelo contexto do pai. Ao restaurar o pai, os filhos que não foram arquivados diretamente voltam a aparecer.
+- reúne Área, Lista e Tarefa em uma única tela;
+- ordena os itens diretamente arquivados do mais recente para o mais antigo;
+- exibe tipo, contexto, contagens aplicáveis e data de arquivamento;
+- oculta descendentes como entradas independentes quando o pai está arquivado;
+- abre o conteúdo preservando a hierarquia disponível;
+- restaura respeitando as dependências entre Área, Lista e Tarefa;
+- permite exclusão definitiva apenas de Área, Lista ou Tarefa previamente arquivada.
 
-## Tela Sobre — implementada
+Arquivar um pai não grava `archivedAt` nos filhos. Ao restaurá-lo, descendentes sem arquivamento próprio reaparecem; descendentes arquivados diretamente permanecem arquivados.
 
-Estrutura oficial da Etapa 16:
+## Tela Sobre e identidade
 
-1. Hero;
-2. O que é;
-3. Como funciona;
-4. Recursos principais;
-5. Desenvolvido por.
+A tela Sobre contém Hero, O que é, Como funciona, Recursos principais e Desenvolvido por. A versão aparece somente no rodapé. A identidade deriva do Conceito A — camadas, visual 3D minimalista e azul como cor principal — e foi refinada na implementação posterior aos protótipos.
 
-Regras aprovadas:
+## Responsividade e acessibilidade
 
-- sem versão no Hero;
-- versão somente no rodapé;
-- descrições extremamente curtas em Recursos principais;
-- autoria: Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, GitHub e LinkedIn;
-- visual definido em `PROTOTIPO_SOBRE_V1_APROVADO.png`.
+- interface web responsiva com reorganização do Dashboard, grades, listas, Arquivados, Sobre e Detalhes da Tarefa;
+- sidebar em drawer até 800 px, com backdrop, foco contido, fechamento por `Escape` e restauração do foco;
+- breadcrumbs adaptáveis com truncamento em larguras menores;
+- modais com papéis e nomes acessíveis, foco inicial, contenção de foco, `Escape` e restauração do foco;
+- botões de alternância expõem estados com `aria-pressed` ou `aria-expanded`;
+- menus e confirmações possuem rótulos e papéis apropriados;
+- estilos respeitam `prefers-reduced-motion`.
 
-## Identidade Visual — aplicada
-
-A interface aplica o Conceito A aprovado na Etapa 17: organização por camadas, visual 3D minimalista, azul como cor principal e aparência premium e moderna. Check, prancheta, calendário e lista não são usados como símbolo principal.
-
-## Acessibilidade e consistência — implementado
-
-- breadcrumbs contextuais corrigidos;
-- modais com papéis e rótulos acessíveis;
-- foco inicial, contenção de foco, fechamento por `Escape` e restauração do foco ao fechar.
-
-## Fora do produto atual
-
-- Tarefas Avulsas e Configurações não fazem parte da V1;
-- Landing Page ainda não implementada, prevista depois do refinamento visual completo.
+Responsividade web não significa PWA nem validação mobile real. Esses trabalhos permanecem no [Roadmap](07-roadmap.md).

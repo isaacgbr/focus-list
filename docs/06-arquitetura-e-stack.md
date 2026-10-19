@@ -2,56 +2,52 @@
 
 ## Visão geral
 
-O FocusList é um monorepo com aplicações independentes de frontend e backend.
+O FocusList é um monorepo com frontend e backend independentes:
 
 ```text
 React + Vite
       ↓ HTTP/JSON
 Express REST API
       ↓
-Services
+Controller → Service → Repository
       ↓
-Repositories
-      ↓
-Prisma 7
-      ↓
-PostgreSQL
+Prisma 7 → PostgreSQL
 ```
 
-## Tecnologias atuais
+## Tecnologias
 
 | Camada | Tecnologia |
 |---|---|
-| Frontend | React 19, TypeScript, Vite 6 |
+| Frontend | React 19, TypeScript e Vite 6 |
 | Navegação | React Router 7 |
 | Cliente HTTP | Axios |
 | Ícones | Lucide React |
 | Estilos | CSS próprio; Tailwind CSS 4 instalado |
-| Backend | Node.js, Express 5, TypeScript |
+| Backend | Node.js, Express 5 e TypeScript |
 | ORM | Prisma 7 com adapter PostgreSQL |
 | Banco | PostgreSQL |
-| Controle de versão | Git e GitHub |
+| Versionamento | Git e GitHub |
 
 ## Frontend
 
-O frontend separa componentes, layouts, páginas, rotas e serviços de API. `VITE_API_URL` define a base da API; o fallback é `http://localhost:3000`.
+O frontend separa componentes, hooks, layouts, páginas, rotas e serviços de API. `VITE_API_URL` define a base da API e possui fallback para `http://localhost:3000`.
 
 Rotas implementadas:
 
-| Rota | Estado |
+| Rota | Conteúdo |
 |---|---|
-| `/` | Dashboard funcional |
+| `/` | Dashboard |
 | `/areas/:areaId` | Listas da Área |
 | `/areas/:areaId/listas/:listId` | Tarefas da Lista |
 | `/arquivados` | Central de Arquivados |
-| `/arquivados/areas/:areaId` | Área arquivada |
-| `/arquivados/listas/:listId` | Lista arquivada |
-| `/arquivados/tarefas/:taskId` | Tarefa arquivada |
+| `/arquivados/areas/:areaId` | Área arquivada e descendentes |
+| `/arquivados/listas/:listId` | Lista em contexto arquivado e Tarefas |
+| `/arquivados/tarefas/:taskId` | Tarefa em contexto arquivado |
 | `/sobre` | Tela Sobre |
 
-Não há rota de Configurações, pois a funcionalidade não faz parte da V1. A Landing Page ainda não integra esta aplicação.
+O estado de navegação permite abrir, a partir do Dashboard, a Tarefa dentro de sua Lista. Preferências locais de interface, como o tema da capa, usam `localStorage`; os dados do domínio permanecem no backend.
 
-O estado de navegação permite que o Dashboard encaminhe à Lista de origem e abra diretamente os detalhes da Tarefa. O layout mantém breadcrumbs contextuais. Os modais compartilham gerenciamento de foco para foco inicial, contenção pelo teclado, fechamento por `Escape` e restauração do foco.
+A responsividade é implementada em CSS com breakpoints para sidebar, Dashboard, grades, listas, Arquivados, Sobre e `TaskDetails`. A sidebar funciona como drawer em até 800 px. Isso descreve uma interface web responsiva, não uma PWA ou aplicação mobile validada.
 
 ## Backend
 
@@ -59,15 +55,15 @@ O estado de navegação permite que o Dashboard encaminhe à Lista de origem e a
 Route → Controller → Service → Repository → Prisma → PostgreSQL
 ```
 
-- Routes definem método e caminho.
+- Routes associam método e caminho.
 - Controllers convertem parâmetros e respostas HTTP.
 - Services aplicam validações e regras de negócio.
 - Repositories concentram consultas Prisma.
-- O middleware global responde erros com status `400` e `{ "message": "..." }`.
 - CORS e JSON estão habilitados globalmente.
-- `PORT` possui fallback para `3000`; a conexão usa `DATABASE_URL`.
+- O middleware global responde erros com status `400` e `{ "message": "..." }`.
+- `PORT` usa `3000` por padrão e a conexão usa `DATABASE_URL`.
 
-As validações de serviço rejeitam títulos vazios também nas atualizações, validam título e URL de Links, impedem vínculos com pais inexistentes ou arquivados, sincronizam `completedAt` com `completed` e protegem restauração e exclusão definitiva conforme a hierarquia.
+Para Área, Lista e Tarefa, os Services protegem vínculos com pais ativos, conclusão, restauração e exclusão definitiva. Checklist e Link usam busca irrestrita da Tarefa (`findAnyById`), por isso suas operações também funcionam quando a Tarefa está arquivada.
 
 ## API REST
 
@@ -77,35 +73,35 @@ Não existe prefixo global de versão.
 
 | Método | Rota | Resultado |
 |---|---|---|
-| `GET` | `/health` | saúde da API |
-| `GET/POST` | `/areas` | listar/criar Áreas ativas |
-| `GET/PUT/DELETE` | `/areas/:id` | consultar/editar/excluir Área |
-| `PATCH` | `/areas/:id/archive` | arquivar Área |
-| `PATCH` | `/areas/:id/restore` | restaurar Área |
-| `GET/POST` | `/lists` | listar/criar Listas ativas |
-| `GET/PUT/DELETE` | `/lists/:id` | consultar/editar/excluir Lista |
-| `PATCH` | `/lists/:id/archive` | arquivar Lista |
-| `PATCH` | `/lists/:id/restore` | restaurar Lista |
-| `GET/POST` | `/tasks` | listar/criar Tarefas ativas |
-| `GET/PUT/DELETE` | `/tasks/:id` | consultar/editar/excluir Tarefa |
-| `PATCH` | `/tasks/:id/archive` | arquivar Tarefa |
-| `PATCH` | `/tasks/:id/restore` | restaurar Tarefa |
-| `GET/POST` | `/checklist-items` | listar/criar itens |
-| `GET/PUT/DELETE` | `/checklist-items/:id` | consultar/editar/excluir item |
-| `GET/POST` | `/links` | listar/criar links |
-| `GET/PUT/DELETE` | `/links/:id` | consultar/editar/excluir link |
+| `GET` | `/health` | Saúde da API |
+| `GET/POST` | `/areas` | Listar/criar Áreas ativas |
+| `GET/PUT/DELETE` | `/areas/:id` | Consultar/editar/excluir Área |
+| `PATCH` | `/areas/:id/archive` | Arquivar Área |
+| `PATCH` | `/areas/:id/restore` | Restaurar Área |
+| `GET/POST` | `/lists` | Listar/criar Listas ativas |
+| `GET/PUT/DELETE` | `/lists/:id` | Consultar/editar/excluir Lista |
+| `PATCH` | `/lists/:id/archive` | Arquivar Lista |
+| `PATCH` | `/lists/:id/restore` | Restaurar Lista |
+| `GET/POST` | `/tasks` | Listar/criar Tarefas ativas |
+| `GET/PUT/DELETE` | `/tasks/:id` | Consultar/editar/excluir Tarefa |
+| `PATCH` | `/tasks/:id/archive` | Arquivar Tarefa |
+| `PATCH` | `/tasks/:id/restore` | Restaurar Tarefa |
+| `GET/POST` | `/checklist-items` | Listar/criar itens de checklist |
+| `GET/PUT/DELETE` | `/checklist-items/:id` | Consultar/editar/excluir item |
+| `GET/POST` | `/links` | Listar/criar links |
+| `GET/PUT/DELETE` | `/links/:id` | Consultar/editar/excluir link |
 
 ### Leitura de arquivados
 
 | Método | Rota | Resultado |
 |---|---|---|
-| `GET` | `/archived` | central com itens arquivados diretamente |
+| `GET` | `/archived` | Itens diretamente arquivados |
 | `GET` | `/archived/areas/:id` | Área arquivada e descendentes |
 | `GET` | `/archived/lists/:id` | Lista em contexto arquivado e Tarefas |
-| `GET` | `/archived/tasks/:id` | Tarefa em contexto arquivado, checklist e links |
+| `GET` | `/archived/tasks/:id` | Tarefa arquivada, checklist e links |
 
-Os `DELETE` de Área, Lista e Tarefa somente aceitam registros previamente arquivados. As exclusões de checklist e link permanecem operações de edição da Tarefa.
+Os `DELETE` de Área, Lista e Tarefa exigem arquivamento prévio. Exclusões de checklist e link permanecem operações comuns de edição.
 
-## Deploy
+## Estado de publicação
 
-Ainda não realizado. O planejamento atual considera Vercel para o frontend, Render para o backend e PostgreSQL para persistência.
+Não há deploy final. PWA, offline, validação Mobile/PWA Real, testes de carga, Landing Page e Área Demo não fazem parte da arquitetura implementada. A sequência planejada está no [Roadmap](07-roadmap.md).

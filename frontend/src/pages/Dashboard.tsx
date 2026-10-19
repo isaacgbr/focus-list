@@ -22,14 +22,9 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import areaService, { Area } from '../services/areaService'
-import checklistItemService, { ChecklistItem } from '../services/checklistItemService'
-import linkService, { Link } from '../services/linkService'
-import listService, { List } from '../services/listService'
-import taskService, { Task } from '../services/taskService'
+import dashboardService, { type DashboardSummary, type DashboardTask as DashboardApiTask } from '../services/dashboardService'
 
 const DATA_CHANGED_EVENT = 'focuslist:data-changed'
-const DASHBOARD_TASK_LIMIT = 3
 const DASHBOARD_AREA_LIMIT = 6
 const HERO_THEME_STORAGE_KEY = 'focuslist:dashboard-hero-theme'
 
@@ -47,14 +42,6 @@ function getDayPeriod(date: Date): DayPeriod {
   if (hour >= 5 && hour < 12) return 'morning'
   if (hour >= 12 && hour < 18) return 'afternoon'
   return 'night'
-}
-
-type DashboardData = {
-  areas: Area[]
-  lists: List[]
-  tasks: Task[]
-  checklistItems: ChecklistItem[]
-  links: Link[]
 }
 
 type DashboardTask = {
@@ -98,12 +85,14 @@ function getStoredHeroTheme(): HeroTheme {
   return heroThemeOptions.some((option) => option.value === storedTheme) ? storedTheme as HeroTheme : 'auto'
 }
 
-const emptyDashboardData: DashboardData = {
+const emptyDashboardData: DashboardSummary = {
+  attention: { overdue: 0, today: 0, week: 0, earliestOverdue: null },
+  inProgress: [],
+  upcoming: [],
+  overview: { total: 0, pending: 0, completed: 0, completionPercentage: 0 },
   areas: [],
-  lists: [],
-  tasks: [],
-  checklistItems: [],
-  links: [],
+  firstAreaId: null,
+  firstList: null,
 }
 
 function toDateKey(date: Date) {
@@ -210,10 +199,11 @@ function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTa
 export function Dashboard() {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(() => new Date())
+  const currentDateKey = toDateKey(currentDate)
   const [heroTheme, setHeroTheme] = useState<HeroTheme>(getStoredHeroTheme)
   const [isThemePopoverOpen, setIsThemePopoverOpen] = useState(false)
   const [areAreasExpanded, setAreAreasExpanded] = useState(false)
-  const [data, setData] = useState<DashboardData>(emptyDashboardData)
+  const [data, setData] = useState<DashboardSummary>(emptyDashboardData)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const heroThemeControlRef = useRef<HTMLDivElement>(null)
@@ -232,16 +222,13 @@ export function Dashboard() {
     if (showLoading) setIsLoading(true)
     setLoadError('')
     try {
-      const [areas, lists, tasks, checklistItems, links] = await Promise.all([
-        areaService.getAll(), listService.getAll(), taskService.getAll(), checklistItemService.getAll(), linkService.getAll(),
-      ])
-      setData({ areas, lists, tasks, checklistItems, links })
+      setData(await dashboardService.getSummary(currentDateKey))
     } catch {
       setLoadError('Não foi possível carregar os dados do Dashboard.')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [currentDateKey])
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
 
@@ -284,86 +271,42 @@ export function Dashboard() {
   }, [loadDashboard])
 
   const dashboard = useMemo(() => {
-    const todayKey = toDateKey(currentDate)
+    const todayKey = currentDateKey
     const weekKey = addDays(todayKey, 7)
-    const listsById = new Map(data.lists.map((list) => [list.id, list]))
-    const areasById = new Map(data.areas.map((area) => [area.id, area]))
-    const checklistByTask = new Map<number, ChecklistItem[]>()
-    const linksByTask = new Map<number, Link[]>()
-
-    data.checklistItems.forEach((item) => checklistByTask.set(item.taskId, [...(checklistByTask.get(item.taskId) ?? []), item]))
-    data.links.forEach((link) => linksByTask.set(link.taskId, [...(linksByTask.get(link.taskId) ?? []), link]))
-
-    const toDashboardTask = (task: Task): DashboardTask => {
-      const list = listsById.get(task.listId)
-      const area = list ? areasById.get(list.areaId) : undefined
-      const checklist = checklistByTask.get(task.id) ?? []
-      const taskLinks = linksByTask.get(task.id) ?? []
+    const toDashboardTask = (task: DashboardApiTask): DashboardTask => {
       const dueDateKey = dateKeyFromDueDate(task.dueDate)
       return {
         id: task.id,
         title: task.title,
-        listId: list?.id,
-        list: list?.title,
-        listColor: area?.color,
+        listId: task.listId,
+        list: task.listTitle,
+        listColor: task.listColor,
         deadline: dueDateKey ? formatDeadline(dueDateKey, todayKey) : undefined,
         deadlineTone: dueDateKey === todayKey ? 'danger' : dueDateKey === addDays(todayKey, 1) ? 'warning' : undefined,
-        checklistCompleted: checklist.filter((item) => item.completed).length,
-        checklistTotal: checklist.length,
-        linksTotal: taskLinks.length,
+        checklistCompleted: task.checklistCompleted,
+        checklistTotal: task.checklistTotal,
+        linksTotal: task.linksTotal,
       }
     }
 
-    const pendingTasks = data.tasks.filter((task) => !task.completed)
-    const tasksWithDueDate = pendingTasks.filter((task) => dateKeyFromDueDate(task.dueDate) !== null)
-    const overdue = tasksWithDueDate.filter((task) => dateKeyFromDueDate(task.dueDate)! < todayKey)
-    const today = tasksWithDueDate.filter((task) => dateKeyFromDueDate(task.dueDate) === todayKey)
-    const week = tasksWithDueDate.filter((task) => {
-      const dueDateKey = dateKeyFromDueDate(task.dueDate)!
-      return dueDateKey > todayKey && dueDateKey <= weekKey
-    })
-    const upcoming = tasksWithDueDate
-      .filter((task) => dateKeyFromDueDate(task.dueDate)! >= todayKey && dateKeyFromDueDate(task.dueDate)! <= weekKey)
-      .sort((first, second) => dateKeyFromDueDate(first.dueDate)!.localeCompare(dateKeyFromDueDate(second.dueDate)!))
-      .slice(0, DASHBOARD_TASK_LIMIT)
-      .map(toDashboardTask)
-    const inProgress = [...pendingTasks]
-      .sort((first, second) => second.updatedAt.localeCompare(first.updatedAt))
-      .slice(0, DASHBOARD_TASK_LIMIT)
-      .map(toDashboardTask)
-    const earliestOverdue = overdue.map((task) => dateKeyFromDueDate(task.dueDate)!).sort()[0]
+    const upcoming = data.upcoming.map(toDashboardTask)
+    const inProgress = data.inProgress.map(toDashboardTask)
+    const earliestOverdue = dateKeyFromDueDate(data.attention.earliestOverdue)
     const attentionItems: AttentionItem[] = [
-      { id: 'overdue', count: overdue.length, label: 'vencidas', detail: earliestOverdue ? `Desde ${formatDateKey(earliestOverdue)}` : 'Nenhuma vencida', tone: 'danger' },
-      { id: 'today', count: today.length, label: 'vencem hoje', detail: formatDateKey(todayKey), tone: 'warning' },
-      { id: 'week', count: week.length, label: 'vencem nos próximos 7 dias', detail: `Até ${formatDateKey(weekKey)}`, tone: 'info' },
+      { id: 'overdue', count: data.attention.overdue, label: 'vencidas', detail: earliestOverdue ? `Desde ${formatDateKey(earliestOverdue)}` : 'Nenhuma vencida', tone: 'danger' },
+      { id: 'today', count: data.attention.today, label: 'vencem hoje', detail: formatDateKey(todayKey), tone: 'warning' },
+      { id: 'week', count: data.attention.week, label: 'vencem nos próximos 7 dias', detail: `Até ${formatDateKey(weekKey)}`, tone: 'info' },
     ]
-    const completedTasks = data.tasks.filter((task) => task.completed).length
-    const overview = {
-      total: data.tasks.length,
-      pending: pendingTasks.length,
-      completed: completedTasks,
-      completionPercentage: data.tasks.length > 0 ? Math.round((completedTasks / data.tasks.length) * 100) : 0,
-    }
-    const areaSummaries: AreaSummary[] = data.areas.map((area) => {
-      const areaLists = data.lists.filter((list) => list.areaId === area.id)
-      const areaListIds = new Set(areaLists.map((list) => list.id))
-      return {
-        id: area.id,
-        title: area.title,
-        color: area.color,
-        listsTotal: areaLists.length,
-        tasksTotal: data.tasks.filter((task) => areaListIds.has(task.listId)).length,
-      }
-    }).sort((first, second) => second.tasksTotal - first.tasksTotal || second.listsTotal - first.listsTotal)
-    return { attentionItems, inProgress, upcoming, overview, areaSummaries }
-  }, [currentDate, data])
+    const areaSummaries: AreaSummary[] = data.areas
+    return { attentionItems, inProgress, upcoming, overview: data.overview, areaSummaries }
+  }, [currentDateKey, data])
 
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
     .format(currentDate).replace(/^(\w)/, (letter) => letter.toUpperCase()).replace(/\./g, '')
 
   const openTask = (task: DashboardTask) => {
-    const list = data.lists.find((item) => item.id === task.listId)
-    if (list) navigate(`/areas/${list.areaId}/listas/${list.id}`, { state: { taskId: task.id } })
+    const sourceTask = [...data.inProgress, ...data.upcoming].find((item) => item.id === task.id)
+    if (sourceTask) navigate(`/areas/${sourceTask.areaId}/listas/${sourceTask.listId}`, { state: { taskId: task.id } })
   }
 
   const visibleAreaSummaries = areAreasExpanded ? dashboard.areaSummaries : dashboard.areaSummaries.slice(0, DASHBOARD_AREA_LIMIT)
@@ -406,12 +349,12 @@ export function Dashboard() {
     return <section className="dashboard" aria-labelledby="dashboard-title">{renderHero()}<div className="dashboard-state is-error" role="alert"><AlertCircle size={38} aria-hidden="true" /><h2>Erro ao carregar</h2><p>{loadError}</p><button className="secondary-action" type="button" onClick={() => void loadDashboard()}>Tentar novamente</button></div></section>
   }
 
-  if (data.tasks.length === 0) {
+  if (data.overview.total === 0) {
     const hasAreas = data.areas.length > 0
-    const hasLists = data.lists.length > 0
+    const hasLists = data.firstList !== null
     const title = !hasAreas ? 'Crie sua primeira Área' : !hasLists ? 'Crie sua primeira Lista' : 'Crie sua primeira Tarefa'
     const description = !hasAreas ? 'Comece organizando um contexto da sua vida, como Trabalho ou Estudos.' : !hasLists ? 'Abra uma Área e crie uma Lista para agrupar suas tarefas.' : 'Sua estrutura está pronta. Adicione uma tarefa para acompanhar o que precisa ser feito.'
-    const action = !hasAreas ? () => window.dispatchEvent(new Event('focuslist:open-area-form')) : !hasLists ? () => navigate(`/areas/${data.areas[0].id}`) : () => navigate(`/areas/${data.lists[0].areaId}/listas/${data.lists[0].id}`)
+    const action = !hasAreas ? () => window.dispatchEvent(new Event('focuslist:open-area-form')) : !hasLists ? () => navigate(`/areas/${data.firstAreaId}`) : () => navigate(`/areas/${data.firstList!.areaId}/listas/${data.firstList!.id}`)
     return (
       <section className="dashboard" aria-labelledby="dashboard-title">
         {renderHero()}

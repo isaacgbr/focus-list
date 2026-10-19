@@ -8,6 +8,7 @@ import taskRoutes from "./routes/task.routes.js";
 import checklistItemRoutes from "./routes/checklist-item.routes.js";
 import linkRoutes from "./routes/link.routes.js";
 import archiveRoutes from "./routes/archive.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(taskRoutes);
 app.use(checklistItemRoutes);
 app.use(linkRoutes);
 app.use(archiveRoutes);
+app.use(dashboardRoutes);
 // Middleware global de tratamento de erros.
 // Deve ser registrado após todas as rotas.
 app.use(errorMiddleware);

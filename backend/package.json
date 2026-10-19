@@ -16,6 +16,7 @@
     "benchmark:measure:small": "tsx src/benchmark/measure.ts small",
     "benchmark:measure:medium": "tsx src/benchmark/measure.ts medium",
     "benchmark:measure:large": "tsx src/benchmark/measure.ts large",
+    "benchmark:concurrency": "tsx src/benchmark/concurrency.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],

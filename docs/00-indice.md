@@ -14,6 +14,7 @@ Este índice reúne as fontes oficiais do projeto. Cada assunto possui um docume
 | [`05-modelo-de-dados.md`](05-modelo-de-dados.md) | Entidades, campos e relações persistidas |
 | [`06-arquitetura-e-stack.md`](06-arquitetura-e-stack.md) | Arquitetura, tecnologias e API REST |
 | [`07-roadmap.md`](07-roadmap.md) | Histórico relevante, estado atual e próximos passos |
+| [`08-benchmark-isolado.md`](08-benchmark-isolado.md) | Isolamento, seed e baseline segura de benchmark |
 | [`PRODUCT_GUIDELINES.md`](PRODUCT_GUIDELINES.md) | Princípios de Produto, UX, identidade e padrões visuais |
 
 ## Referências visuais

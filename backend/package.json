@@ -7,6 +7,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "benchmark:check": "tsx src/benchmark/check.ts",
+    "benchmark:prepare:small": "tsx src/benchmark/prepare-small.ts",
+    "benchmark:seed:small": "tsx src/benchmark/seed-small.ts",
+    "benchmark:baseline": "tsx src/benchmark/baseline.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],

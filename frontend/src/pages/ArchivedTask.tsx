@@ -31,8 +31,8 @@ export function ArchivedTask() {
     const isAreaArchived = Boolean(task.list.area.archivedAt)
     const isListAvailableInArchive = Boolean(task.list.archivedAt) || isAreaArchived
     setBreadcrumbs([
-      { label: task.list.area.title, to: isAreaArchived ? `/arquivados/areas/${task.list.area.id}` : undefined },
-      { label: task.list.title, to: isListAvailableInArchive ? `/arquivados/listas/${task.list.id}` : undefined },
+      { label: task.list.area.title, to: isAreaArchived ? `/app/arquivados/areas/${task.list.area.id}` : undefined },
+      { label: task.list.title, to: isListAvailableInArchive ? `/app/arquivados/listas/${task.list.id}` : undefined },
       { label: task.title },
     ])
   }, [setBreadcrumbs, task])
@@ -40,5 +40,5 @@ export function ArchivedTask() {
   if (isLoading) return <div className="lists-state" aria-live="polite"><LoaderCircle className="spin" size={32} /><h2>Carregando tarefa...</h2></div>
   if (error || !task) return <div className="lists-state is-error" role="alert"><AlertCircle size={36} /><h2>Erro ao carregar</h2><p>{error}</p><button className="secondary-action" type="button" onClick={() => void loadTask()}>Tentar novamente</button></div>
 
-  return <TaskDetails task={task} listTitle={task.list.title} archivedMode onClose={() => navigate('/arquivados')} onTaskChange={(updated) => setTask((current) => current ? { ...current, ...updated } : current)} />
+  return <TaskDetails task={task} listTitle={task.list.title} archivedMode onClose={() => navigate('/app/arquivados')} onTaskChange={(updated) => setTask((current) => current ? { ...current, ...updated } : current)} />
 }

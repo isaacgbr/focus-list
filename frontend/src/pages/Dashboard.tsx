@@ -306,7 +306,7 @@ export function Dashboard() {
 
   const openTask = (task: DashboardTask) => {
     const sourceTask = [...data.inProgress, ...data.upcoming].find((item) => item.id === task.id)
-    if (sourceTask) navigate(`/areas/${sourceTask.areaId}/listas/${sourceTask.listId}`, { state: { taskId: task.id } })
+    if (sourceTask) navigate(`/app/areas/${sourceTask.areaId}/listas/${sourceTask.listId}`, { state: { taskId: task.id } })
   }
 
   const visibleAreaSummaries = areAreasExpanded ? dashboard.areaSummaries : dashboard.areaSummaries.slice(0, DASHBOARD_AREA_LIMIT)
@@ -354,7 +354,7 @@ export function Dashboard() {
     const hasLists = data.firstList !== null
     const title = !hasAreas ? 'Crie sua primeira Área' : !hasLists ? 'Crie sua primeira Lista' : 'Crie sua primeira Tarefa'
     const description = !hasAreas ? 'Comece organizando um contexto da sua vida, como Trabalho ou Estudos.' : !hasLists ? 'Abra uma Área e crie uma Lista para agrupar suas tarefas.' : 'Sua estrutura está pronta. Adicione uma tarefa para acompanhar o que precisa ser feito.'
-    const action = !hasAreas ? () => window.dispatchEvent(new Event('focuslist:open-area-form')) : !hasLists ? () => navigate(`/areas/${data.firstAreaId}`) : () => navigate(`/areas/${data.firstList!.areaId}/listas/${data.firstList!.id}`)
+    const action = !hasAreas ? () => window.dispatchEvent(new Event('focuslist:open-area-form')) : !hasLists ? () => navigate(`/app/areas/${data.firstAreaId}`) : () => navigate(`/app/areas/${data.firstList!.areaId}/listas/${data.firstList!.id}`)
     return (
       <section className="dashboard" aria-labelledby="dashboard-title">
         {renderHero()}
@@ -399,7 +399,7 @@ export function Dashboard() {
           <div className={`dashboard-area-list ${areAreasExpanded ? 'is-expanded' : ''}`}>
             {dashboard.areaSummaries.length === 0 ? <p className="dashboard-table-empty">Nenhuma Área criada.</p> : null}
             {visibleAreaSummaries.map((area) => (
-              <button className="dashboard-area-row" type="button" onClick={() => navigate(`/areas/${area.id}`)} key={area.id}>
+              <button className="dashboard-area-row" type="button" onClick={() => navigate(`/app/areas/${area.id}`)} key={area.id}>
                 <span className="dashboard-area-mark" style={{ '--area-color': area.color ?? '#269cff' } as CSSProperties}><Folder size={18} fill="currentColor" /></span>
                 <span className="dashboard-area-copy"><strong>{area.title}</strong><small>{area.listsTotal} {area.listsTotal === 1 ? 'lista' : 'listas'} · {area.tasksTotal} {area.tasksTotal === 1 ? 'tarefa' : 'tarefas'}</small></span>
                 <ChevronRight size={18} aria-hidden="true" />

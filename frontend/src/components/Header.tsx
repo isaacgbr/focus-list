@@ -13,14 +13,14 @@ export function Header({ contextualBreadcrumbs, isSidebarOpen, onOpenSidebar }: 
   const { pathname } = useLocation()
 
   const breadcrumbs: Breadcrumb[] = (() => {
-    if (pathname === '/') return [{ label: 'Dashboard' }]
-    if (pathname === '/arquivados') return [{ label: 'Arquivados' }]
-    if (pathname === '/sobre') return [{ label: 'Sobre' }]
-    if (pathname.startsWith('/arquivados/')) {
-      return [{ label: 'Arquivados', to: '/arquivados' }, ...contextualBreadcrumbs]
+    if (pathname === '/app') return [{ label: 'Dashboard' }]
+    if (pathname === '/app/arquivados') return [{ label: 'Arquivados' }]
+    if (pathname === '/app/sobre') return [{ label: 'Sobre' }]
+    if (pathname.startsWith('/app/arquivados/')) {
+      return [{ label: 'Arquivados', to: '/app/arquivados' }, ...contextualBreadcrumbs]
     }
 
-    return [{ label: 'Áreas', to: '/' }, ...contextualBreadcrumbs]
+    return [{ label: 'Áreas', to: '/app' }, ...contextualBreadcrumbs]
   })()
 
   return (
@@ -30,12 +30,12 @@ export function Header({ contextualBreadcrumbs, isSidebarOpen, onOpenSidebar }: 
       </button>
 
       <nav className="breadcrumbs" aria-label="Caminho de navegação">
-        <Link className="breadcrumb-home" to="/" aria-label="Dashboard">
+        <Link className="breadcrumb-home" to="/app" aria-label="Dashboard">
           <Home size={22} />
         </Link>
         {breadcrumbs.map((item, index) => (
           <span className="breadcrumb-item" key={`${item.label}-${index}`}>
-            {index > 0 || pathname !== '/' ? <ChevronRight className="breadcrumb-separator" size={18} /> : null}
+            {index > 0 || pathname !== '/app' ? <ChevronRight className="breadcrumb-separator" size={18} /> : null}
             {item.to ? <Link to={item.to}>{item.label}</Link> : <span aria-current={index === breadcrumbs.length - 1 ? 'page' : undefined}>{item.label}</span>}
           </span>
         ))}

@@ -55,3 +55,7 @@ coverage/
 .claude/
 .windsurf/
 skills-lock.json
+AGENTS.md
+
+# Protótipos somente locais
+/prototipos/

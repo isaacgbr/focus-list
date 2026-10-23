@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import { AppLayout } from '../layouts/AppLayout'
 import { AreaLists } from '../pages/AreaLists'
@@ -7,11 +7,18 @@ import { ArchivedTask } from '../pages/ArchivedTask'
 import { Dashboard } from '../pages/Dashboard'
 import { ListTasks } from '../pages/ListTasks'
 import { About } from '../pages/About'
+import { LandingPage } from '../pages/LandingPage'
+
+function LegacyAppRedirect() {
+  const location = useLocation()
+  return <Navigate to={`/app${location.pathname}${location.search}${location.hash}`} replace />
+}
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route index element={<LandingPage />} />
+      <Route path="app" element={<AppLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="areas/:areaId" element={<AreaLists />} />
         <Route path="areas/:areaId/listas/:listId" element={<ListTasks />} />
@@ -21,6 +28,9 @@ export function AppRoutes() {
         <Route path="arquivados/tarefas/:taskId" element={<ArchivedTask />} />
         <Route path="sobre" element={<About />} />
       </Route>
+      <Route path="areas/*" element={<LegacyAppRedirect />} />
+      <Route path="arquivados/*" element={<LegacyAppRedirect />} />
+      <Route path="sobre" element={<LegacyAppRedirect />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

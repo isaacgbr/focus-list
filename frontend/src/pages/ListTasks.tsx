@@ -123,7 +123,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         setListTitle(list.title)
         setListDescription(list.description ?? '')
         setBreadcrumbs([
-          { label: list.area.title, to: list.area.archivedAt ? `/arquivados/areas/${list.area.id}` : undefined },
+          { label: list.area.title, to: list.area.archivedAt ? `/app/arquivados/areas/${list.area.id}` : undefined },
           { label: list.title },
         ])
         setTasks(list.tasks.map((task) => ({ ...task, listId: selectedListId })))
@@ -141,7 +141,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
         setListTitle(selectedList.title)
         setListDescription(selectedList.description ?? '')
         setBreadcrumbs([
-          { label: area.title, to: `/areas/${area.id}` },
+          { label: area.title, to: `/app/areas/${area.id}` },
           { label: selectedList.title },
         ])
       }

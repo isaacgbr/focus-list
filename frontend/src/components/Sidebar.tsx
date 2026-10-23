@@ -31,12 +31,12 @@ type SidebarProps = {
 }
 
 const primaryItems = [
-  { label: 'Dashboard', icon: Home, to: '/' },
+  { label: 'Dashboard', icon: Home, to: '/app' },
 ]
 
 const utilityItems = [
-  { label: 'Arquivados', icon: Archive, to: '/arquivados' },
-  { label: 'Sobre', icon: Info, to: '/sobre' },
+  { label: 'Arquivados', icon: Archive, to: '/app/arquivados' },
+  { label: 'Sobre', icon: Info, to: '/app/sobre' },
 ]
 
 const SIDEBAR_AREA_LIMIT = 6
@@ -256,7 +256,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       await areaService.archive(area.id)
       setArchiveCandidate(null)
       await loadAreas()
-      navigate('/')
+      navigate('/app')
     } catch {
       setActionError('Não foi possível arquivar a área.')
     } finally {
@@ -289,7 +289,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {primaryItems.map((item) => (
               <NavLink
                 className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}
-                end={item.to === '/'}
+                end={item.to === '/app'}
                 key={item.to}
                 onClick={onClose}
                 to={item.to}
@@ -339,7 +339,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <NavLink
                       className={({ isActive }) => `nav-link area-nav-link ${isActive ? 'is-active' : ''}`}
                       onClick={onClose}
-                      to={`/areas/${area.id}`}
+                      to={`/app/areas/${area.id}`}
                     >
                       <Icon aria-hidden="true" size={22} style={{ color: area.color ?? undefined }} />
                       <span>{area.title}</span>

@@ -13,7 +13,7 @@ const typeLabels = { area: 'Área', list: 'Lista', task: 'Tarefa' } as const
 
 const formatArchivedAt = (value: string) => new Intl.DateTimeFormat('pt-BR').format(new Date(value))
 const itemKey = (item: ArchivedItem) => `${item.type}-${item.id}`
-const itemPath = (item: ArchivedItem) => `/arquivados/${item.type === 'area' ? 'areas' : item.type === 'list' ? 'listas' : 'tarefas'}/${item.id}`
+const itemPath = (item: ArchivedItem) => `/app/arquivados/${item.type === 'area' ? 'areas' : item.type === 'list' ? 'listas' : 'tarefas'}/${item.id}`
 
 function ArchivedItemIcon({ type }: { type: ArchivedItem['type'] }) {
   if (type === 'area') return <Folder size={24} />

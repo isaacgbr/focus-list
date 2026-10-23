@@ -266,7 +266,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                 const count = taskCounts[list.id] ?? { total: 0, pending: 0, completed: 0 }
                 return (
                   <article className="list-summary-card" key={list.id}>
-                    <Link className="list-summary-card-link" to={archivedMode ? `/arquivados/listas/${list.id}` : `/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
+                    <Link className="list-summary-card-link" to={archivedMode ? `/app/arquivados/listas/${list.id}` : `/app/areas/${selectedAreaId}/listas/${list.id}`} aria-label={`Abrir lista ${list.title}`}>
                       <span className="list-summary-card-topline">
                         <span className="list-card-icon" aria-hidden="true"><ListChecks size={23} /></span>
                         <span className="list-summary-card-kicker">Lista</span>
@@ -296,7 +296,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
               {lists.map((list) => {
                 const count = taskCounts[list.id] ?? { total: 0, pending: 0, completed: 0 }
                 return <article className="list-card" key={list.id}>
-                  {archivedMode ? <Link className="list-card-content" to={`/arquivados/listas/${list.id}`}>
+                  {archivedMode ? <Link className="list-card-content" to={`/app/arquivados/listas/${list.id}`}>
                     <span className="list-card-icon" aria-hidden="true"><ListChecks size={24} /></span>
                     <span>
                       <strong title={list.title}>{list.title}</strong>
@@ -304,7 +304,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
                     </span>
                     <span className="list-row-count"><strong>{count.total}</strong>{count.total === 1 ? 'tarefa' : 'tarefas'}</span>
                     <ChevronRight size={22} aria-hidden="true" />
-                  </Link> : <Link className="list-card-content" to={`/areas/${selectedAreaId}/listas/${list.id}`}>
+                  </Link> : <Link className="list-card-content" to={`/app/areas/${selectedAreaId}/listas/${list.id}`}>
                     <span className="list-card-icon" aria-hidden="true"><ListChecks size={24} /></span>
                     <span><strong title={list.title}>{list.title}</strong><small>{list.description || 'Sem descrição'}</small></span>
                     <span className="list-row-count"><strong>{count.total}</strong>{count.total === 1 ? 'tarefa' : 'tarefas'}</span>

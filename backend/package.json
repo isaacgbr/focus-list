@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "test:auth": "npm run build && node --test tests/auth-isolation.test.mjs",
     "start": "node dist/server.js",
     "benchmark:check": "tsx src/benchmark/check.ts",
     "benchmark:prepare:small": "tsx src/benchmark/prepare-small.ts",

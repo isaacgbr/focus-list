@@ -1,3 +1,5 @@
+import { authenticated } from "../middlewares/auth.middleware.js";
+import { domainBody, positiveId } from "../utils/validation.js";
 import { NextFunction, Request, Response } from "express";
 
 import listService from "../services/list.service.js";
@@ -6,13 +8,9 @@ class ListController {
   // Lista todas as Listas.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const areaId = req.query.areaId === undefined ? undefined : Number(req.query.areaId);
+      const areaId = req.query.areaId === undefined ? undefined : positiveId(req.query.areaId);
 
-      if (areaId !== undefined && (!Number.isInteger(areaId) || areaId <= 0)) {
-        throw new Error("O filtro de Área é inválido.");
-      }
-
-      const lists = await listService.findAll(areaId);
+      const lists = await listService.findAll(authenticated(req).userId, areaId);
 
       return res.status(200).json(lists);
     } catch (error) {
@@ -23,9 +21,9 @@ class ListController {
   // Busca uma Lista pelo ID.
   async findById(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      const list = await listService.findById(id);
+      const list = await listService.findById(authenticated(req).userId, id);
 
       return res.status(200).json(list);
     } catch (error) {
@@ -36,7 +34,7 @@ class ListController {
   // Cria uma nova Lista.
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const list = await listService.create(req.body);
+      const list = await listService.create(authenticated(req).userId, domainBody(req.body, ["title","description","areaId"], ["title","areaId"]) as Parameters<typeof listService.create>[1]);
 
       return res.status(201).json(list);
     } catch (error) {
@@ -47,9 +45,9 @@ class ListController {
   // Atualiza uma Lista existente.
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      const list = await listService.update(id, req.body);
+      const list = await listService.update(authenticated(req).userId, id, domainBody(req.body, ["title","description","areaId"]) as Parameters<typeof listService.update>[2]);
 
       return res.status(200).json(list);
     } catch (error) {
@@ -60,9 +58,9 @@ class ListController {
   // Remove uma Lista.
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      await listService.delete(id);
+      await listService.delete(authenticated(req).userId, id);
 
       return res.status(204).send();
     } catch (error) {
@@ -72,13 +70,13 @@ class ListController {
 
   async archive(req: Request, res: Response, next: NextFunction) {
     try {
-      return res.status(200).json(await listService.archive(Number(req.params.id)));
+      return res.status(200).json(await listService.archive(authenticated(req).userId, positiveId(req.params.id)));
     } catch (error) { next(error); }
   }
 
   async restore(req: Request, res: Response, next: NextFunction) {
     try {
-      return res.status(200).json(await listService.restore(Number(req.params.id)));
+      return res.status(200).json(await listService.restore(authenticated(req).userId, positiveId(req.params.id)));
     } catch (error) { next(error); }
   }
 }

@@ -2,9 +2,9 @@ import prisma from "../config/prisma.js";
 
 type TaskData = {
   title?: string;
-  description?: string;
-  dueDate?: Date | string;
-  priority?: "LOW" | "MEDIUM" | "HIGH";
+  description?: string | null;
+  dueDate?: Date | string | null;
+  priority?: "LOW" | "MEDIUM" | "HIGH" | null;
   completed?: boolean;
   completedAt?: Date | string | null;
   listId?: number;
@@ -12,9 +12,10 @@ type TaskData = {
 
 class TaskRepository {
   // Retorna todas as Tarefas ordenadas por título.
-  async findAll({ listId, areaId }: { listId?: number; areaId?: number } = {}) {
+  async findAll(userId: number, { listId, areaId }: { listId?: number; areaId?: number } = {}) {
     return prisma.task.findMany({
       where: {
+        AND: [{ list: { area: { userId } } }],
         archivedAt: null,
         listId,
         list: { archivedAt: null, areaId, area: { archivedAt: null } },
@@ -26,47 +27,64 @@ class TaskRepository {
   }
 
   // Busca uma Tarefa pelo ID.
-  async findById(id: number) {
+  async findById(userId: number, id: number) {
     return prisma.task.findFirst({
-      where: { id, archivedAt: null, list: { archivedAt: null, area: { archivedAt: null } } },
+      where: { AND: [{ list: { area: { userId } } }], id, archivedAt: null, list: { archivedAt: null, area: { archivedAt: null } } },
     });
   }
 
-  async findAnyById(id: number) {
+  async findAnyById(userId: number, id: number) {
     return prisma.task.findUnique({
-      where: { id },
+      where: { AND: [{ list: { area: { userId } } }], id },
       include: { list: { include: { area: true } } },
     });
   }
 
   // Cria uma nova Tarefa.
-  async create(data: TaskData & { title: string; listId: number }) {
+  async create(userId: number, data: TaskData & { title: string; listId: number }) {
     return prisma.task.create({
-      data,
+      // Aceita somente campos do recurso, sem escritas aninhadas de propriedade.
+      data: {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate,
+        priority: data.priority,
+        completed: data.completed,
+        completedAt: data.completedAt,
+        list: { connect: { id: data.listId, AND: [{ area: { userId } }] } },
+      },
     });
   }
 
   // Atualiza uma Tarefa existente.
-  async update(id: number, data: TaskData) {
+  async update(userId: number, id: number, data: TaskData) {
     return prisma.task.update({
-      where: { id },
-      data,
+      where: { AND: [{ list: { area: { userId } } }], id },
+      data: {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate,
+        priority: data.priority,
+        completed: data.completed,
+        completedAt: data.completedAt,
+        list: data.listId === undefined ? undefined : { connect: { id: data.listId, AND: [{ area: { userId } }] } },
+      },
     });
   }
 
   // Remove uma Tarefa.
-  async delete(id: number) {
+  async delete(userId: number, id: number) {
     return prisma.task.delete({
-      where: { id },
+      where: { AND: [{ list: { area: { userId } } }], id },
     });
   }
 
-  async archive(id: number) {
-    return prisma.task.update({ where: { id }, data: { archivedAt: new Date() } });
+  async archive(userId: number, id: number) {
+    return prisma.task.update({ where: { AND: [{ list: { area: { userId } } }], id }, data: { archivedAt: new Date() } });
   }
 
-  async restore(id: number) {
-    return prisma.task.update({ where: { id }, data: { archivedAt: null } });
+  async restore(userId: number, id: number) {
+    return prisma.task.update({ where: { AND: [{ list: { area: { userId } } }], id }, data: { archivedAt: null } });
   }
 }
 

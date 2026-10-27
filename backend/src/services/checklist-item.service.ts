@@ -1,3 +1,4 @@
+import { HttpError } from "../utils/http-error.js";
 import checklistItemRepository from "../repositories/checklist-item.repository.js";
 import taskRepository from "../repositories/task.repository.js";
 
@@ -10,36 +11,36 @@ type ChecklistItemData = {
 
 class ChecklistItemService {
   // Lista todos os itens de checklist.
-  async findAll(filters: { taskId?: number; listId?: number } = {}) {
-    return checklistItemRepository.findAll(filters);
+  async findAll(userId: number, filters: { taskId?: number; listId?: number } = {}) {
+    return checklistItemRepository.findAll(userId, filters);
   }
 
   // Busca um item de checklist pelo ID.
-  async findById(id: number) {
-    const checklistItem = await checklistItemRepository.findById(id);
+  async findById(userId: number, id: number) {
+    const checklistItem = await checklistItemRepository.findById(userId, id);
 
     if (!checklistItem) {
-      throw new Error("Item de checklist não encontrado.");
+      throw new HttpError(404, "Item de checklist não encontrado.");
     }
 
     return checklistItem;
   }
 
   // Cria um novo item de checklist.
-  async create(data: ChecklistItemData & { taskId: number }) {
+  async create(userId: number, data: ChecklistItemData & { taskId: number }) {
     const title = data.title ?? data.text;
 
     if (!title?.trim()) {
-      throw new Error("O título do item de checklist é obrigatório.");
+      throw new HttpError(400, "O título do item de checklist é obrigatório.");
     }
 
-    const task = await taskRepository.findAnyById(data.taskId);
+    const task = await taskRepository.findAnyById(userId, data.taskId);
 
     if (!task) {
-      throw new Error("Tarefa não encontrada.");
+      throw new HttpError(404, "Tarefa não encontrada.");
     }
 
-    return checklistItemRepository.create({
+    return checklistItemRepository.create(userId, {
       title,
       completed: data.completed,
       taskId: data.taskId,
@@ -47,29 +48,29 @@ class ChecklistItemService {
   }
 
   // Atualiza um item de checklist.
-  async update(id: number, data: ChecklistItemData) {
-    const checklistItem = await this.findById(id);
-    const currentTask = await taskRepository.findAnyById(checklistItem.taskId);
+  async update(userId: number, id: number, data: ChecklistItemData) {
+    const checklistItem = await this.findById(userId, id);
+    const currentTask = await taskRepository.findAnyById(userId, checklistItem.taskId);
 
     if (!currentTask) {
-      throw new Error("Tarefa não encontrada.");
+      throw new HttpError(404, "Tarefa não encontrada.");
     }
 
     const title = data.title ?? data.text;
 
     if (title !== undefined && !title.trim()) {
-      throw new Error("O título do item de checklist é obrigatório.");
+      throw new HttpError(400, "O título do item de checklist é obrigatório.");
     }
 
     if (data.taskId !== undefined) {
-      const task = await taskRepository.findAnyById(data.taskId);
+      const task = await taskRepository.findAnyById(userId, data.taskId);
 
       if (!task) {
-        throw new Error("Tarefa não encontrada.");
+        throw new HttpError(404, "Tarefa não encontrada.");
       }
     }
 
-    return checklistItemRepository.update(id, {
+    return checklistItemRepository.update(userId, id, {
       title,
       completed: data.completed,
       taskId: data.taskId,
@@ -77,15 +78,15 @@ class ChecklistItemService {
   }
 
   // Exclui um item de checklist.
-  async delete(id: number) {
-    const checklistItem = await this.findById(id);
-    const task = await taskRepository.findAnyById(checklistItem.taskId);
+  async delete(userId: number, id: number) {
+    const checklistItem = await this.findById(userId, id);
+    const task = await taskRepository.findAnyById(userId, checklistItem.taskId);
 
     if (!task) {
-      throw new Error("Tarefa não encontrada.");
+      throw new HttpError(404, "Tarefa não encontrada.");
     }
 
-    return checklistItemRepository.delete(id);
+    return checklistItemRepository.delete(userId, id);
   }
 }
 

@@ -3,11 +3,56 @@
 ## Relações
 
 ```text
-Area 1 ── N List 1 ── N Task 1 ── N ChecklistItem
-                           └────── 1 ── N Link
+User 1 ── N Area 1 ── N List 1 ── N Task 1 ── N ChecklistItem
+     └── N Session                    └────── 1 ── N Link
 ```
 
-Todas as chaves primárias são inteiros autoincrementais. As relações obrigatórias usam exclusão em cascata no banco.
+Todas as chaves primárias são inteiros autoincrementais. A relação de Área com User é obrigatória e usa `onDelete: Restrict`: excluir um usuário com Áreas é impedido, preservando seus dados. As demais relações usam exclusão em cascata no banco.
+
+## Implementação multiusuário
+
+O schema e a migration `20261026120000_multiuser_foundation` preparam REAL e DEMO na mesma hierarquia. A migration `20261026130000_require_area_owner` torna o proprietário de Área obrigatório. Ambas estão aplicadas no banco local. Cadastro, login, sessão persistida e logout estão implementados para REAL, com isolamento de todas as rotas de domínio, Dashboard e Arquivados. O fluxo DEMO não está implementado.
+
+### User
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática |
+| `type` | `UserType` | obrigatório, `REAL` ou `DEMO`, sem padrão implícito |
+| `name` | `String?` | obrigatório e não vazio para REAL; opcional para DEMO |
+| `email` | `String?` | obrigatório para REAL, único, minúsculo e sem espaços; nulo para DEMO |
+| `passwordHash` | `String?` | hash obrigatório e não vazio para REAL; nulo para DEMO |
+| `expiresAt` | `DateTime?` | nulo para REAL; exatamente `createdAt + 24 horas` para DEMO |
+| `createdAt` | `DateTime` | automático |
+| `updatedAt` | `DateTime` | automático |
+
+Os campos de credenciais são opcionais no Prisma para acomodar DEMO. Os CHECKs SQL `User_type_fields_check` e `User_email_normalized_check` impõem as regras condicionais no PostgreSQL. A autenticação normaliza o e-mail antes da gravação; o banco rejeita valores fora desse formato. O índice único permite várias DEMOs com e-mail nulo. O índice `(type, expiresAt)` prepara a busca de DEMOs expiradas.
+
+Não existem campos de senha pura ou confirmação de senha no banco. Senhas usam scrypt assíncrono com salt aleatório; os parâmetros e o contrato estão em [AUTHENTICATION.md](../backend/AUTHENTICATION.md). Recuperação de senha não está implementada. O cadastro não exige confirmação de e-mail.
+
+### Session
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `Int` | chave primária automática; não é a credencial da sessão |
+| `tokenHash` | `String` / `CHAR(64)` | único; somente SHA-256 hexadecimal minúsculo do token aleatório |
+| `userId` | `Int` | User obrigatório; exclusão do usuário remove suas sessões |
+| `createdAt` | `DateTime` | automático |
+| `expiresAt` | `DateTime` | obrigatório e posterior a `createdAt` |
+| `revokedAt` | `DateTime?` | nulo enquanto não revogada |
+
+O banco não armazena o token original. Há índices para busca pelo hash único, consulta/revogação por `(userId, revokedAt)` e expiração por `expiresAt`. Os CHECKs `Session_tokenHash_format_check` e `Session_expiration_check` ficam na migration SQL, pois não são representados no schema Prisma. Futuras migrations devem preservá-los.
+
+O login gera tokens criptograficamente aleatórios de 32 bytes, persiste apenas SHA-256 e envia o token exclusivamente no cookie HttpOnly/Lax (Secure em produção). A autenticação verifica revogação, expiração e tipo REAL a cada requisição. Nenhum hash ou token aparece no JSON. O fluxo DEMO permanece fora desta implementação; quando existir, deverá respeitar a expiração absoluta de 24 horas do usuário, inclusive nas sessões.
+
+### Migrations e propriedade
+
+1. A fundação adiciona `Area.userId` inicialmente anulável, sem valor padrão, e cria User/Session, relações, índices e CHECKs. Não atribui dados automaticamente.
+2. A migration seguinte aplica `NOT NULL`. Falha se houver Áreas sem proprietário, sem inventar uma conta nem excluir dados. Em outro banco com dados legados, a vinculação exige autorização e deve ocorrer antes dessa migration.
+3. Migrations já aplicadas devem permanecer intactas; alterações futuras exigem novas migrations. Os CHECKs SQL também devem ser preservados.
+4. A propriedade vem exclusivamente da sessão validada pelo servidor. Todas as consultas e escritas do domínio, Dashboard e Arquivados usam esse proprietário; criação e troca de pai também verificam a propriedade no vínculo Prisma.
+
+Os corpos HTTP rejeitam campos desconhecidos, incluindo `userId`, `user` e escritas aninhadas. Os repositórios passam somente os campos permitidos em criação/edição. List, Task, ChecklistItem e Link não possuem `userId`; herdam o proprietário pela hierarquia. Índices nas chaves `Area.userId`, `List.areaId`, `Task.listId`, `ChecklistItem.taskId` e `Link.taskId` suportam essa navegação.
 
 ## Area
 
@@ -21,6 +66,7 @@ Todas as chaves primárias são inteiros autoincrementais. As relações obrigat
 | `createdAt` | `DateTime` | automático |
 | `updatedAt` | `DateTime` | automático |
 | `archivedAt` | `DateTime?` | nulo enquanto ativa |
+| `userId` | `Int` | proprietário obrigatório, definido pela sessão; sem atribuição automática |
 
 ## List
 

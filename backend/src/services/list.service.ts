@@ -1,93 +1,95 @@
+import { HttpError } from "../utils/http-error.js";
 import areaRepository from "../repositories/area.repository.js";
 import listRepository from "../repositories/list.repository.js";
 
 class ListService {
   // Lista todas as Listas.
-  async findAll(areaId?: number) {
-    return listRepository.findAll(areaId);
+  async findAll(userId: number, areaId?: number) {
+    return listRepository.findAll(userId, areaId);
   }
 
   // Busca uma Lista pelo ID.
-  async findById(id: number) {
-    const list = await listRepository.findById(id);
+  async findById(userId: number, id: number) {
+    const list = await listRepository.findById(userId, id);
 
     if (!list) {
-      throw new Error("Lista não encontrada.");
+      throw new HttpError(404, "Lista não encontrada.");
     }
 
     return list;
   }
 
   // Cria uma nova Lista.
-  async create(data: {
+  async create(userId: number, data: {
     title: string;
-    description?: string;
+    description?: string | null;
     areaId: number;
   }) {
     if (!data.title.trim()) {
-      throw new Error("O título da Lista é obrigatório.");
+      throw new HttpError(400, "O título da Lista é obrigatório.");
     }
 
-    const area = await areaRepository.findById(data.areaId);
+    const area = await areaRepository.findById(userId, data.areaId);
 
     if (!area) {
-      throw new Error("Área não encontrada.");
+      throw new HttpError(404, "Área não encontrada.");
     }
 
-    return listRepository.create(data);
+    return listRepository.create(userId, data);
   }
 
   // Atualiza uma Lista.
   async update(
+    userId: number,
     id: number,
     data: {
       title?: string;
-      description?: string;
+      description?: string | null;
       areaId?: number;
     }
   ) {
-    const list = await listRepository.findAnyById(id);
+    const list = await listRepository.findAnyById(userId, id);
 
     if (!list) {
-      throw new Error("Lista não encontrada.");
+      throw new HttpError(404, "Lista não encontrada.");
     }
 
     if (data.title !== undefined && !data.title.trim()) {
-      throw new Error("O título da Lista é obrigatório.");
+      throw new HttpError(400, "O título da Lista é obrigatório.");
     }
 
     if (data.areaId !== undefined) {
-      const area = await areaRepository.findById(data.areaId);
+      const area = await areaRepository.findById(userId, data.areaId);
 
       if (!area) {
-        throw new Error("Área não encontrada.");
+        throw new HttpError(404, "Área não encontrada.");
       }
     }
 
-    return listRepository.update(id, data);
+    return listRepository.update(userId, id, data);
   }
 
   // Exclui uma Lista.
-  async delete(id: number) {
-    const list = await listRepository.findAnyById(id);
+  async delete(userId: number, id: number) {
+    const list = await listRepository.findAnyById(userId, id);
 
-    if (!list) throw new Error("Lista não encontrada.");
-    if (!list.archivedAt) throw new Error("A Lista deve ser arquivada antes da exclusão definitiva.");
+    if (!list) throw new HttpError(404, "Lista não encontrada.");
+    if (!list.archivedAt) throw new HttpError(400, "A Lista deve ser arquivada antes da exclusão definitiva.");
 
-    return listRepository.delete(id);
+    return listRepository.delete(userId, id);
   }
 
-  async archive(id: number) {
-    await this.findById(id);
-    return listRepository.archive(id);
+  async archive(userId: number, id: number) {
+    await this.findById(userId, id);
+    return listRepository.archive(userId, id);
   }
 
-  async restore(id: number) {
-    const list = await listRepository.findAnyById(id);
-    if (!list) throw new Error("Lista não encontrada.");
-    if (!list.archivedAt) throw new Error("A Lista não está arquivada.");
-    if (list.area.archivedAt) throw new Error("Restaure a Área antes de restaurar esta Lista.");
-    return listRepository.restore(id);
+  async restore(userId: number, id: number) {
+    const list = await listRepository.findAnyById(userId, id);
+    if (!list) throw new HttpError(404, "Lista não encontrada.");
+    if (!list.archivedAt) throw new HttpError(400, "A Lista não está arquivada.");
+    if (list.area.archivedAt) throw new HttpError(400, "Restaure a Área antes de restaurar esta Lista.");
+    return listRepository.restore(userId, id);
   }
 }
 

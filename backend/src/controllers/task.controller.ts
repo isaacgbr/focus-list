@@ -1,3 +1,5 @@
+import { authenticated } from "../middlewares/auth.middleware.js";
+import { domainBody, positiveId } from "../utils/validation.js";
 import { NextFunction, Request, Response } from "express";
 
 import taskService from "../services/task.service.js";
@@ -6,18 +8,11 @@ class TaskController {
   // Lista todas as Tarefas.
   async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const listId = req.query.listId === undefined ? undefined : Number(req.query.listId);
-      const areaId = req.query.areaId === undefined ? undefined : Number(req.query.areaId);
+      const listId = req.query.listId === undefined ? undefined : positiveId(req.query.listId);
+      const areaId = req.query.areaId === undefined ? undefined : positiveId(req.query.areaId);
 
-      if (listId !== undefined && (!Number.isInteger(listId) || listId <= 0)) {
-        throw new Error("O filtro de Lista é inválido.");
-      }
 
-      if (areaId !== undefined && (!Number.isInteger(areaId) || areaId <= 0)) {
-        throw new Error("O filtro de Área é inválido.");
-      }
-
-      const tasks = await taskService.findAll({ listId, areaId });
+      const tasks = await taskService.findAll(authenticated(req).userId, { listId, areaId });
 
       return res.status(200).json(tasks);
     } catch (error) {
@@ -28,9 +23,9 @@ class TaskController {
   // Busca uma Tarefa pelo ID.
   async findById(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      const task = await taskService.findById(id);
+      const task = await taskService.findById(authenticated(req).userId, id);
 
       return res.status(200).json(task);
     } catch (error) {
@@ -41,7 +36,7 @@ class TaskController {
   // Cria uma nova Tarefa.
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const task = await taskService.create(req.body);
+      const task = await taskService.create(authenticated(req).userId, domainBody(req.body, ["title","description","dueDate","priority","completed","completedAt","listId"], ["title","listId"]) as Parameters<typeof taskService.create>[1]);
 
       return res.status(201).json(task);
     } catch (error) {
@@ -52,9 +47,9 @@ class TaskController {
   // Atualiza uma Tarefa existente.
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      const task = await taskService.update(id, req.body);
+      const task = await taskService.update(authenticated(req).userId, id, domainBody(req.body, ["title","description","dueDate","priority","completed","completedAt","listId"]) as Parameters<typeof taskService.update>[2]);
 
       return res.status(200).json(task);
     } catch (error) {
@@ -65,9 +60,9 @@ class TaskController {
   // Remove uma Tarefa.
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = positiveId(req.params.id);
 
-      await taskService.delete(id);
+      await taskService.delete(authenticated(req).userId, id);
 
       return res.status(204).send();
     } catch (error) {
@@ -77,13 +72,13 @@ class TaskController {
 
   async archive(req: Request, res: Response, next: NextFunction) {
     try {
-      return res.status(200).json(await taskService.archive(Number(req.params.id)));
+      return res.status(200).json(await taskService.archive(authenticated(req).userId, positiveId(req.params.id)));
     } catch (error) { next(error); }
   }
 
   async restore(req: Request, res: Response, next: NextFunction) {
     try {
-      return res.status(200).json(await taskService.restore(Number(req.params.id)));
+      return res.status(200).json(await taskService.restore(authenticated(req).userId, positiveId(req.params.id)));
     } catch (error) { next(error); }
   }
 }

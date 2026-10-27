@@ -1,10 +1,5 @@
 import prisma from "../config/prisma.js";
 
-const activeTaskWhere = {
-  archivedAt: null,
-  list: { archivedAt: null, area: { archivedAt: null } },
-} as const;
-
 const dashboardTaskSelect = {
   id: true,
   title: true,
@@ -25,7 +20,11 @@ const dashboardTaskSelect = {
 } as const;
 
 class DashboardRepository {
-  async getSummary(today: Date, tomorrow: Date, weekEndExclusive: Date) {
+  async getSummary(userId: number, today: Date, tomorrow: Date, weekEndExclusive: Date) {
+    const activeTaskWhere = {
+      archivedAt: null,
+      list: { archivedAt: null, area: { userId, archivedAt: null } },
+    } as const;
     const [
       areas,
       completionGroups,
@@ -38,7 +37,7 @@ class DashboardRepository {
       firstList,
     ] = await Promise.all([
       prisma.area.findMany({
-        where: { archivedAt: null },
+        where: { userId, archivedAt: null },
         orderBy: { title: "asc" },
         select: {
           id: true,
@@ -89,7 +88,7 @@ class DashboardRepository {
         select: dashboardTaskSelect,
       }),
       prisma.list.findFirst({
-        where: { archivedAt: null, area: { archivedAt: null } },
+        where: { archivedAt: null, area: { userId, archivedAt: null } },
         orderBy: { title: "asc" },
         select: { id: true, areaId: true },
       }),

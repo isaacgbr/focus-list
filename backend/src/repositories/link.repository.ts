@@ -8,9 +8,10 @@ type LinkData = {
 
 class LinkRepository {
   // Retorna todos os Links ordenados por título.
-  async findAll({ taskId, listId }: { taskId?: number; listId?: number } = {}) {
+  async findAll(userId: number, { taskId, listId }: { taskId?: number; listId?: number } = {}) {
     return prisma.link.findMany({
       where: {
+        AND: [{ task: { list: { area: { userId } } } }],
         taskId,
         task: listId === undefined ? undefined : { listId, archivedAt: null },
       },
@@ -21,31 +22,40 @@ class LinkRepository {
   }
 
   // Busca um Link pelo ID.
-  async findById(id: number) {
+  async findById(userId: number, id: number) {
     return prisma.link.findUnique({
-      where: { id },
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
     });
   }
 
   // Cria um novo Link.
-  async create(data: LinkData & { title: string; url: string; taskId: number }) {
+  async create(userId: number, data: LinkData & { title: string; url: string; taskId: number }) {
     return prisma.link.create({
-      data,
+      // Aceita somente campos do recurso, sem escritas aninhadas de propriedade.
+      data: {
+        title: data.title,
+        url: data.url,
+        task: { connect: { id: data.taskId, AND: [{ list: { area: { userId } } }] } },
+      },
     });
   }
 
   // Atualiza um Link existente.
-  async update(id: number, data: LinkData) {
+  async update(userId: number, id: number, data: LinkData) {
     return prisma.link.update({
-      where: { id },
-      data,
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
+      data: {
+        title: data.title,
+        url: data.url,
+        task: data.taskId === undefined ? undefined : { connect: { id: data.taskId, AND: [{ list: { area: { userId } } }] } },
+      },
     });
   }
 
   // Remove um Link.
-  async delete(id: number) {
+  async delete(userId: number, id: number) {
     return prisma.link.delete({
-      where: { id },
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
     });
   }
 }

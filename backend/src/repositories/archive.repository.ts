@@ -1,10 +1,10 @@
 import prisma from "../config/prisma.js";
 
 class ArchiveRepository {
-  async findAll() {
+  async findAll(userId: number) {
     const [areas, lists, tasks] = await Promise.all([
       prisma.area.findMany({
-        where: { archivedAt: { not: null } },
+        where: { userId, archivedAt: { not: null } },
         include: {
           lists: { select: { _count: { select: { tasks: true } } } },
         },
@@ -12,7 +12,7 @@ class ArchiveRepository {
       prisma.list.findMany({
         where: {
           archivedAt: { not: null },
-          area: { archivedAt: null },
+          area: { userId, archivedAt: null },
         },
         include: {
           area: { select: { title: true } },
@@ -22,7 +22,7 @@ class ArchiveRepository {
       prisma.task.findMany({
         where: {
           archivedAt: { not: null },
-          list: { archivedAt: null, area: { archivedAt: null } },
+          list: { archivedAt: null, area: { userId, archivedAt: null } },
         },
         include: {
           list: {
@@ -65,9 +65,9 @@ class ArchiveRepository {
     );
   }
 
-  async findAreaById(id: number) {
+  async findAreaById(userId: number, id: number) {
     return prisma.area.findFirst({
-      where: { id, archivedAt: { not: null } },
+      where: { id, userId, archivedAt: { not: null } },
       include: {
         lists: {
           orderBy: { title: "asc" },
@@ -77,10 +77,11 @@ class ArchiveRepository {
     });
   }
 
-  async findListById(id: number) {
+  async findListById(userId: number, id: number) {
     return prisma.list.findFirst({
       where: {
         id,
+        area: { userId },
         OR: [
           { archivedAt: { not: null } },
           { area: { archivedAt: { not: null } } },
@@ -93,10 +94,11 @@ class ArchiveRepository {
     });
   }
 
-  async findTaskById(id: number) {
+  async findTaskById(userId: number, id: number) {
     return prisma.task.findFirst({
       where: {
         id,
+        list: { area: { userId } },
         OR: [
           { archivedAt: { not: null } },
           { list: { archivedAt: { not: null } } },

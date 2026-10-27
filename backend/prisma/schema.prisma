@@ -9,75 +9,127 @@ datasource db {
   provider = "postgresql"
 }
 
+// As regras condicionais REAL/DEMO e a normalização do e-mail são CHECKs na migration SQL.
+model User {
+  id           Int       @id @default(autoincrement())
+  type         UserType
+  name         String?
+  email        String?   @unique
+  passwordHash String?
+  expiresAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  areas    Area[]
+  sessions Session[]
+
+  @@index([type, expiresAt])
+}
+
+model Session {
+  id        Int       @id @default(autoincrement())
+  // Apenas o hash SHA-256 do token aleatório; nunca o token usado no cookie.
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+enum UserType {
+  REAL
+  DEMO
+}
+
 model Area {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
   description String?
   color       String?
   icon        String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  archivedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
 
-  lists       List[]
+  // Toda Área pertence a um usuário; identidade definida exclusivamente pela sessão.
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  lists List[]
+
+  @@index([userId])
 }
 
 model List {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
   description String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  archivedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
 
-  areaId      Int
-  area        Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  areaId Int
+  area   Area @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  tasks       Task[]
+  tasks Task[]
+
+  @@index([areaId])
 }
 
 model Task {
-  id           Int       @id @default(autoincrement())
-  title        String
-  description  String?
-  dueDate      DateTime?
-  priority     Priority?
-  completed    Boolean   @default(false)
-  completedAt  DateTime?
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    Priority?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  archivedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
 
-  listId       Int
-  list         List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId Int
+  list   List @relation(fields: [listId], references: [id], onDelete: Cascade)
 
-  checklist    ChecklistItem[]
-  links        Link[]
+  checklist ChecklistItem[]
+  links     Link[]
+
+  @@index([listId])
 }
 
 model ChecklistItem {
-  id         Int       @id @default(autoincrement())
-  title      String
-  completed  Boolean   @default(false)
+  id        Int     @id @default(autoincrement())
+  title     String
+  completed Boolean @default(false)
 
-  createdAt  DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  taskId     Int
-  task       Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 model Link {
-  id         Int       @id @default(autoincrement())
-  title      String
-  url        String
+  id    Int    @id @default(autoincrement())
+  title String
+  url   String
 
-  createdAt  DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  taskId     Int
-  task       Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 enum Priority {

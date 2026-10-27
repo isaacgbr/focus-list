@@ -8,9 +8,10 @@ type ChecklistItemData = {
 
 class ChecklistItemRepository {
   // Retorna todos os itens de checklist ordenados por título.
-  async findAll({ taskId, listId }: { taskId?: number; listId?: number } = {}) {
+  async findAll(userId: number, { taskId, listId }: { taskId?: number; listId?: number } = {}) {
     return prisma.checklistItem.findMany({
       where: {
+        AND: [{ task: { list: { area: { userId } } } }],
         taskId,
         task: listId === undefined ? undefined : { listId, archivedAt: null },
       },
@@ -21,31 +22,40 @@ class ChecklistItemRepository {
   }
 
   // Busca um item de checklist pelo ID.
-  async findById(id: number) {
+  async findById(userId: number, id: number) {
     return prisma.checklistItem.findUnique({
-      where: { id },
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
     });
   }
 
   // Cria um novo item de checklist.
-  async create(data: ChecklistItemData & { title: string; taskId: number }) {
+  async create(userId: number, data: ChecklistItemData & { title: string; taskId: number }) {
     return prisma.checklistItem.create({
-      data,
+      // Aceita somente campos do recurso, sem escritas aninhadas de propriedade.
+      data: {
+        title: data.title,
+        completed: data.completed,
+        task: { connect: { id: data.taskId, AND: [{ list: { area: { userId } } }] } },
+      },
     });
   }
 
   // Atualiza um item de checklist existente.
-  async update(id: number, data: ChecklistItemData) {
+  async update(userId: number, id: number, data: ChecklistItemData) {
     return prisma.checklistItem.update({
-      where: { id },
-      data,
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
+      data: {
+        title: data.title,
+        completed: data.completed,
+        task: data.taskId === undefined ? undefined : { connect: { id: data.taskId, AND: [{ list: { area: { userId } } }] } },
+      },
     });
   }
 
   // Remove um item de checklist.
-  async delete(id: number) {
+  async delete(userId: number, id: number) {
     return prisma.checklistItem.delete({
-      where: { id },
+      where: { AND: [{ task: { list: { area: { userId } } } }], id },
     });
   }
 }

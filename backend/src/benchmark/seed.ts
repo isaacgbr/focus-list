@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { pathToFileURL } from "node:url";
 import { Pool } from "pg";
+import { randomBytes } from "node:crypto";
+import { hashPassword } from "../security/password.js";
 
 import { guardBenchmarkDatabase } from "./config.js";
 import {
@@ -36,6 +38,7 @@ export async function seedBenchmark(profile: BenchmarkProfile) {
   const expected = expectedCounts(profile);
 
   try {
+    const passwordHash = await hashPassword(randomBytes(32).toString("hex"));
     await prisma.$transaction(async (transaction) => {
       // A limpeza integral só ocorre após guardBenchmarkDatabase validar URL,
       // confirmação, isolamento do desenvolvimento e current_database().
@@ -43,6 +46,14 @@ export async function seedBenchmark(profile: BenchmarkProfile) {
         TRUNCATE TABLE "ChecklistItem", "Link", "Task", "List", "Area"
         RESTART IDENTITY CASCADE
       `;
+
+      // Proprietário sintético apenas no banco isolado validado acima.
+      const owner = await transaction.user.upsert({
+        where: { email: `benchmark-${profile.name}@focuslist.invalid` },
+        update: { passwordHash },
+        create: { type: "REAL", name: "Benchmark", email: `benchmark-${profile.name}@focuslist.invalid`, passwordHash },
+        select: { id: true },
+      });
 
       const archivedAreaId = profile.areas;
       const directArchivedListId = (profile.areas - 1) * profile.listsPerArea;
@@ -54,6 +65,7 @@ export async function seedBenchmark(profile: BenchmarkProfile) {
         const timestamp = new Date(BASE_TIME + id * 86_400_000);
         return {
           id,
+          userId: owner.id,
           title: `${profile.prefix} Área ${String(id).padStart(2, "0")}`,
           description: `${profile.prefix} dados sintéticos determinísticos`,
           color: COLORS[index % COLORS.length],

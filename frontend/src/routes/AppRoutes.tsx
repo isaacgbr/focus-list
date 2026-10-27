@@ -8,6 +8,8 @@ import { Dashboard } from '../pages/Dashboard'
 import { ListTasks } from '../pages/ListTasks'
 import { About } from '../pages/About'
 import { LandingPage } from '../pages/LandingPage'
+import { AuthPage } from '../pages/AuthPage'
+import { RequireAuth } from '../auth/AuthGate'
 
 function LegacyAppRedirect() {
   const location = useLocation()
@@ -18,15 +20,19 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route index element={<LandingPage />} />
-      <Route path="app" element={<AppLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="areas/:areaId" element={<AreaLists />} />
-        <Route path="areas/:areaId/listas/:listId" element={<ListTasks />} />
-        <Route path="arquivados" element={<Archived />} />
-        <Route path="arquivados/areas/:areaId" element={<AreaLists archivedMode />} />
-        <Route path="arquivados/listas/:listId" element={<ListTasks archivedMode />} />
-        <Route path="arquivados/tarefas/:taskId" element={<ArchivedTask />} />
-        <Route path="sobre" element={<About />} />
+      <Route path="login" element={<AuthPage />} />
+      <Route path="cadastro" element={<AuthPage />} />
+      <Route element={<RequireAuth />}>
+        <Route path="app" element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="areas/:areaId" element={<AreaLists />} />
+          <Route path="areas/:areaId/listas/:listId" element={<ListTasks />} />
+          <Route path="arquivados" element={<Archived />} />
+          <Route path="arquivados/areas/:areaId" element={<AreaLists archivedMode />} />
+          <Route path="arquivados/listas/:listId" element={<ListTasks archivedMode />} />
+          <Route path="arquivados/tarefas/:taskId" element={<ArchivedTask />} />
+          <Route path="sobre" element={<About />} />
+        </Route>
       </Route>
       <Route path="areas/*" element={<LegacyAppRedirect />} />
       <Route path="arquivados/*" element={<LegacyAppRedirect />} />

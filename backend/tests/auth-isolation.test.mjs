@@ -18,12 +18,13 @@ const { tokenHash, cookieName } = await import("../dist/security/session.js");
 
 test("autenticação e isolamento real no PostgreSQL", async (t) => {
   const suffix = randomUUID();
-  const password = `Strong test password ${suffix}`;
-  const accounts = ["a", "b"].map((name) => ({
-    name: `Teste ${name.toUpperCase()}`, email: `auth-test-${name}-${suffix}@focuslist.invalid`, password, confirmPassword: password,
+  const password = `T!${suffix.slice(0, 6)}`;
+  const passwords = [password, `${password}${suffix.replaceAll("-", "").slice(0, 24)}`];
+  const accounts = ["a", "b"].map((name, index) => ({
+    name: `Teste ${name.toUpperCase()}`, email: `auth-test-${name}-${suffix}@focuslist.invalid`, password: passwords[index], confirmPassword: passwords[index],
   }));
   const emails = accounts.map((account) => account.email);
-  const secrets = [password];
+  const secrets = [...passwords];
   const baseline = await prisma.user.count();
   const server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -67,13 +68,14 @@ test("autenticação e isolamento real no PostgreSQL", async (t) => {
   const fixtures = [];
 
   await t.test("cadastro valida nome, e-mail, senha, confirmação e campos extras", async () => {
-    for (const change of [{ name: " " }, { name: 12 }, { email: "invalid" }, { password: "short", confirmPassword: "short" }, { confirmPassword: "wrong" }, { type: "DEMO" }, { userId: 1 }, { passwordHash: "injected" }]) {
+    for (const change of [{ name: "" }, { name: " " }, { name: 12 }, { email: "" }, { email: "invalid" }, { password: "", confirmPassword: "" }, { password: "1234567", confirmPassword: "1234567" }, { password: "x".repeat(33), confirmPassword: "x".repeat(33) }, { confirmPassword: "wrong" }, { type: "DEMO" }, { userId: 1 }, { passwordHash: "injected" }]) {
       await expect("POST", "/auth/register", 400, { ...accounts[0], ...change });
     }
     await expect("POST", "/auth/register", 400, []);
   });
 
-  await t.test("cadastro A/B normaliza e-mail e persiste scrypt com salts diferentes", async () => {
+  await t.test("cadastro A/B aceita 8/32 caracteres, normaliza e-mail e persiste scrypt com salts diferentes", async () => {
+    assert.deepEqual(accounts.map((account) => [...account.password].length), [8, 32]);
     for (const account of accounts) {
       const result = await expect("POST", "/auth/register", 201, { ...account, email: ` ${account.email.toUpperCase()} ` });
       assert.equal(result.body.user.email, account.email);
@@ -102,9 +104,15 @@ test("autenticação e isolamento real no PostgreSQL", async (t) => {
     await expect("POST", "/auth/login", 400, { email: emails[0], password, userId: fixtures[1].user.id });
   });
 
+  await t.test("login rejeita e-mail vazio/inválido e senhas vazia, de 7 ou 33 caracteres", async () => {
+    for (const change of [{ email: "" }, { email: "invalid" }, { password: "" }, { password: "1234567" }, { password: "x".repeat(33) }]) {
+      await expect("POST", "/auth/login", 400, { email: emails[0], password, ...change });
+    }
+  });
+
   await t.test("login, cookie HttpOnly/Lax por 7 dias e apenas hash da sessão no banco", async () => {
     for (let i = 0; i < fixtures.length; i++) {
-      const response = await expect("POST", "/auth/login", 200, { email: ` ${emails[i].toUpperCase()} `, password });
+      const response = await expect("POST", "/auth/login", 200, { email: ` ${emails[i].toUpperCase()} `, password: accounts[i].password });
       fixtures[i].cookie = readCookie(response);
       const header = response.headers.get("set-cookie");
       assert.match(header, /HttpOnly/i);
@@ -375,7 +383,7 @@ test("autenticação e isolamento real no PostgreSQL", async (t) => {
     const hash = tokenHash(fixture.cookie.split("=")[1]);
     await prisma.session.update({ where: { tokenHash: hash }, data: { createdAt: new Date(Date.now() - 2 * 86400000), expiresAt: new Date(Date.now() - 86400000) } });
     await expect("GET", "/auth/session", 401, undefined, fixture.cookie);
-    fixture.cookie = readCookie(await expect("POST", "/auth/login", 200, { email: emails[1], password }));
+    fixture.cookie = readCookie(await expect("POST", "/auth/login", 200, { email: emails[1], password: accounts[1].password }));
     await prisma.session.update({ where: { tokenHash: tokenHash(fixture.cookie.split("=")[1]) }, data: { revokedAt: new Date() } });
     await expect("GET", "/areas", 401, undefined, fixture.cookie);
   });

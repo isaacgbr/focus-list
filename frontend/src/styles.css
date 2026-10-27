@@ -118,6 +118,10 @@ button {
   background: rgba(31, 80, 119, 0.18);
 }
 
+.sidebar-logout { width: 100%; border: 0; background: transparent; cursor: pointer; text-align: left; }
+.sidebar-logout:disabled { opacity: 0.65; cursor: wait; }
+.sidebar-logout:focus-visible { outline: 2px solid #4ba9ff; outline-offset: -2px; }
+
 .nav-link.is-active {
   color: white;
   background: linear-gradient(90deg, rgba(21, 82, 129, 0.52), rgba(24, 60, 89, 0.5));

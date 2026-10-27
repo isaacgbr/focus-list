@@ -10,6 +10,7 @@ import {
   Home,
   Laptop,
   LoaderCircle,
+  LogOut,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -21,6 +22,8 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap'
+import { useAuth } from '../auth/AuthContext'
+import { authErrorMessage } from '../services/authService'
 import areaService, { Area, CreateAreaData } from '../services/areaService'
 import { Brand } from './Brand'
 import { MotionPresence } from './MotionPresence'
@@ -78,7 +81,10 @@ function toAreaPayload(form: AreaForm): CreateAreaData {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { logout } = useAuth()
   const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const logoutPending = useRef(false)
   const sidebarRef = useRef<HTMLElement>(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [areAreasExpanded, setAreAreasExpanded] = useState(false)
@@ -95,6 +101,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   isSidebarModalOpenRef.current = isModalOpen || archiveCandidate !== null
   const areaModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
   const archiveModalRef = useModalFocusTrap<HTMLElement>(archiveCandidate !== null)
+
+  async function handleLogout() {
+    if (logoutPending.current) return
+    logoutPending.current = true
+    setIsLoggingOut(true)
+    setActionError('')
+    try {
+      await logout()
+      onClose()
+    } catch (error) {
+      setActionError(authErrorMessage(error, 'Não foi possível sair. Tente novamente.'))
+    } finally {
+      logoutPending.current = false
+      setIsLoggingOut(false)
+    }
+  }
 
   const loadAreas = useCallback(async () => {
     setIsLoading(true)
@@ -387,6 +409,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <span>{item.label}</span>
               </NavLink>
             ))}
+            <button className="nav-link sidebar-logout" type="button" onClick={() => void handleLogout()} disabled={isLoggingOut}>
+              {isLoggingOut ? <LoaderCircle className="spin" size={23} aria-hidden="true" /> : <LogOut size={23} aria-hidden="true" />}
+              <span>{isLoggingOut ? 'Saindo…' : 'Sair'}</span>
+            </button>
           </div>
         </nav>
       </aside>

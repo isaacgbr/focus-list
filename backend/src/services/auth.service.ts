@@ -15,8 +15,8 @@ function credentials(body: Record<string, unknown>) {
     throw new HttpError(400, "E-mail inválido.");
   }
   const password = body.password;
-  if (password.length === 0 || [...password].length > 128 || Buffer.byteLength(password) > 512) {
-    throw new HttpError(400, "Senha inválida.");
+  if ([...password].length < 8 || [...password].length > 32 || Buffer.byteLength(password) > 128) {
+    throw new HttpError(400, "A senha deve ter entre 8 e 32 caracteres.");
   }
   return { email, password };
 }
@@ -35,7 +35,6 @@ class AuthService {
     const { email, password } = credentials(body);
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name || [...name].length > 100 || /[\u0000-\u001f\u007f]/.test(name)) throw new HttpError(400, "Nome inválido (1 a 100 caracteres).");
-    if ([...password].length < 15) throw new HttpError(400, "A senha deve ter entre 15 e 128 caracteres.");
     if (body.confirmPassword !== password) throw new HttpError(400, "A confirmação da senha não confere.");
     // Calcula também no caminho duplicado para reduzir diferença de tempo.
     const passwordHash = await hashPassword(password);

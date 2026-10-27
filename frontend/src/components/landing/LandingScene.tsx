@@ -18,10 +18,10 @@ export function LandingStarfield() {
   )
 }
 
-export function AccessLink({ compact = false }: { compact?: boolean }) {
+export function AccessLink({ compact = false, register = false }: { compact?: boolean; register?: boolean }) {
   return (
-    <Link className={`lp-access${compact ? ' lp-access-compact' : ''}`} to="/app">
-      Acessar FocusList <ArrowRight size={compact ? 16 : 18} aria-hidden="true" />
+    <Link className={`lp-access${compact ? ' lp-access-compact' : ''}`} to={register ? '/cadastro' : '/login'}>
+      {register ? 'Criar minha conta' : 'Entrar'} <ArrowRight size={compact ? 16 : 18} aria-hidden="true" />
     </Link>
   )
 }

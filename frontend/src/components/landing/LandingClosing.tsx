@@ -7,7 +7,7 @@ export function LandingClosing() {
       <div className="lp-closing-content">
         <div className="lp-closing-invitation lp-plane-copy">
           <h2 id="lp-closing-title">Comece a organizar o que importa.</h2>
-          <AccessLink />
+          <AccessLink register />
         </div>
         <div className="lp-closing-sculpture lp-plane-main"><LandingMark /></div>
       </div>

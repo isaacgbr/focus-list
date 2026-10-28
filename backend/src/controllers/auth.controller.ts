@@ -5,6 +5,16 @@ import { cookieName, cookieOptions, SESSION_DURATION, sessionToken } from "../se
 import { allowedBody } from "../utils/validation.js";
 
 class AuthController {
+  async forgotPassword(req: Request, res: Response) {
+    return res.status(202).json(await authService.forgotPassword(req.body));
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    const result = await authService.resetPassword(req.body);
+    res.clearCookie(cookieName, cookieOptions);
+    return res.json(result);
+  }
+
   async register(req: Request, res: Response) {
     return res.status(201).json({ user: await authService.register(req.body) });
   }

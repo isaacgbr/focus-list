@@ -111,6 +111,9 @@
 .auth-switch a { padding: 6px 0; color: #79b3ff; font-weight: 600; }
 .auth-switch a:hover { color: #b3d6ff; }
 .auth-switch a[aria-disabled="true"] { opacity: 0.6; cursor: wait; }
+.auth-forgot { justify-self: end; color: #79b3ff; font-size: 12px; }
+.auth-forgot:hover { color: #b3d6ff; }
+.auth-forgot[aria-disabled="true"] { opacity: 0.6; cursor: wait; }
 .auth-visual {
   position: absolute;
   z-index: 2;
@@ -187,6 +190,14 @@
   .auth-header .brand { font-size: 16px; }
   .auth-back { max-width: 120px; font-size: 10px; }
 }
+.auth-recovery-shell {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 560px;
+  min-height: min(580px, calc(100svh - 180px));
+}
+.auth-recovery-shell .auth-form-panel { grid-area: 1 / 1; }
+.auth-recovery-shell a.auth-submit { display: flex; width: 100%; }
+
 @media (prefers-reduced-motion: reduce) {
   .auth-page *, .auth-page *::before, .auth-page *::after { transition: none !important; animation: none !important; }
   .auth-spinner { animation: none; }

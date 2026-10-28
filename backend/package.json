@@ -7,6 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "test:auth": "npm run build && node --test tests/auth-isolation.test.mjs",
+    "test:password-recovery": "npm run build && node --test --test-concurrency=1 tests/auth-password.test.mjs tests/password-recovery.test.mjs tests/password-recovery-email.test.mjs",
     "start": "node dist/server.js",
     "benchmark:check": "tsx src/benchmark/check.ts",
     "benchmark:prepare:small": "tsx src/benchmark/prepare-small.ts",

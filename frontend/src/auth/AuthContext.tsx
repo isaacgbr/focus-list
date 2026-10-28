@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 
 import api from '../services/api'
 import authService, { authErrorMessage } from '../services/authService'
-import type { AuthUser, LoginData } from '../services/authService'
+import type { AuthUser, LoginData, ResetPasswordData } from '../services/authService'
 
 type AuthStatus = 'checking' | 'authenticated' | 'anonymous' | 'error'
 type AuthContextValue = {
@@ -13,6 +13,7 @@ type AuthContextValue = {
   checkSession: () => Promise<void>
   login: (payload: LoginData) => Promise<void>
   logout: () => Promise<void>
+  resetPassword: (payload: ResetPasswordData) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -72,8 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('anonymous')
   }, [])
 
+  const resetPassword = useCallback(async (payload: ResetPasswordData) => {
+    await authService.resetPassword(payload)
+    ++revision.current
+    setUser(null)
+    setError('')
+    setStatus('anonymous')
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, status, error, checkSession, login, logout }}>
+    <AuthContext.Provider value={{ user, status, error, checkSession, login, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   )

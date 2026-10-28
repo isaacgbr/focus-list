@@ -1,7 +1,7 @@
 # Autenticação e propriedade de Áreas
 
-Contrato da implementação multiusuário do backend. O fluxo DEMO, recuperação
-de senha e Perfil permanecem fora desta etapa.
+Contrato da implementação multiusuário do backend. O fluxo DEMO e Perfil
+permanecem fora desta etapa.
 
 ## Contrato HTTP
 
@@ -15,8 +15,8 @@ de senha e Perfil permanecem fora desta etapa.
 Cadastro não inicia sessão automaticamente. O usuário público contém apenas
 `id`, `name`, `email` e `createdAt`. Login inválido retorna a mesma mensagem para
 conta ausente e senha incorreta. E-mail é normalizado com trim/lowercase.
-Nome deve ter de 1 a 100 caracteres, sem controles; senha, de 15 a 128 caracteres
-(até 512 bytes), sem truncamento nem trim. A confirmação deve ser idêntica.
+Nome deve ter de 1 a 100 caracteres, sem controles; senha, de 8 a 32 caracteres
+(até 128 bytes), sem truncamento nem trim. A confirmação deve ser idêntica.
 Campos desconhecidos são rejeitados; `userId`, relações Prisma e hashes não são
 aceitos nos corpos do domínio como identidade ou propriedade.
 
@@ -100,6 +100,104 @@ rotação, cookies de produção, CORS, CSRF, campos extras, erros, hashes e
 isolamento bidirecional de todos os cinco recursos, inclusive troca de pai,
 Dashboard e Arquivados. Os testes escrevem e removem dados; sua execução
 exige autorização para essas operações controladas.
+
+## Recuperação de senha
+
+`POST /auth/forgot-password` recebe `{ email }` e retorna `202` com a mensagem
+"Se existir uma conta com esse e-mail, enviaremos as instruções." tanto para
+conta REAL existente quanto ausente. A resposta não espera o Resend. Erros de
+envio geram somente um log genérico, sem destinatário, token, chave ou resposta
+do provedor. Formato de e-mail inválido e campos extras continuam retornando `400`.
+No frontend, a confirmação é "Confira seu e-mail", seguida de "As instruções
+para redefinir sua senha serão enviadas para o endereço informado."
+
+`POST /auth/reset-password` recebe `{ token, password, confirmPassword }`.
+Token inválido, usado ou expirado retorna `400` com a mesma mensagem. Sucesso
+retorna `200`, limpa o cookie e exige novo Login. A senha usa o mesmo scrypt e
+a mesma regra de 8–32 caracteres do cadastro. O frontend limpa seu estado de
+autenticação e apresenta a confirmação com botão para `/login`. Links inválidos,
+expirados ou usados mostram um estado próprio com acesso a `/recuperar-senha`.
+
+A tabela `PasswordReset` mantém um registro por usuário, com SHA-256 de 32 bytes
+aleatórios, validade de 30 minutos e `usedAt`. Novo pedido após 60 segundos
+substitui o link anterior. Pedidos repetidos durante esse intervalo recebem a
+mesma resposta neutra, sem novo envio. Os dois endpoints usam também o limitador
+existente de 30 requisições por IP/15 minutos, compartilhado com Login/Cadastro.
+
+Consumo condicional do token, troca da senha e revogação de todas as sessões
+ocorrem na mesma transação. O bloqueio da linha de User serializa redefinições,
+emissões de token e criação de sessões. Login revalida o hash dentro desse
+bloqueio para impedir sessão criada com senha antiga após uma redefinição.
+Os testes sem banco verificam esse contrato com transporte Prisma simulado;
+eles não substituem um teste de integração em PostgreSQL após a migration.
+
+### Configuração manual antes do envio real
+
+1. No [Resend Domains](https://resend.com/domains), cadastrar seu domínio ou
+   subdomínio remetente. No provedor DNS, publicar **exatamente os registros
+   SPF/DKIM e demais registros que o Resend indicar**. Aguardar o domínio ficar
+   verificado e habilitado para envio. Não substituir um SPF existente sem
+   compatibilizá-lo com os outros remetentes.
+2. Criar uma API key no Resend com permissão de envio, preferencialmente restrita
+   ao domínio verificado. Guardar somente no ambiente do backend como
+   `RESEND_API_KEY`; nunca usar variável `VITE_*`, código ou repositório.
+3. Definir `RESEND_FROM_EMAIL`, por exemplo `FocusList <acesso@seu-dominio.com>`,
+   usando o domínio verificado. O endereço de exemplo não envia mensagens reais.
+4. Definir `FRONTEND_ORIGIN` com a origem exata do frontend, sem caminho ou barra
+   final. Em desenvolvimento: `http://localhost:5173`; em produção: a origem
+   HTTPS real. O backend já usa essa variável para CORS. Manter frontend e backend
+   no mesmo site conforme a política atual de cookies. Sem essa variável em
+   desenvolvimento, o envio usa `http://localhost:5173`, como o frontend local.
+5. Desabilitar rastreamento de cliques no domínio usado para recuperação para
+   preservar o link e seu fragmento. O link é
+   `FRONTEND_ORIGIN/redefinir-senha#token=...`; não trocar o token para query string.
+   A tela lê o fragmento em memória e o remove do endereço/histórico atual.
+6. Após revisão e autorização para alterar o banco, aplicar a migration preparada
+   com `npx prisma migrate deploy --config prisma7.config.ts` em `backend`,
+   e gerar o cliente com `npx prisma generate --config prisma7.config.ts`.
+   A migration foi revisada e aplicada no PostgreSQL local em 28/10/2026,
+   por solicitação explícita. Reiniciar o backend depois de
+   configurar as variáveis. No hosting, a rota `/redefinir-senha` deve servir a
+   SPA, assim como as outras rotas React.
+7. Testar com uma conta REAL e caixa postal sob seu controle, conferir o envio
+   no painel do Resend e concluir o fluxo. Sem domínio próprio, o remetente de
+   teste do Resend tem restrições de destinatário; não serve para validar envio
+   para usuários em geral.
+
+Integração via [API HTTP oficial](https://resend.com/docs/api-reference/emails/send-email),
+sem dependência nova. O e-mail inclui HTML com estilos inline, tabelas de
+apresentação e alternativa em texto. A marca oficial fica em
+`backend/assets/focuslist-mark.png`, cópia de `frontend/public/focuslist-mark.png`,
+incorporada por CID para funcionar sem endereço público de imagem.
+O envio usa timeout de 10 segundos, chave de idempotência
+por mensagem e no máximo cinco envios simultâneos por processo. Não há fila
+durável nem retry automático: falha, saturação ou reinício durante envio pode
+exigir novo pedido após 60 segundos. O limitador por IP continua local; múltiplas
+instâncias precisam de proteção compartilhada no proxy, como na autenticação atual.
+
+Para testes relacionados, sem banco nem envio externo, executar em `backend`:
+
+```powershell
+npm run test:password-recovery
+```
+
+Integração complementar de recuperação com HTTP e PostgreSQL reais, usando
+somente conta temporária e token de fixture, sem envio de e-mail:
+
+```powershell
+$env:FOCUSLIST_AUTH_TESTS = 'LOCAL_CONTROLLED'
+node --test tests/password-recovery-postgres.test.mjs
+```
+
+Essa integração não confirma recebimento de e-mail nem substitui o teste completo
+com destinatário autorizado e link recebido do Resend.
+
+Em 28/10/2026, o fluxo completo foi validado localmente com destinatário
+autorizado: envio real pelo Resend, recebimento confirmado no Gmail, link
+recebido aberto no frontend, redefinição pela interface e novo Login. Duas
+sessões independentes antes válidas passaram a retornar `401`; reutilização
+do token retornou `400`, senha antiga retornou `401` e nova senha, `200`.
+O PostgreSQL confirmou consumo do token e somente a nova sessão ativa.
 
 ## Benchmark
 

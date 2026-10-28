@@ -11,11 +11,22 @@ export type AuthUser = {
 
 export type LoginData = { email: string; password: string }
 export type RegisterData = LoginData & { name: string; confirmPassword: string }
+export type ResetPasswordData = { token: string; password: string; confirmPassword: string }
 
 // Deduplicate the initial session check, including React StrictMode's effect replay.
 let sessionRequest: Promise<AuthUser | null> | null = null
 
 const authService = {
+  async forgotPassword(email: string) {
+    const { data } = await api.post<{ message: string }>('/auth/forgot-password', { email })
+    return data.message
+  },
+
+  async resetPassword(payload: ResetPasswordData) {
+    const { data } = await api.post<{ message: string }>('/auth/reset-password', payload)
+    return data.message
+  },
+
   getSession() {
     if (!sessionRequest) {
       sessionRequest = api.get<{ user: AuthUser }>('/auth/session')
@@ -47,6 +58,11 @@ const authService = {
       if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
     }
   },
+}
+
+export function isInvalidPasswordReset(error: unknown) {
+  return axios.isAxiosError<{ message?: string }>(error) && error.response?.status === 400 &&
+    error.response.data?.message === 'Link inválido ou expirado. Solicite uma nova recuperação de senha.'
 }
 
 export function authErrorMessage(error: unknown, fallback: string) {

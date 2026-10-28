@@ -14,7 +14,7 @@ type Mode = 'login' | 'register'
 type Field = 'name' | 'email' | 'password' | 'confirmPassword'
 type FieldErrors = Partial<Record<Field, string>>
 
-function AuthVisual({ register }: { register: boolean }) {
+export function AuthVisual({ register }: { register: boolean }) {
   return (
     <div className="auth-visual-content">
       <img className="auth-visual-mark" src="/focuslist-mark.png" width="88" height="88" alt="" />
@@ -133,6 +133,8 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
           {register ? field('name', 'Nome', name, setName, 'text', 'name') : null}
           {field('email', 'E-mail', email, onEmailChange, 'email', 'username')}
           {field('password', 'Senha', password, setPassword, 'password', register ? 'new-password' : 'current-password')}
+          {!register ? <Link className="auth-forgot" to="/recuperar-senha" aria-disabled={busy}
+            onClick={(event) => { if (busy) event.preventDefault() }}>Esqueci minha senha</Link> : null}
           {register ? <>
             <p className="auth-password-hint" id="register-password-hint">Mínimo de 8 caracteres.</p>
             {field('confirmPassword', 'Confirmar senha', confirmation, setConfirmation, 'password', 'new-password')}
@@ -156,7 +158,7 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
 
 export function AuthPage() {
   const { status } = useAuth()
-  const { pathname } = useLocation()
+  const { pathname, state } = useLocation()
   const navigate = useNavigate()
   const register = pathname === '/cadastro'
   const [email, setEmail] = useState('')
@@ -182,7 +184,8 @@ export function AuthPage() {
             <Link className="auth-back" to="/"><ArrowLeft size={16} aria-hidden="true" />Voltar para o início</Link>
           </header>
           <main className={`auth-shell${register ? ' is-register' : ''}`}>
-            <AuthForm mode="login" active={!register} email={email} onEmailChange={setEmail} success={success} onRegistered={onRegistered} />
+            <AuthForm mode="login" active={!register} email={email} onEmailChange={setEmail}
+              success={success || (state?.passwordReset === true ? 'Senha redefinida com sucesso. Entre com sua nova senha.' : '')} onRegistered={onRegistered} />
             <AuthForm mode="register" active={register} email={email} onEmailChange={setEmail} success="" onRegistered={onRegistered} />
             <aside className="auth-visual" aria-label="Seu foco com o FocusList">
               <div className="auth-visual-login" aria-hidden={register}><AuthVisual register={false} /></div>

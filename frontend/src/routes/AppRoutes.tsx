@@ -9,6 +9,7 @@ import { ListTasks } from '../pages/ListTasks'
 import { About } from '../pages/About'
 import { LandingPage } from '../pages/LandingPage'
 import { AuthPage } from '../pages/AuthPage'
+import { PasswordRecoveryPage } from '../pages/PasswordRecoveryPage'
 import { RequireAuth } from '../auth/AuthGate'
 
 function LegacyAppRedirect() {
@@ -22,6 +23,8 @@ export function AppRoutes() {
       <Route index element={<LandingPage />} />
       <Route path="login" element={<AuthPage />} />
       <Route path="cadastro" element={<AuthPage />} />
+      <Route path="recuperar-senha" element={<PasswordRecoveryPage key="forgot" />} />
+      <Route path="redefinir-senha" element={<PasswordRecoveryPage key="reset" reset />} />
       <Route element={<RequireAuth />}>
         <Route path="app" element={<AppLayout />}>
           <Route index element={<Dashboard />} />

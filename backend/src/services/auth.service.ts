@@ -1,27 +1,71 @@
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import authRepository from "../repositories/auth.repository.js";
+import emailService from "./email.service.js";
 import { hashPassword, verifyPassword } from "../security/password.js";
 import { SESSION_DURATION, tokenHash } from "../security/session.js";
 import { HttpError } from "../utils/http-error.js";
 import { allowedBody } from "../utils/validation.js";
 
+function normalizedEmail(value: unknown) {
+  if (typeof value !== "string") throw new HttpError(400, "E-mail inválido.");
+  const email = value.trim().toLowerCase();
+  if (email.length > 254 || !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(email)) {
+    throw new HttpError(400, "E-mail inválido.");
+  }
+  return email;
+}
+
+function validPassword(value: unknown) {
+  if (typeof value !== "string") throw new HttpError(400, "A senha deve ter entre 8 e 32 caracteres.");
+  const password = value;
+  if ([...password].length < 8 || [...password].length > 32 || Buffer.byteLength(password) > 128) {
+    throw new HttpError(400, "A senha deve ter entre 8 e 32 caracteres.");
+  }
+  return password;
+}
+
 function credentials(body: Record<string, unknown>) {
   if (typeof body.email !== "string" || typeof body.password !== "string") {
     throw new HttpError(400, "E-mail e senha são obrigatórios.");
   }
-  const email = body.email.trim().toLowerCase();
-  if (email.length > 254 || !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(email)) {
-    throw new HttpError(400, "E-mail inválido.");
-  }
-  const password = body.password;
-  if ([...password].length < 8 || [...password].length > 32 || Buffer.byteLength(password) > 128) {
-    throw new HttpError(400, "A senha deve ter entre 8 e 32 caracteres.");
-  }
-  return { email, password };
+  return { email: normalizedEmail(body.email), password: validPassword(body.password) };
 }
 
+export const recoveryMessage = "Se existir uma conta com esse e-mail, enviaremos as instruções.";
+const invalidReset = () => new HttpError(400, "Link inválido ou expirado. Solicite uma nova recuperação de senha.");
+
 class AuthService {
+  async forgotPassword(value: unknown) {
+    const body = allowedBody(value, ["email"]);
+    const email = normalizedEmail(body.email);
+    const account = await authRepository.findAccount(email);
+    if (account?.type === "REAL") {
+      const token = randomBytes(32).toString("hex");
+      if (await authRepository.createPasswordReset(account.id, tokenHash(token))) {
+        // A resposta não aguarda o provedor nem distingue falha de envio/conta ausente.
+        // Sem fila ilimitada; o transporte limita concorrência e timeout.
+        void emailService.sendPasswordReset(email, token).catch(() => {
+          console.error("Não foi possível enviar e-mail de recuperação de senha.");
+        });
+      }
+    }
+    return { message: recoveryMessage };
+  }
+
+  async resetPassword(value: unknown) {
+    const body = allowedBody(value, ["token", "password", "confirmPassword"]);
+    const password = validPassword(body.password);
+    if (body.confirmPassword !== password) throw new HttpError(400, "A confirmação da senha não confere.");
+    if (typeof body.token !== "string" || !/^[0-9a-f]{64}$/.test(body.token)) throw invalidReset();
+    const hash = tokenHash(body.token);
+    const reset = await authRepository.findPasswordReset(hash);
+    if (!reset) throw invalidReset();
+    const passwordHash = await hashPassword(password);
+    if (!await authRepository.resetPassword(reset.userId, hash, passwordHash)) throw invalidReset();
+    return { message: "Senha redefinida com sucesso. Entre com sua nova senha." };
+  }
+
   session(userId: number) {
     return authRepository.findPublicUser(userId);
   }
@@ -55,7 +99,7 @@ class AuthService {
     if (!valid || !account || account.type !== "REAL") throw new HttpError(401, "E-mail ou senha inválidos.");
     const token = randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + SESSION_DURATION);
-    await authRepository.createSession(account.id, tokenHash(token), expiresAt, previousToken ? tokenHash(previousToken) : undefined);
+    await authRepository.createSession(account.id, tokenHash(token), expiresAt, previousToken ? tokenHash(previousToken) : undefined, account.passwordHash!);
     const { passwordHash: _hash, type: _type, ...user } = account;
     return { user, token, expiresAt };
   }

@@ -23,8 +23,20 @@ model User {
 
   areas    Area[]
   sessions Session[]
+  passwordReset PasswordReset?
 
   @@index([type, expiresAt])
+}
+
+model PasswordReset {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {

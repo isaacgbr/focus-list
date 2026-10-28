@@ -36,8 +36,11 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     let galaxyActive = false
     let productActive = false
     let orbitPhase = 0
+    let targetGalaxyProgress = 0
     let galaxyProgress = 0
-    let galaxyCatchingUp = false
+    let galaxyReveal = 0
+    let galaxySupport = 0
+    const organizedAt = 0.14 + 0.55 + (galaxySystems.length - 1) * 0.022
     let handoffProgress = 0
     let closingProgress = 0
     const demoDuration = landingDemoDuration
@@ -54,6 +57,17 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     let lastTime = 0
     let targetScroll = window.scrollY
     let cameraScroll = targetScroll
+    // Native scroll owns the destination; only rendered values are damped.
+    const updateScrollTargets = (snap = false) => {
+      const order = geometry.find((item) => item.element === orderScene)
+      const travel = order ? Math.max(viewportHeight * 0.6, (order.height - order.stageHeight) * 0.72) : 1
+      targetGalaxyProgress = reduced.matches ? 1.2 : order ? clamp((targetScroll - order.top) / travel, 0, 1.2) : 0
+      if (snap) {
+        galaxyProgress = targetGalaxyProgress
+        galaxyReveal = smooth((targetGalaxyProgress - organizedAt) / 0.064)
+        galaxySupport = smooth((targetGalaxyProgress - organizedAt) / 0.084)
+      }
+    }
     // Marks a browser-owned menu trip; never drives or retargets its scroll.
     let menuDestination: number | null = null
     let menuFromIndex = 0
@@ -110,7 +124,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       const targets = consumers.get(element)?.get(name)
       if (targets) for (const target of targets) writeStyle(target, name, value)
     }
-    const paint = (delta = 0, immediate = false) => {
+    const paint = () => {
       const mobile = viewportWidth < 760
       const pointerStrength = mobile || reduced.matches ? 0 : 1
       setStyle(root, '--mouse-x', `${(currentX * 9 * pointerStrength).toFixed(2)}px`)
@@ -156,25 +170,6 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
           setStyle(stage, 'translate', passing ? `0 ${(passageY - pinnedY).toFixed(3)}px` : 'none')
         }
         if (isOrder) {
-          // Finish organizing before the sticky stage releases, leaving a broad
-          // stable interval for contemplation. Scroll remains its source;
-          // only the visual response to large jumps is bounded below.
-          const narrativeTravel = Math.max(viewportHeight * 0.6, (height - stageHeight) * 0.72)
-          // The final fifth belongs to the exit, after the complete message.
-          const target = moving ? clamp((cameraScroll - top) / narrativeTravel, 0, 1.2) : 1.2
-          const nativeTarget = clamp((targetScroll - top) / narrativeTravel, 0, 1.2)
-          // Only large jumps use a bounded visual catch-up. Native scroll and
-          // the existing camera damping remain untouched; reversing stays free.
-          if (!moving || immediate || menuDestination !== null || !galaxyActive) {
-            galaxyProgress = target
-            galaxyCatchingUp = false
-          } else {
-            if (Math.abs(nativeTarget - galaxyProgress) > 0.22) galaxyCatchingUp = true
-            const distance = target - galaxyProgress
-            const step = delta / 1100
-            if (galaxyCatchingUp && Math.abs(distance) > step) galaxyProgress += clamp(distance, -step, step)
-            else { galaxyProgress = target; galaxyCatchingUp = false }
-          }
           const ordered = smooth((galaxyProgress - 0.14) / 0.55)
           set('--galaxy-disorder', 1 - ordered, '')
           set('--areas-presence', smooth((galaxyProgress - 0.28) / 0.28), '')
@@ -191,12 +186,10 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
             smooth((cameraScroll - start) / Math.max(1, product.top + viewportHeight * 0.48 - start))) : 0
           set('--galaxy-handoff', handoffProgress, '')
           set('--galaxy-fade', smooth(1 - entering) * (1 - handoffProgress), '')
-          // Start with the last system's arrival, without a second time-based
-          // fade or fast-scroll suppression. Both lines finish by 0.84; 0.84–1
-          // is a fully visible contemplation range before the visual exit.
-          const organizedAt = 0.14 + 0.55 + (galaxySystems.length - 1) * 0.022
-          set('--galaxy-reveal', smooth((galaxyProgress - organizedAt) / 0.064), '')
-          set('--galaxy-support', smooth((galaxyProgress - organizedAt) / 0.084), '')
+          // Damping the narrow reveal range itself avoids a near-instant fade
+          // when a large scroll jump crosses it in a single visual frame.
+          set('--galaxy-reveal', galaxyReveal, '')
+          set('--galaxy-support', galaxySupport, '')
         }
         if (isProduct) {
           const closing = geometry.find((item) => item.element === closingScene)
@@ -322,7 +315,22 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       const delta = Math.min(elapsed, 64)
       lastTime = time
       const easing = 1 - Math.exp(-delta / (pointerPresent ? 140 : 650))
-      const changed = Math.abs(targetScroll - cameraScroll) > 0.001 || Math.abs(pointerX - currentX) > 0.0001 || Math.abs(pointerY - currentY) > 0.0001
+      const scrollEasing = reduced.matches ? 1 : 1 - Math.exp(-delta / 100)
+      const approach = (value: number, target: number, tolerance: number) => {
+        const next = value + (target - value) * scrollEasing
+        return Math.abs(target - next) <= tolerance ? target : next
+      }
+      const nextProgress = approach(galaxyProgress, targetGalaxyProgress, 0.001)
+      const targetReveal = smooth((targetGalaxyProgress - organizedAt) / 0.064)
+      const targetSupport = smooth((targetGalaxyProgress - organizedAt) / 0.084)
+      const nextReveal = approach(galaxyReveal, targetReveal, 0.001)
+      const nextSupport = approach(galaxySupport, targetSupport, 0.001)
+      const narrativeChanged = nextProgress !== galaxyProgress || nextReveal !== galaxyReveal || nextSupport !== galaxySupport
+      galaxyProgress = nextProgress
+      galaxyReveal = nextReveal
+      galaxySupport = nextSupport
+      const narrativeUnsettled = galaxyProgress !== targetGalaxyProgress || galaxyReveal !== targetReveal || galaxySupport !== targetSupport
+      const changed = narrativeChanged || Math.abs(targetScroll - cameraScroll) > 0.001 || Math.abs(pointerX - currentX) > 0.0001 || Math.abs(pointerY - currentY) > 0.0001
       cameraScroll += (targetScroll - cameraScroll) * (reduced.matches || menuDestination !== null ? 1 : 1 - Math.exp(-delta / 135))
       if (Math.abs(targetScroll - cameraScroll) < 0.05) cameraScroll = targetScroll
       currentX += (pointerX - currentX) * easing
@@ -331,11 +339,11 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       const unsettled = Math.abs(pointerX - currentX) > 0.002 || Math.abs(pointerY - currentY) > 0.002
       if (!unsettled) { currentX = pointerX; currentY = pointerY }
       const runningGalaxy = galaxyRunning()
-      if (changed || galaxyCatchingUp) paint(delta)
-      if (galaxyActive && (runningGalaxy || changed)) paintGalaxy(delta)
+      if (changed) paint()
+      if (narrativeChanged || (galaxyActive && (runningGalaxy || changed))) paintGalaxy(delta)
       if (demoRunning()) paintDemo(delta)
       else if (productScene?.dataset.demoState === 'playing') productScene.dataset.demoState = 'paused'
-      if ((unsettled || cameraUnsettled || galaxyCatchingUp || runningGalaxy || demoRunning()) && !reduced.matches) frame = requestAnimationFrame(tick)
+      if ((unsettled || cameraUnsettled || narrativeUnsettled || runningGalaxy || demoRunning()) && !reduced.matches) frame = requestAnimationFrame(tick)
     }
     const schedule = () => {
       if (reduced.matches || document.hidden) return
@@ -373,6 +381,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       pageHeight = Math.max(1, root.offsetHeight - viewportHeight)
       targetScroll = window.scrollY
       cameraScroll = targetScroll
+      updateScrollTargets(true)
       paint()
       paintGalaxy(0)
       paintDemo(0)
@@ -380,6 +389,9 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     }
     const onScroll = () => {
       targetScroll = window.scrollY
+      updateScrollTargets(reduced.matches)
+      // Reduced motion has no animation loop, but still needs scroll state.
+      if (reduced.matches) paint()
       schedule()
     }
     const onAnchor = (smoothNavigation = false) => {
@@ -405,9 +417,9 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       menuDestination = null
       window.scrollTo({ top, behavior: 'instant' })
       targetScroll = cameraScroll = window.scrollY
-      galaxyCatchingUp = false
+      updateScrollTargets(true)
       if (scene === productScene) demoElapsed = 0
-      paint(0, true)
+      paint()
       paintGalaxy(0)
       paintDemo(0)
       schedule()
@@ -447,7 +459,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     const onVisibility = () => {
       root.dataset.hidden = String(document.hidden)
       if (document.hidden) { cancelAnimationFrame(frame); frame = 0; if (productScene) productScene.dataset.demoState = 'paused' }
-      else { targetScroll = window.scrollY; lastTime = 0; schedule() }
+      else { targetScroll = window.scrollY; updateScrollTargets(reduced.matches); lastTime = 0; schedule() }
     }
     const onPreference = () => {
       cancelAnimationFrame(frame)

@@ -20,13 +20,13 @@ class EmailService {
       // O fragmento não é enviado ao servidor web nem em cabeçalhos Referer.
       const link = `${origin}/redefinir-senha#token=${token}`;
       const htmlLink = link.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-      const logo = await readFile(new URL("../../assets/focuslist-mark.png", import.meta.url));
+      const logo = await readFile(new URL("../../assets/focuslist-mark-email.png", import.meta.url));
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `password-reset/${randomUUID()}` },
         body: JSON.stringify({
           from, to: [email], subject: "Redefina sua senha do FocusList",
-          text: `Redefina sua senha.\n\nVocê solicitou uma nova senha para acessar seu espaço no FocusList.\n\nRedefinir minha senha →\n${link}\n\nEste link é válido por 30 minutos e pode ser utilizado apenas uma vez.\n\nNão foi você?\nPode ignorar esta mensagem. Nenhuma alteração será feita na sua conta.\n\nFocusList · Organize. Acompanhe. Conclua.`,
+          text: `Redefina sua senha.\n\nVocê solicitou uma nova senha para acessar seu espaço no FocusList.\n\nRedefinir minha senha\n${link}\n\nEste link é válido por 30 minutos e pode ser utilizado apenas uma vez.\n\nNão foi você?\nPode ignorar esta mensagem. Nenhuma alteração será feita na sua conta.\n\nFocusList · Organize. Acompanhe. Conclua.`,
           html: `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background-color:#050e19;color:#f7faff;font-family:Arial,Helvetica,sans-serif;">
@@ -39,7 +39,7 @@ class EmailService {
 <tr><td><h1 style="margin:0 0 20px;font-size:30px;line-height:1.2;letter-spacing:-1px;color:#f7faff;">Redefina sua senha.</h1>
 <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:#a9bfda;">Você solicitou uma nova senha para acessar seu espaço no FocusList.</p></td></tr>
 <tr><td><table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="#2265d8" style="border-radius:8px;text-align:center;mso-padding-alt:16px 24px;">
-<a href="${htmlLink}" style="display:inline-block;padding:16px 24px;border:1px solid #2265d8;border-radius:8px;background-color:#2265d8;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;">Redefinir minha senha →</a>
+<a href="${htmlLink}" style="display:inline-block;padding:16px 24px;border:1px solid #2265d8;border-radius:8px;background-color:#2265d8;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;">Redefinir minha senha</a>
 </td></tr></table></td></tr>
 <tr><td><p style="margin:22px 0 36px;font-size:12px;line-height:1.7;color:#9aafc7;">Este link é válido por 30 minutos e pode ser utilizado apenas uma vez.</p>
 <h2 style="margin:0 0 8px;font-size:14px;color:#d6e3f3;">Não foi você?</h2>

@@ -137,7 +137,7 @@ export function PasswordRecoveryPage({ reset = false }: { reset?: boolean }) {
                 {!busy ? <ArrowRight size={17} aria-hidden="true" /> : null}
               </button>
             </form>
-            <p className="auth-switch"><Link to={reset ? '/recuperar-senha' : '/login'}>{reset ? 'Solicitar novo link' : 'Voltar para o Login'}</Link></p>
+            {!reset ? <p className="auth-switch"><Link to="/login">Voltar para o Login</Link></p> : null}
             </>}
           </div>
         </section>

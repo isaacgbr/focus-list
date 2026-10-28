@@ -25,13 +25,15 @@ test("transporte Resend usa ambiente, link com fragmento, timeout e idempotênci
   assert.match(body.text, /30 minutos/);
   assert.equal(body.subject, "Redefina sua senha do FocusList");
   assert.ok(body.html.includes(`href="https://focuslist.invalid/redefinir-senha#token=${token}"`));
-  for (const text of ["Redefina sua senha.", "Você solicitou uma nova senha para acessar seu espaço no FocusList.", "Redefinir minha senha →", "Este link é válido por 30 minutos e pode ser utilizado apenas uma vez.", "Não foi você?", "Pode ignorar esta mensagem. Nenhuma alteração será feita na sua conta.", "FocusList · Organize. Acompanhe. Conclua."]) {
+  for (const text of ["Redefina sua senha.", "Você solicitou uma nova senha para acessar seu espaço no FocusList.", "Redefinir minha senha", "Este link é válido por 30 minutos e pode ser utilizado apenas uma vez.", "Não foi você?", "Pode ignorar esta mensagem. Nenhuma alteração será feita na sua conta.", "FocusList · Organize. Acompanhe. Conclua."]) {
     assert.ok(body.html.includes(text));
     assert.ok(body.text.includes(text));
   }
   assert.match(body.html, /src="cid:focuslist-mark"/);
   assert.equal(body.attachments[0].content_id, "focuslist-mark");
-  assert.deepEqual(Buffer.from(body.attachments[0].content, "base64"), await readFile(new URL("../../frontend/public/focuslist-mark.png", import.meta.url)));
+  assert.deepEqual(Buffer.from(body.attachments[0].content, "base64"), await readFile(new URL("../assets/focuslist-mark-email.png", import.meta.url)));
+  assert.ok(!body.html.includes("Redefinir minha senha →"));
+  assert.ok(!body.text.includes("Redefinir minha senha →"));
   assert.ok(!body.text.includes(process.env.RESEND_API_KEY));
   assert.ok(!body.html.includes(process.env.RESEND_API_KEY));
 

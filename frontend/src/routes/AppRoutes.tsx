@@ -11,6 +11,8 @@ import { LandingPage } from '../pages/LandingPage'
 import { AuthPage } from '../pages/AuthPage'
 import { PasswordRecoveryPage } from '../pages/PasswordRecoveryPage'
 import { RequireAuth } from '../auth/AuthGate'
+import { DemoEndedPage } from '../pages/DemoEndedPage'
+import { DemoImportPage } from '../pages/DemoImportPage'
 
 function LegacyAppRedirect() {
   const location = useLocation()
@@ -23,6 +25,8 @@ export function AppRoutes() {
       <Route index element={<LandingPage />} />
       <Route path="login" element={<AuthPage />} />
       <Route path="cadastro" element={<AuthPage />} />
+      <Route path="demo" element={<DemoEndedPage />} />
+      <Route path="demo/dados" element={<DemoImportPage />} />
       <Route path="recuperar-senha" element={<PasswordRecoveryPage key="forgot" />} />
       <Route path="redefinir-senha" element={<PasswordRecoveryPage key="reset" reset />} />
       <Route element={<RequireAuth />}>

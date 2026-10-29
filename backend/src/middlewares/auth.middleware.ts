@@ -6,7 +6,7 @@ import { HttpError } from "../utils/http-error.js";
 declare global {
   namespace Express {
     interface Request {
-      auth?: { userId: number; sessionId: number };
+      auth?: { userId: number; sessionId: number; type: "REAL" | "DEMO" };
     }
   }
 }
@@ -24,6 +24,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     res.clearCookie(cookieName, cookieOptions);
     throw new HttpError(401, "Autenticação necessária.");
   }
-  req.auth = { userId: session.userId, sessionId: session.id };
+  req.auth = { userId: session.userId, sessionId: session.id, type: session.user.type };
   next();
 }

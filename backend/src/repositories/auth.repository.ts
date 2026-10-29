@@ -62,13 +62,15 @@ class AuthRepository {
 
   findValidSession(hash: string) {
     return prisma.session.findFirst({
-      where: { tokenHash: hash, revokedAt: null, expiresAt: { gt: new Date() }, user: { type: "REAL" } },
-      select: { id: true, userId: true },
+      where: { tokenHash: hash, revokedAt: null, expiresAt: { gt: new Date() }, user: {
+        OR: [{ type: "REAL" }, { type: "DEMO", expiresAt: { gt: new Date() } }],
+      } },
+      select: { id: true, userId: true, user: { select: { type: true } } },
     });
   }
 
   findPublicUser(userId: number) {
-    return prisma.user.findUniqueOrThrow({ where: { id: userId }, select: publicUserSelect });
+    return prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { ...publicUserSelect, type: true, expiresAt: true } });
   }
 
   revokeSession(sessionId: number, userId: number) {

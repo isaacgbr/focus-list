@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LoaderCircle } from 'lucide-react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { SessionGate } from '../auth/AuthGate'
 import { AuthScene } from '../auth/AuthScene'
@@ -33,7 +33,10 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
   onRegistered: () => void
 }) {
   const register = mode === 'register'
-  const { login } = useAuth()
+  const { login, registerFromDemo, user, demoEnded } = useAuth()
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const fromDemo = user?.type === 'DEMO' || params.get('origem') === 'demo' || demoEnded
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -85,8 +88,14 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
     setBusy(true)
     try {
       if (register) {
-        await authService.register({ name: name.trim(), email: normalizedEmail, password, confirmPassword: confirmation })
-        if (activeRef.current) onRegistered()
+        const payload = { name: name.trim(), email: normalizedEmail, password, confirmPassword: confirmation }
+        if (fromDemo) {
+          await registerFromDemo(payload)
+          navigate('/demo/dados', { replace: true, state: { registered: true } })
+        } else {
+          await authService.register(payload)
+          if (activeRef.current) onRegistered()
+        }
       } else {
         await login({ email: normalizedEmail, password })
       }
@@ -147,7 +156,7 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
           </button>
         </form>
         <p className="auth-switch">{register ? 'Já tem uma conta?' : 'Ainda não tem uma conta?'}{' '}
-          <Link to={register ? '/login' : '/cadastro'} aria-disabled={busy} onClick={(event) => { if (busy) event.preventDefault() }}>
+          <Link to={`${register ? '/login' : '/cadastro'}${fromDemo ? '?origem=demo' : ''}`} aria-disabled={busy} onClick={(event) => { if (busy) event.preventDefault() }}>
             {register ? 'Entrar' : 'Criar conta'}
           </Link>
         </p>
@@ -157,7 +166,7 @@ function AuthForm({ mode, active, email, onEmailChange, success, onRegistered }:
 }
 
 export function AuthPage() {
-  const { status } = useAuth()
+  const { status, user } = useAuth()
   const { pathname, state } = useLocation()
   const navigate = useNavigate()
   const register = pathname === '/cadastro'
@@ -177,7 +186,7 @@ export function AuthPage() {
 
   return (
     <SessionGate>
-      {status === 'authenticated' ? <Navigate to="/app" replace /> : (
+      {status === 'authenticated' && user?.type !== 'DEMO' ? <Navigate to={user?.demoImport ? '/demo/dados' : '/app'} replace /> : (
         <div className="auth-page">
           <header className="auth-header">
             <Link to="/" aria-label="FocusList — início"><Brand /></Link>

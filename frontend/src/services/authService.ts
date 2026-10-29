@@ -4,13 +4,16 @@ import api from './api'
 
 export type AuthUser = {
   id: number
-  name: string
-  email: string
+  name: string | null
+  email: string | null
   createdAt: string
+  type: 'REAL' | 'DEMO'
+  expiresAt: string | null
+  demoImport?: 'pending' | 'unavailable' | null
 }
 
 export type LoginData = { email: string; password: string }
-export type RegisterData = LoginData & { name: string; confirmPassword: string }
+export type RegisterData = LoginData & { name: string; confirmPassword: string; fromDemo?: boolean }
 export type ResetPasswordData = { token: string; password: string; confirmPassword: string }
 
 // Deduplicate the initial session check, including React StrictMode's effect replay.
@@ -56,6 +59,29 @@ const authService = {
     } catch (error) {
       // An expired session is already logged out on the server.
       if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
+    }
+  },
+
+  async startDemo() {
+    const { data } = await api.post<{ user: AuthUser }>('/auth/demo', {})
+    return data.user
+  },
+
+  async exitDemo() {
+    try {
+      await api.post('/auth/demo/exit', {})
+    } catch (error) {
+      if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error
+    }
+  },
+
+  async resolveDemo(action: 'import' | 'discard') {
+    try {
+      await api.post('/auth/demo/resolve', { action })
+    } catch (error) {
+      // Sem contexto (ou escolha já concluída em outra aba), começar do zero
+      // apenas continua na conta REAL. Importação duplicada continua sendo erro.
+      if (action !== 'discard' || !axios.isAxiosError(error) || error.response?.status !== 409) throw error
     }
   },
 }

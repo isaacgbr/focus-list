@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import authRepository from "../repositories/auth.repository.js";
+import demoRepository from "../repositories/demo.repository.js";
 import emailService from "./email.service.js";
 import { hashPassword, verifyPassword } from "../security/password.js";
 import { SESSION_DURATION, tokenHash } from "../security/session.js";
@@ -66,16 +67,18 @@ class AuthService {
     return { message: "Senha redefinida com sucesso. Entre com sua nova senha." };
   }
 
-  session(userId: number) {
-    return authRepository.findPublicUser(userId);
+  async session(userId: number, sessionId: number) {
+    const user = await authRepository.findPublicUser(userId);
+    return { ...user, demoImport: user.type === "REAL" ? await demoRepository.status(sessionId) : null };
   }
 
   logout(sessionId: number, userId: number) {
     return authRepository.revokeSession(sessionId, userId);
   }
 
-  async register(value: unknown) {
-    const body = allowedBody(value, ["name", "email", "password", "confirmPassword"]);
+  async register(value: unknown, previousToken?: string) {
+    const body = allowedBody(value, ["name", "email", "password", "confirmPassword", "fromDemo"]);
+    if (body.fromDemo !== undefined && typeof body.fromDemo !== "boolean") throw new HttpError(400, "Contexto de cadastro inválido.");
     const { email, password } = credentials(body);
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name || [...name].length > 100 || /[\u0000-\u001f\u007f]/.test(name)) throw new HttpError(400, "Nome inválido (1 a 100 caracteres).");
@@ -83,7 +86,13 @@ class AuthService {
     // Calcula também no caminho duplicado para reduzir diferença de tempo.
     const passwordHash = await hashPassword(password);
     try {
-      return await authRepository.createUser({ name, email, passwordHash });
+      if (body.fromDemo === true) {
+        const token = randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + SESSION_DURATION);
+        const user = await demoRepository.register({ name, email, passwordHash }, previousToken ? tokenHash(previousToken) : undefined, tokenHash(token), expiresAt);
+        return { user, token, expiresAt };
+      }
+      return { user: await authRepository.createUser({ name, email, passwordHash }) };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         throw new HttpError(400, "Não foi possível criar a conta com os dados informados.");
@@ -101,7 +110,7 @@ class AuthService {
     const expiresAt = new Date(Date.now() + SESSION_DURATION);
     await authRepository.createSession(account.id, tokenHash(token), expiresAt, previousToken ? tokenHash(previousToken) : undefined, account.passwordHash!);
     const { passwordHash: _hash, type: _type, ...user } = account;
-    return { user, token, expiresAt };
+    return { user: { ...user, type: "REAL" as const, expiresAt: null, demoImport: null }, token, expiresAt };
   }
 }
 

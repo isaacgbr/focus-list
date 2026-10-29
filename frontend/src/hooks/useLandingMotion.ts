@@ -19,6 +19,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
     const scenes = Array.from(root.querySelectorAll<HTMLElement>('.lp-scene'))
+    const header = root.querySelector<HTMLElement>('.lp-header')
     const galaxy = root.querySelector<HTMLElement>('.lp-galaxy-space')
     const orderScene = root.querySelector<HTMLElement>('#organizacao')
     const productScene = root.querySelector<HTMLElement>('#produto')
@@ -123,6 +124,16 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       writeStyle(element, name, value)
       const targets = consumers.get(element)?.get(name)
       if (targets) for (const target of targets) writeStyle(target, name, value)
+    }
+    const updateHeader = () => {
+      if (!header) return
+      // Scroll only switches states; CSS owns the entire transition.
+      // Separate limits prevent wheel noise from reversing it at the boundary.
+      const wasHidden = header.classList.contains('is-outside-hero')
+      const hidden = wasHidden ? window.scrollY > 60 : window.scrollY >= 120
+      if (hidden === wasHidden) return
+      header.classList.toggle('is-outside-hero', hidden)
+      header.inert = hidden
     }
     const paint = () => {
       const mobile = viewportWidth < 760
@@ -382,6 +393,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
       targetScroll = window.scrollY
       cameraScroll = targetScroll
       updateScrollTargets(true)
+      updateHeader()
       paint()
       paintGalaxy(0)
       paintDemo(0)
@@ -389,6 +401,7 @@ export function useLandingMotion(rootRef: RefObject<HTMLDivElement | null>) {
     }
     const onScroll = () => {
       targetScroll = window.scrollY
+      updateHeader()
       updateScrollTargets(reduced.matches)
       // Reduced motion has no animation loop, but still needs scroll state.
       if (reduced.matches) paint()

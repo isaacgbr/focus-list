@@ -24,6 +24,7 @@ model User {
   areas    Area[]
   sessions Session[]
   passwordReset PasswordReset?
+  demoTransfer DemoTransfer?
 
   @@index([type, expiresAt])
 }
@@ -49,9 +50,21 @@ model Session {
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  demoTransfer DemoTransfer?
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
+}
+
+// Capacidade de importação vinculada exclusivamente à sessão REAL criada no cadastro.
+// Não há token adicional ou ID de origem aceito do cliente.
+model DemoTransfer {
+  id         Int       @id @default(autoincrement())
+  demoUserId Int       @unique
+  sessionId  Int       @unique
+  resolvedAt DateTime?
+  demoUser   User      @relation(fields: [demoUserId], references: [id], onDelete: Cascade)
+  session    Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 enum UserType {

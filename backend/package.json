@@ -7,6 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "test:auth": "npm run build && node --test tests/auth-isolation.test.mjs",
+    "test:demo": "npm run build && node --test tests/demo-postgres.test.mjs",
+    "demo:cleanup": "tsx src/scripts/cleanup-demos.ts",
     "test:password-recovery": "npm run build && node --test --test-concurrency=1 tests/auth-password.test.mjs tests/password-recovery.test.mjs tests/password-recovery-email.test.mjs",
     "start": "node dist/server.js",
     "benchmark:check": "tsx src/benchmark/check.ts",

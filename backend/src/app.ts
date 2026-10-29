@@ -8,6 +8,7 @@ import taskRoutes from "./routes/task.routes.js";
 import checklistItemRoutes from "./routes/checklist-item.routes.js";
 import linkRoutes from "./routes/link.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import demoRoutes from "./routes/demo.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import archiveRoutes from "./routes/archive.routes.js";
 import { requireAuth } from "./middlewares/auth.middleware.js";
@@ -47,6 +48,7 @@ app.use(express.json({ limit: "32kb" }));
 // Rotas da aplicação.
 app.use(healthRoutes);
 app.use(authRoutes);
+app.use(demoRoutes);
 app.use(requireAuth);
 app.use(dashboardRoutes);
 app.use(archiveRoutes);

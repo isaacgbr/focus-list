@@ -76,6 +76,9 @@
   outline: none;
   background: #07121f;
   color: #f7faff;
+  color-scheme: dark;
+  caret-color: #f7faff;
+  --auth-focus-ring: 0 0 0 0 transparent;
   font: inherit;
   font-size: 14px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
@@ -86,7 +89,17 @@
 .auth-password-toggle:hover { color: #d6e3f3; background: #3b82f610; }
 .auth-password-toggle:disabled { opacity: 0.65; cursor: wait; }
 .auth-field input:hover { border-color: #7ca3c470; }
-.auth-field input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #3b82f620; }
+.auth-field input:focus { --auth-focus-ring: 0 0 0 3px #3b82f620; border-color: #60a5fa; box-shadow: var(--auth-focus-ring); }
+/* Paint over the browser's autofill background while retaining the outer
+   focus ring, border, password controls and native credential suggestions. */
+.auth-field input:is(:autofill, :-webkit-autofill),
+.auth-field input:-webkit-autofill:hover,
+.auth-field input:-webkit-autofill:focus,
+.auth-field input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f7faff;
+  box-shadow: inset 0 0 0 1000px #07121f, var(--auth-focus-ring);
+  transition: border-color 160ms ease;
+}
 .auth-field input[aria-invalid="true"] { border-color: #fb9393; }
 .auth-field input:disabled { opacity: 0.65; }
 .auth-field-error { color: #ffb0b0; font-size: 12px; line-height: 1.5; }

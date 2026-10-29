@@ -1,7 +1,8 @@
 # Autenticação e propriedade de Áreas
 
-Contrato da implementação multiusuário do backend. O fluxo DEMO e Perfil
-permanecem fora desta etapa.
+Contrato da implementação multiusuário do backend. O fluxo DEMO e sua
+transferência de dados estão documentados em [DEMO_MODE.md](./DEMO_MODE.md).
+Perfil permanece fora desta etapa.
 
 ## Contrato HTTP
 
@@ -35,7 +36,7 @@ Cada login gera token aleatório de 32 bytes. Apenas SHA-256 desse token fica em
 cookie HttpOnly, SameSite=Lax, Path=/, sem Domain, por sete dias. Em produção,
 usa Secure e nome `__Host-focuslist_session`. Não há JWT ou armazenamento no
 cliente além do cookie. Cada acesso consulta validade, expiração, revogação e
-tipo REAL no PostgreSQL. Login com cookie anterior o revoga e emite novo token.
+tipo REAL ou DEMO não expirada no PostgreSQL. Login com cookie anterior o revoga e emite novo token.
 Logout revoga apenas a sessão atual. Respostas autenticadas usam `no-store`.
 
 ## Isolamento e limites desta etapa

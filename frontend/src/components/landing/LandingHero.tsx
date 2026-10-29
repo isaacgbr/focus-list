@@ -1,4 +1,6 @@
 import { AccessLink, LandingMark, LandingScene } from './LandingScene'
+import { DemoStartButton } from '../DemoStartButton'
+import '../../demo.css'
 
 export function LandingHero() {
   return (
@@ -12,7 +14,7 @@ export function LandingHero() {
         <div className="lp-hero-message lp-plane-copy">
           <h2 className="lp-reveal">Organize tudo em um único lugar.</h2>
           <p className="lp-reveal">Transforme prioridades em progresso com clareza, foco e simplicidade.</p>
-          <div className="lp-hero-action lp-reveal"><AccessLink register /></div>
+          <div className="lp-hero-action lp-reveal"><AccessLink register /><DemoStartButton className="lp-access lp-demo-access" /></div>
         </div>
       </div>
     </LandingScene>

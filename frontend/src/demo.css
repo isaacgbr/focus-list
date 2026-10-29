@@ -1,0 +1,73 @@
+.demo-stage {
+  --demo-gutter: clamp(20px, 3.2vw, 56px);
+  min-height: 100dvh;
+  padding: var(--demo-gutter);
+  background: radial-gradient(ellipse at 50% 0%, #17437170, transparent 70%),
+    linear-gradient(#040c19bb, #040c19ef), url('/landing-atmosphere-23i.png') center / cover fixed;
+}
+.demo-window {
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  border: 1px solid #7ca3c438;
+  border-radius: 22px;
+  background: #07111c;
+  box-shadow: 0 24px 80px #0005;
+}
+.demo-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 88px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 22px 22px 0 0;
+  background: #0b1c30;
+}
+.demo-context strong { font-size: 15px; font-weight: 600; }
+.demo-context p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.demo-context nav { display: flex; flex-wrap: wrap; gap: 10px; }
+.demo-context a { text-decoration: none; }
+.demo-context .primary-action, .demo-context .secondary-action { min-height: 40px; font-size: 13px; }
+/* Keep the hover hit area stationary, including at the lower button edge. */
+.demo-context .primary-action {
+  transition: box-shadow 250ms ease, filter 250ms ease;
+}
+.demo-context .primary-action:hover { transform: none; }
+.demo-context .secondary-action {
+  transition: color 250ms ease, border-color 250ms ease;
+}
+.demo-window .app-shell { height: max(420px, calc(100dvh - 2 * var(--demo-gutter) - 90px)); min-height: 0; position: relative; border-radius: 0 0 22px 22px; }
+.demo-window .sidebar { position: static; flex-shrink: 0; height: 100%; border-bottom-left-radius: 22px; }
+.demo-window .app-workspace { margin-left: 0; height: 100%; min-height: 0; min-width: 0; overflow-y: auto; }
+.demo-window .dashboard-empty { min-height: max(300px, calc(100dvh - 2 * var(--demo-gutter) - 212px)); }
+.demo-start { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; max-width: 100%; }
+.demo-start-error { max-width: 340px; font-size: 13px; line-height: 1.6; }
+.demo-start-error p { margin: 0 0 6px; }
+.demo-start-error a { text-decoration: underline; }
+.lp-hero-action { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 14px; }
+.lp-demo-access { cursor: pointer; border: 1px solid #7ca3c45c; background: #07172480; box-shadow: none; }
+.lp-demo-access:disabled { opacity: .65; cursor: wait; }
+.demo-message { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; text-align: center; gap: 20px; }
+.demo-message h1 { margin: 14px 0 0; font-size: clamp(24px, 4vw, 36px); letter-spacing: -.04em; }
+.demo-message p { max-width: 540px; margin: 0; color: var(--muted); line-height: 1.7; }
+.demo-message-actions { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.demo-message a { text-decoration: none; }
+.demo-message .demo-error, .demo-context .demo-error { color: #ffb7b7; }
+.demo-context .demo-error { flex-basis: 100%; }
+.demo-message a:focus-visible, .demo-message button:focus-visible, .demo-context a:focus-visible, .demo-context button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 4px;
+}
+@media (max-width: 800px) {
+  .demo-stage { padding: 0; background: #07111c; }
+  .demo-window { border: 0; border-radius: 0; box-shadow: none; }
+  .demo-context { border-radius: 0; padding: 14px 18px; gap: 12px; }
+  .demo-context nav { width: 100%; }
+  .demo-context .primary-action, .demo-context .secondary-action { flex: 1; padding: 10px; }
+  .demo-window .sidebar { position: fixed; inset: 0 auto 0 0; height: 100dvh; max-height: none; border-radius: 0; }
+  .demo-window .app-workspace { width: 100%; height: auto; overflow: visible; }
+  .demo-window .app-shell { height: auto; min-height: calc(100dvh - 130px); border-radius: 0; }
+  .demo-window .dashboard-empty { min-height: 0; }
+}

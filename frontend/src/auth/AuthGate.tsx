@@ -28,6 +28,8 @@ export function SessionGate({ children }: { children: ReactNode }) {
 }
 
 export function RequireAuth() {
-  const { status } = useAuth()
-  return <SessionGate>{status === 'authenticated' ? <Outlet /> : <Navigate to="/login" replace />}</SessionGate>
+  const { status, user, demoEnded } = useAuth()
+  return <SessionGate>{status === 'authenticated'
+    ? user?.demoImport ? <Navigate to="/demo/dados" replace /> : <Outlet />
+    : <Navigate to={demoEnded ? '/demo' : '/login'} replace />}</SessionGate>
 }

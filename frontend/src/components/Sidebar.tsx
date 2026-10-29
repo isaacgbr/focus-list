@@ -81,7 +81,7 @@ function toAreaPayload(form: AreaForm): CreateAreaData {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const logoutPending = useRef(false)
@@ -109,6 +109,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     setActionError('')
     try {
       await logout()
+      if (user?.type === 'DEMO') navigate('/', { replace: true })
       onClose()
     } catch (error) {
       setActionError(authErrorMessage(error, 'Não foi possível sair. Tente novamente.'))
@@ -409,10 +410,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <span>{item.label}</span>
               </NavLink>
             ))}
-            <button className="nav-link sidebar-logout" type="button" onClick={() => void handleLogout()} disabled={isLoggingOut}>
+            {user?.type !== 'DEMO' ? <button className="nav-link sidebar-logout" type="button" onClick={() => void handleLogout()} disabled={isLoggingOut}>
               {isLoggingOut ? <LoaderCircle className="spin" size={23} aria-hidden="true" /> : <LogOut size={23} aria-hidden="true" />}
               <span>{isLoggingOut ? 'Saindo…' : 'Sair'}</span>
-            </button>
+            </button> : null}
           </div>
         </nav>
       </aside>

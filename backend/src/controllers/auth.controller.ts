@@ -16,7 +16,9 @@ class AuthController {
   }
 
   async register(req: Request, res: Response) {
-    return res.status(201).json({ user: await authService.register(req.body) });
+    const result = await authService.register(req.body, sessionToken(req));
+    if (result.token) res.cookie(cookieName, result.token, { ...cookieOptions, maxAge: SESSION_DURATION, expires: result.expiresAt });
+    return res.status(201).json({ user: result.user });
   }
 
   async login(req: Request, res: Response) {
@@ -26,7 +28,8 @@ class AuthController {
   }
 
   async session(req: Request, res: Response) {
-    return res.json({ user: await authService.session(authenticated(req).userId) });
+    const { userId, sessionId } = authenticated(req);
+    return res.json({ user: await authService.session(userId, sessionId) });
   }
 
   async logout(req: Request, res: Response) {

@@ -8,6 +8,15 @@ type LinkData = {
   taskId?: number;
 };
 
+function validateUrl(value: string) {
+  if (!value.trim()) throw new HttpError(400, "A URL do Link é obrigatória.");
+  try {
+    const url = new URL(value);
+    if (/^https?:\/\//i.test(value.trim()) && (url.protocol === "http:" || url.protocol === "https:")) return;
+  } catch { /* Responde com o mesmo erro para formato ou protocolo inválido. */ }
+  throw new HttpError(400, "Informe uma URL válida iniciada por http:// ou https://.");
+}
+
 class LinkService {
   // Lista todos os Links.
   async findAll(userId: number, filters: { taskId?: number; listId?: number } = {}) {
@@ -31,9 +40,7 @@ class LinkService {
       throw new HttpError(400, "O título do Link é obrigatório.");
     }
 
-    if (!data.url.trim()) {
-      throw new HttpError(400, "A URL do Link é obrigatória.");
-    }
+    validateUrl(data.url);
 
     const task = await taskRepository.findAnyById(userId, data.taskId);
 
@@ -57,9 +64,7 @@ class LinkService {
       throw new HttpError(400, "O título do Link é obrigatório.");
     }
 
-    if (data.url !== undefined && !data.url.trim()) {
-      throw new HttpError(400, "A URL do Link é obrigatória.");
-    }
+    if (data.url !== undefined) validateUrl(data.url);
 
     if (data.taskId !== undefined) {
       const task = await taskRepository.findAnyById(userId, data.taskId);

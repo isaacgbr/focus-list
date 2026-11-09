@@ -35,10 +35,14 @@ function focusElement(element: HTMLElement | null) {
 export function useModalFocusTrap<T extends HTMLElement>(isOpen: boolean) {
   const containerRef = useRef<T>(null)
   const restoreFocusRef = useRef<HTMLElement | null>(null)
+  const cancelRestoreRef = useRef<(() => void) | null>(null)
 
   useLayoutEffect(() => {
     if (!isOpen || !containerRef.current) return
 
+    // Cancela a saída anterior ao reabrir ou reconectar efeitos no StrictMode.
+    cancelRestoreRef.current?.()
+    cancelRestoreRef.current = null
     const container = containerRef.current
     if (!restoreFocusRef.current && document.activeElement instanceof HTMLElement) {
       restoreFocusRef.current = document.activeElement
@@ -91,12 +95,24 @@ export function useModalFocusTrap<T extends HTMLElement>(isOpen: boolean) {
       const stackIndex = trapStack.lastIndexOf(trapId)
       if (stackIndex !== -1) trapStack.splice(stackIndex, 1)
       const focusToRestore = restoreFocusRef.current
-      queueMicrotask(() => {
-        // React StrictMode simulates an effect cleanup while the modal remains mounted.
+      let cancelled = false
+      const observer = new MutationObserver(() => restoreAfterRemoval())
+      const cancel = () => { cancelled = true; observer.disconnect() }
+      const restoreAfterRemoval = () => {
+        if (cancelled) return
         if (container.isConnected) return
+        cancel()
+        cancelRestoreRef.current = null
         restoreFocusRef.current = null
+        // Não toma o foco de outro modal ou de uma interação ocorrida durante a saída.
+        const active = document.activeElement
+        if (active instanceof HTMLElement && active !== document.body && active !== document.documentElement && !container.contains(active)) return
         focusElement(focusToRestore)
-      })
+      }
+      cancelRestoreRef.current = cancel
+      // MotionPresence mantém o nó durante a saída; restaura quando ele realmente sai.
+      if (container.isConnected) observer.observe(document.documentElement, { childList: true, subtree: true })
+      queueMicrotask(restoreAfterRemoval)
     }
   }, [isOpen])
 

@@ -66,7 +66,8 @@ class AreaRepository {
   // Remove uma Área.
   async delete(userId: number, id: number) {
     return prisma.area.delete({
-      where: { AND: [{ userId }], id },
+      // Revalida na escrita: uma restauração concorrente impede a exclusão.
+      where: { AND: [{ userId }], id, archivedAt: { not: null } },
     });
   }
 

@@ -75,7 +75,8 @@ class TaskRepository {
   // Remove uma Tarefa.
   async delete(userId: number, id: number) {
     return prisma.task.delete({
-      where: { AND: [{ list: { area: { userId } } }], id },
+      // Revalida na escrita: uma restauração concorrente impede a exclusão.
+      where: { AND: [{ list: { area: { userId } } }], id, archivedAt: { not: null } },
     });
   }
 

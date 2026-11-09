@@ -41,7 +41,10 @@ class TaskService {
       throw new HttpError(404, "Lista não encontrada.");
     }
 
-    return taskRepository.create(userId, data);
+    return taskRepository.create(userId, {
+      ...data,
+      completedAt: data.completed ? new Date() : null,
+    });
   }
 
   // Atualiza uma Tarefa.

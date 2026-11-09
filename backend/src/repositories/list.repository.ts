@@ -61,7 +61,8 @@ class ListRepository {
   // Remove uma Lista.
   async delete(userId: number, id: number) {
     return prisma.list.delete({
-      where: { AND: [{ area: { userId } }], id },
+      // Revalida na escrita: uma restauração concorrente impede a exclusão.
+      where: { AND: [{ area: { userId } }], id, archivedAt: { not: null } },
     });
   }
 

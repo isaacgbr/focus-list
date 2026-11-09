@@ -2343,6 +2343,7 @@ button {
   .task-detail-heading-meta { align-self: center; gap: 6px; font-size: 12px; }
   .task-description-card { padding: 16px; }
   .task-details-modal .checklist-form { align-items: stretch; flex-direction: column; }
+  .task-details-modal .checklist-form input { flex: 0 0 auto; min-height: 44px; }
   .task-details-modal .checklist-form .primary-action, .task-details-modal .link-form .primary-action { width: 100%; margin-left: 0; }
   .task-property-row { grid-template-columns: 76px minmax(0, 1fr); }
   .link-item-edit { grid-template-columns: 1fr; }

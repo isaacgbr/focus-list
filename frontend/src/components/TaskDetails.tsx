@@ -59,6 +59,11 @@ function safeUrl(value: string) {
   }
 }
 
+function linkOrigin(value: string) {
+  const url = safeUrl(value)
+  return url ? new URL(url).hostname.replace(/^www\./, '') : 'Link inválido'
+}
+
 function isValidDueDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return false
@@ -522,7 +527,7 @@ export function TaskDetails({ task, listTitle, archivedMode = false, onClose, on
                         </form>
                       ) : (
                         <div className="link-item" key={link.id}>
-                          <a className="link-item-open" href={safeUrl(link.url) ?? undefined} target="_blank" rel="noreferrer" aria-label={`Abrir ${link.title} em nova aba`}><Link2 size={18} /><span><strong>{link.title}</strong><small>{link.url}</small></span><ExternalLink size={16} /></a>
+                          <a className="link-item-open" href={safeUrl(link.url) ?? undefined} target="_blank" rel="noreferrer" title={link.url} aria-label={`Abrir ${link.title?.trim() || linkOrigin(link.url)} em nova aba`}><Link2 size={18} aria-hidden="true" /><span><strong>{link.title?.trim() || linkOrigin(link.url)}</strong><small>{linkOrigin(link.url)}</small></span><span className="link-open-action">Abrir <ExternalLink size={14} aria-hidden="true" /></span></a>
                           <div className="task-item-actions"><button type="button" onClick={() => startLinkEdit(link)} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Editar ${link.title}`}><Pencil size={15} /></button><button type="button" onClick={() => void handleLinkDelete(link)} disabled={savingLinkId !== null || deletingLinkId !== null} aria-label={`Excluir ${link.title}`}>{deletingLinkId === link.id ? <LoaderCircle className="spin" size={15} /> : <Trash2 size={15} />}</button></div>
                         </div>
                       ))}

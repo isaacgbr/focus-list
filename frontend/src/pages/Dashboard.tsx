@@ -23,13 +23,14 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import dashboardService, { type DashboardSummary, type DashboardTask as DashboardApiTask } from '../services/dashboardService'
+import { useAuth } from '../auth/AuthContext'
+import listService from '../services/listService'
+import taskService from '../services/taskService'
+import { matchesTaskAttention, type AttentionFilter } from '../utils/taskAttention'
+import { getStoredHeroTheme, storeHeroTheme, heroThemeOptions, type DayPeriod, type HeroTheme } from '../utils/dashboardTheme'
 
 const DATA_CHANGED_EVENT = 'focuslist:data-changed'
 const DASHBOARD_AREA_LIMIT = 6
-const HERO_THEME_STORAGE_KEY = 'focuslist:dashboard-hero-theme'
-
-type DayPeriod = 'morning' | 'afternoon' | 'night'
-type HeroTheme = 'auto' | DayPeriod
 
 const dayPeriodContent: Record<DayPeriod, { greeting: string }> = {
   morning: { greeting: 'Bom dia' },
@@ -48,6 +49,7 @@ type DashboardTask = {
   id: number
   title: string
   listId?: number
+  areaId?: number
   list?: string
   listColor?: string | null
   deadline?: string
@@ -58,7 +60,7 @@ type DashboardTask = {
 }
 
 type AttentionItem = {
-  id: 'overdue' | 'today' | 'week'
+  id: AttentionFilter
   count: number
   label: string
   detail: string
@@ -71,18 +73,6 @@ type AreaSummary = {
   color: string | null
   listsTotal: number
   tasksTotal: number
-}
-
-const heroThemeOptions: { value: HeroTheme; label: string }[] = [
-  { value: 'auto', label: 'Automática' },
-  { value: 'morning', label: 'Manhã' },
-  { value: 'afternoon', label: 'Tarde' },
-  { value: 'night', label: 'Noite' },
-]
-
-function getStoredHeroTheme(): HeroTheme {
-  const storedTheme = window.localStorage.getItem(HERO_THEME_STORAGE_KEY)
-  return heroThemeOptions.some((option) => option.value === storedTheme) ? storedTheme as HeroTheme : 'auto'
 }
 
 const emptyDashboardData: DashboardSummary = {
@@ -176,19 +166,19 @@ function AttentionIcon({ id }: { id: AttentionItem['id'] }) {
 
 function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTask[]; onOpen: (task: DashboardTask) => void; showDeadline?: boolean }) {
   return (
-    <div className={`task-table ${showDeadline ? 'has-deadline' : ''}`} role="table">
-      <div className="task-table-header" role="row">
-        <span role="columnheader">Tarefa</span>
-        <span role="columnheader">Lista</span>
-        {showDeadline ? <span role="columnheader">Prazo</span> : null}
+    <div className={`task-table ${showDeadline ? 'has-deadline' : ''}`}>
+      <div className="task-table-header" aria-hidden="true">
+        <span>Tarefa</span>
+        <span>Lista</span>
+        {showDeadline ? <span>Prazo</span> : null}
         <span aria-hidden="true" />
       </div>
       {tasks.length === 0 ? <p className="dashboard-table-empty">Nenhuma tarefa nesta seção.</p> : null}
       {tasks.map((task) => (
-        <button className="task-row" type="button" role="row" key={task.id} onClick={() => onOpen(task)}>
-          <span className="dashboard-task-title" role="cell"><strong>{task.title}</strong><TaskMetadata task={task} /></span>
-          <span role="cell">{task.list ? <ListBadge color={task.listColor} name={task.list} /> : null}</span>
-          {showDeadline ? <span className={task.deadlineTone ? `deadline is-${task.deadlineTone}` : 'deadline'} role="cell">{task.deadline}</span> : null}
+        <button className="task-row" type="button" key={task.id} onClick={() => onOpen(task)} aria-label={`Abrir ${task.title}${task.list ? `, lista ${task.list}` : ''}${task.deadline ? `, prazo ${task.deadline}` : ''}`}>
+          <span className="dashboard-task-title"><strong>{task.title}</strong><TaskMetadata task={task} /></span>
+          <span>{task.list ? <ListBadge color={task.listColor} name={task.list} /> : null}</span>
+          {showDeadline ? <span className={task.deadlineTone ? `deadline is-${task.deadlineTone}` : 'deadline'}>{task.deadline}</span> : null}
           <ChevronRight size={21} aria-hidden="true" />
         </button>
       ))}
@@ -198,6 +188,8 @@ function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTa
 
 export function Dashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const firstName = user?.name?.trim().split(/\s+/)[0]
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const currentDateKey = toDateKey(currentDate)
   const [heroTheme, setHeroTheme] = useState<HeroTheme>(getStoredHeroTheme)
@@ -206,6 +198,11 @@ export function Dashboard() {
   const [data, setData] = useState<DashboardSummary>(emptyDashboardData)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [attentionFilter, setAttentionFilter] = useState<AttentionFilter | null>(null)
+  const [attentionTasks, setAttentionTasks] = useState<DashboardTask[]>([])
+  const [attentionLoading, setAttentionLoading] = useState(false)
+  const [attentionError, setAttentionError] = useState('')
+  const [attentionAttempt, setAttentionAttempt] = useState(0)
   const heroThemeControlRef = useRef<HTMLDivElement>(null)
   const heroThemeButtonRef = useRef<HTMLButtonElement>(null)
   const dayPeriod = getDayPeriod(currentDate)
@@ -213,7 +210,7 @@ export function Dashboard() {
 
   const selectHeroTheme = (theme: HeroTheme) => {
     setHeroTheme(theme)
-    window.localStorage.setItem(HERO_THEME_STORAGE_KEY, theme)
+    storeHeroTheme(theme)
     setIsThemePopoverOpen(false)
     window.requestAnimationFrame(() => heroThemeButtonRef.current?.focus())
   }
@@ -231,6 +228,33 @@ export function Dashboard() {
   }, [currentDateKey])
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
+
+  useEffect(() => {
+    if (!attentionFilter) return
+    let active = true
+    setAttentionLoading(true)
+    setAttentionError('')
+    // Os contadores não se limitam às três tarefas exibidas no resumo.
+    void Promise.all([taskService.getAll(), listService.getAll()]).then(([tasks, lists]) => {
+      if (!active) return
+      const listsById = new Map(lists.map((list) => [list.id, list]))
+      const areasById = new Map(data.areas.map((area) => [area.id, area]))
+      const filtered = tasks.filter((task) => matchesTaskAttention(task, attentionFilter, currentDateKey))
+        .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!) || a.title.localeCompare(b.title))
+        .flatMap((task): DashboardTask[] => {
+          const list = listsById.get(task.listId)
+          if (!list) return []
+          return [{ id: task.id, title: task.title, listId: list.id, areaId: list.areaId, list: list.title,
+            listColor: areasById.get(list.areaId)?.color, deadline: formatDeadline(task.dueDate!.slice(0, 10), currentDateKey),
+            deadlineTone: attentionFilter === 'overdue' ? 'danger' : undefined,
+            checklistCompleted: 0, checklistTotal: 0, linksTotal: 0 }]
+        })
+      setAttentionTasks(filtered)
+    }).catch(() => {
+      if (active) setAttentionError('Não foi possível carregar estas tarefas.')
+    }).finally(() => { if (active) setAttentionLoading(false) })
+    return () => { active = false }
+  }, [attentionFilter, attentionAttempt, currentDateKey, data])
 
   useEffect(() => {
     if (!isThemePopoverOpen) return
@@ -279,6 +303,7 @@ export function Dashboard() {
         id: task.id,
         title: task.title,
         listId: task.listId,
+        areaId: task.areaId,
         list: task.listTitle,
         listColor: task.listColor,
         deadline: dueDateKey ? formatDeadline(dueDateKey, todayKey) : undefined,
@@ -305,8 +330,7 @@ export function Dashboard() {
     .format(currentDate).replace(/^(\w)/, (letter) => letter.toUpperCase()).replace(/\./g, '')
 
   const openTask = (task: DashboardTask) => {
-    const sourceTask = [...data.inProgress, ...data.upcoming].find((item) => item.id === task.id)
-    if (sourceTask) navigate(`/app/areas/${sourceTask.areaId}/listas/${sourceTask.listId}`, { state: { taskId: task.id } })
+    if (task.areaId && task.listId) navigate(`/app/areas/${task.areaId}/listas/${task.listId}`, { state: { taskId: task.id } })
   }
 
   const visibleAreaSummaries = areAreasExpanded ? dashboard.areaSummaries : dashboard.areaSummaries.slice(0, DASHBOARD_AREA_LIMIT)
@@ -318,7 +342,7 @@ export function Dashboard() {
       <div className="hero-mountain hero-mountain-front" aria-hidden="true" />
       <div className="dashboard-hero-copy">
         <p className="dashboard-date"><CalendarDays size={20} aria-hidden="true" />{formattedDate}</p>
-        <h1 id="dashboard-title">{dayPeriodContent[dayPeriod].greeting}, <span>Isaac.</span></h1>
+        <h1 id="dashboard-title">{dayPeriodContent[dayPeriod].greeting}{firstName ? <>, <span>{firstName}.</span></> : '.'}</h1>
       </div>
       <div className="hero-cover-control" ref={heroThemeControlRef}>
         <button ref={heroThemeButtonRef} className="hero-cover-button" type="button" aria-label="Personalizar capa" aria-haspopup="dialog" aria-expanded={isThemePopoverOpen} aria-controls="hero-cover-popover" onClick={() => setIsThemePopoverOpen((current) => !current)}>
@@ -372,7 +396,10 @@ export function Dashboard() {
       {renderHero()}
       <section className="dashboard-card attention-card" aria-labelledby="attention-title">
         <div className="dashboard-card-topline"><SectionHeading id="attention-title" icon={AlertCircle} tone="attention" title="Atenção" description="Tarefas que precisam da sua atenção agora." /></div>
-        <div className="attention-grid">{dashboard.attentionItems.map((item) => <div className={`attention-item is-${item.tone}${item.count === 0 ? ' is-empty' : ''}`} key={item.id}><span className="attention-status-icon" aria-hidden="true"><AttentionIcon id={item.id} /></span><strong>{item.count}</strong><span className="attention-copy"><span>{item.label}</span><small>{item.detail}</small></span></div>)}</div>
+        <div className="attention-grid">{dashboard.attentionItems.map((item) => <button type="button" className={`attention-item is-${item.tone}${item.count === 0 ? ' is-empty' : ''}`} key={item.id} aria-expanded={attentionFilter === item.id} aria-controls="attention-tasks" onClick={() => setAttentionFilter((current) => current === item.id ? null : item.id)}><span className="attention-status-icon" aria-hidden="true"><AttentionIcon id={item.id} /></span><strong>{item.count}</strong><span className="attention-copy"><span>{item.label}</span><small>{item.detail}</small></span><ChevronRight className="attention-arrow" size={17} aria-hidden="true" /></button>)}</div>
+        {attentionFilter ? <section className="attention-results" id="attention-tasks" aria-label={`Tarefas ${dashboard.attentionItems.find((item) => item.id === attentionFilter)?.label}`} aria-live="polite" aria-busy={attentionLoading}>
+          {attentionLoading ? <p className="dashboard-table-empty"><LoaderCircle className="spin" size={18} aria-hidden="true" /> Carregando tarefas...</p> : attentionError ? <div role="alert"><p>{attentionError}</p><button type="button" className="secondary-action" onClick={() => setAttentionAttempt((current) => current + 1)}>Tentar novamente</button></div> : <TaskTable tasks={attentionTasks} onOpen={openTask} showDeadline />}
+        </section> : null}
       </section>
       <div className="dashboard-columns">
         <section className="dashboard-card tasks-card" aria-labelledby="progress-title">
@@ -391,7 +418,6 @@ export function Dashboard() {
             <div><span className="overview-metric-icon is-total"><ListTodo size={17} /></span><span><strong>{dashboard.overview.total}</strong><small>Total de tarefas</small></span></div>
             <div><span className="overview-metric-icon is-pending"><CircleDashed size={17} /></span><span><strong>{dashboard.overview.pending}</strong><small>Pendentes</small></span></div>
             <div><span className="overview-metric-icon is-completed"><CheckCircle2 size={17} /></span><span><strong>{dashboard.overview.completed}</strong><small>Concluídas</small></span></div>
-            <div className="overview-completion"><span><strong>{dashboard.overview.completionPercentage}%</strong><small>Concluído</small></span><div className="overview-progress" role="progressbar" aria-label="Percentual de tarefas concluídas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={dashboard.overview.completionPercentage}><span style={{ width: `${dashboard.overview.completionPercentage}%` }} /></div></div>
           </div>
         </section>
         <section className="dashboard-card areas-card" aria-labelledby="areas-title">

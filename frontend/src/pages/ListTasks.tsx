@@ -27,21 +27,6 @@ type TaskContentSummary = {
   linkCount: number
 }
 
-type CompletedSectionToggleProps = {
-  controlsId: string
-  count: number
-  expanded: boolean
-  labelId: string
-  onToggle: () => void
-}
-
-function CompletedSectionToggle({ controlsId, count, expanded, labelId, onToggle }: CompletedSectionToggleProps) {
-  return <button className="completed-section-toggle" type="button" onClick={onToggle} aria-controls={controlsId} aria-expanded={expanded}>
-    <span id={labelId}><CheckCircle2 size={18} aria-hidden="true" />Concluídas <span aria-hidden="true">·</span> {count}</span>
-    <span className="completed-section-action">{expanded ? 'Ocultar' : 'Mostrar'}{expanded ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}</span>
-  </button>
-}
-
 function summarizeTaskContent(checklistItems: ChecklistItem[], links: Link[]) {
   const summaries: Record<number, TaskContentSummary> = {}
 
@@ -94,8 +79,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [completedFeedbackTaskId, setCompletedFeedbackTaskId] = useState<number | null>(null)
   const [visiblePendingCards, setVisiblePendingCards] = useState(INITIAL_VISIBLE_CARDS)
   const [visibleCompletedCards, setVisibleCompletedCards] = useState(INITIAL_VISIBLE_CARDS)
-  const [completedListExpanded, setCompletedListExpanded] = useState(false)
-  const [completedCardsExpanded, setCompletedCardsExpanded] = useState(false)
+  const [taskStatus, setTaskStatus] = useState<'pending' | 'completed'>('pending')
   const taskModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
   const discardModalRef = useModalFocusTrap<HTMLElement>(isDiscardConfirmOpen)
   const listEditModalRef = useModalFocusTrap<HTMLElement>(isListEditOpen)
@@ -185,6 +169,11 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   }
 
   useEffect(() => { void loadTasks() }, [loadTasks])
+  useEffect(() => {
+    setTaskStatus('pending')
+    setVisiblePendingCards(INITIAL_VISIBLE_CARDS)
+    setVisibleCompletedCards(INITIAL_VISIBLE_CARDS)
+  }, [selectedListId, archivedMode])
   useEffect(() => {
     const taskId = (location.state as { taskId?: unknown } | null)?.taskId
     if (archivedMode || isLoading || loadError || typeof taskId !== 'number') return
@@ -279,6 +268,12 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
 
   const pendingTasks = tasks.filter((task) => !task.completed)
   const completedTasks = tasks.filter((task) => task.completed)
+  const visibleTasks = taskStatus === 'pending' ? pendingTasks : completedTasks
+  const visibleCardCount = taskStatus === 'pending' ? visiblePendingCards : visibleCompletedCards
+  const toggleVisibleCards = () => {
+    const setCount = taskStatus === 'pending' ? setVisiblePendingCards : setVisibleCompletedCards
+    setCount((current) => current >= visibleTasks.length ? INITIAL_VISIBLE_CARDS : visibleTasks.length)
+  }
   const renderContentIndicators = (task: Task) => {
     const summary = taskContentSummaries[task.id]
     if (!summary || (!summary.checklistTotal && !summary.linkCount)) return null
@@ -311,7 +306,6 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       </button>
       <button className="task-card-copy" type="button" onClick={() => setSelectedTask(task)} aria-label={`Abrir detalhes de ${task.title}`}>
         <strong>{task.title}</strong>
-        {task.description ? <p>{task.description}</p> : null}
         {task.priority || task.dueDate || taskContentSummaries[task.id] ? <span className="task-card-metadata">
           {task.priority ? <span className={`task-priority is-${task.priority.toLowerCase()}`}>{priorityLabels[task.priority]}</span> : null}
           {task.dueDate ? <span className="task-due-date"><CalendarDays size={15} />{formatDueDate(task.dueDate)}</span> : null}
@@ -338,32 +332,22 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
       {!isLoading && !loadError && tasks.length > 0 ? (
         <div className={`tasks-content is-${viewMode}`} aria-live="polite">
           <div className="tasks-view-header">
-            <div className="tasks-summary"><span><Circle size={16} />{pendingTasks.length} {pendingTasks.length === 1 ? 'pendente' : 'pendentes'}</span><span><CheckCircle2 size={17} />{completedTasks.length} {completedTasks.length === 1 ? 'concluída' : 'concluídas'}</span></div>
+            <div className="task-status-toggle" role="group" aria-label="Estado das tarefas">
+              <button className={taskStatus === 'pending' ? 'is-active' : ''} type="button" aria-pressed={taskStatus === 'pending'} aria-controls="task-status-content" onClick={() => setTaskStatus('pending')}><Circle size={16} aria-hidden="true" />Pendentes ({pendingTasks.length})</button>
+              <button className={taskStatus === 'completed' ? 'is-active' : ''} type="button" aria-pressed={taskStatus === 'completed'} aria-controls="task-status-content" onClick={() => setTaskStatus('completed')}><CheckCircle2 size={17} aria-hidden="true" />Concluídas ({completedTasks.length})</button>
+            </div>
             <div className="view-mode-toggle" role="group" aria-label="Modo de visualização das tarefas">
               <button className={viewMode === 'list' ? 'is-active' : ''} type="button" onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'}><ListIcon size={18} />Lista</button>
               <button className={viewMode === 'cards' ? 'is-active' : ''} type="button" onClick={() => setViewMode('cards')} aria-pressed={viewMode === 'cards'}><LayoutGrid size={18} />Cards</button>
             </div>
           </div>
 
-          {viewMode === 'cards' ? (
-            <div className={`task-card-sections${pendingTasks.length === 0 || completedTasks.length === 0 ? ' is-single-section' : ''}`}>
-              {pendingTasks.length > 0 ? <section className="task-card-section pending-task-cards" aria-labelledby="pending-task-cards-title">
-                <h2 id="pending-task-cards-title">Pendentes <span aria-hidden="true">·</span> {pendingTasks.length}</h2>
-                <div className="task-cards-grid">{pendingTasks.slice(0, visiblePendingCards).map(renderTaskCard)}</div>
-                {pendingTasks.length > INITIAL_VISIBLE_CARDS ? <button className="task-cards-more" type="button" onClick={() => setVisiblePendingCards((current) => current >= pendingTasks.length ? INITIAL_VISIBLE_CARDS : pendingTasks.length)}>{visiblePendingCards >= pendingTasks.length ? <><ChevronUp size={18} />Recolher</> : <><ChevronDown size={18} />Ver mais {pendingTasks.length - visiblePendingCards}</>}</button> : null}
-              </section> : null}
-              {completedTasks.length > 0 ? <section className={`task-card-section completed-task-cards${completedCardsExpanded ? ' is-expanded' : ''}`} aria-labelledby="completed-task-cards-title">
-                <CompletedSectionToggle controlsId="completed-task-cards" count={completedTasks.length} expanded={completedCardsExpanded} labelId="completed-task-cards-title" onToggle={() => setCompletedCardsExpanded((current) => !current)} />
-                {completedCardsExpanded ? <><div className="task-cards-grid" id="completed-task-cards">{completedTasks.slice(0, visibleCompletedCards).map(renderTaskCard)}</div>{completedTasks.length > INITIAL_VISIBLE_CARDS ? <button className="task-cards-more" type="button" onClick={() => setVisibleCompletedCards((current) => current >= completedTasks.length ? INITIAL_VISIBLE_CARDS : completedTasks.length)}>{visibleCompletedCards >= completedTasks.length ? <><ChevronUp size={18} />Recolher</> : <><ChevronDown size={18} />Ver mais {completedTasks.length - visibleCompletedCards}</>}</button> : null}</> : null}
-              </section> : null}
-            </div>
-          ) : <>
-            <div className="tasks-list">{pendingTasks.map(renderTask)}</div>
-            {completedTasks.length > 0 ? <section className="completed-tasks" aria-labelledby="completed-tasks-title">
-              <CompletedSectionToggle controlsId="completed-tasks-list" count={completedTasks.length} expanded={completedListExpanded} labelId="completed-tasks-title" onToggle={() => setCompletedListExpanded((current) => !current)} />
-              {completedListExpanded ? <div className="tasks-list" id="completed-tasks-list">{completedTasks.map(renderTask)}</div> : null}
-            </section> : null}
-          </>}
+          <section id="task-status-content" aria-label={taskStatus === 'pending' ? 'Tarefas pendentes' : 'Tarefas concluídas'}>
+            {visibleTasks.length === 0 ? <div className="lists-state task-status-empty"><CheckCircle2 size={28} aria-hidden="true" /><h2>{taskStatus === 'pending' ? 'Nenhuma tarefa pendente' : 'Nenhuma tarefa concluída'}</h2><p>{taskStatus === 'pending' ? 'Tudo em dia nesta lista. As tarefas finalizadas estão em Concluídas.' : 'As tarefas que você concluir aparecerão aqui.'}</p></div> : viewMode === 'cards' ? <>
+              <div className="task-cards-grid">{visibleTasks.slice(0, visibleCardCount).map(renderTaskCard)}</div>
+              {visibleTasks.length > INITIAL_VISIBLE_CARDS ? <button className="task-cards-more" type="button" onClick={toggleVisibleCards}>{visibleCardCount >= visibleTasks.length ? <><ChevronUp size={18} />Recolher</> : <><ChevronDown size={18} />Ver mais {visibleTasks.length - visibleCardCount}</>}</button> : null}
+            </> : <div className="tasks-list">{visibleTasks.map(renderTask)}</div>}
+          </section>
         </div>
       ) : null}
 

@@ -114,6 +114,7 @@
 .lp-header > a { padding: 8px 0; }
 .lp-header .brand { font-size: 19px; }
 .lp-header nav { display: flex; align-items: center; gap: 34px; }
+.lp-mobile-menu { display: none; }
 .lp-product-link { padding: 12px 0; color: #bdcee3; font-size: 13px; }
 .lp-product-link:hover { color: white; }
 .lp-access {
@@ -625,32 +626,75 @@
   .lp-demo-task-metadata { align-items: flex-end; flex-direction: column; gap: 5px; }
 }
 @media (max-width: 759px) {
-  .lp-page { --stage-height: max(740px, 100svh); }
+  :is(html, body, #root):has(.lp-page) { min-width: 0; }
+  .lp-page { --stage-height: max(620px, 100svh); }
   .lp-atmosphere > img { opacity: 0.43; object-position: 60% 55%; }
-  .lp-header { width: calc(100% - 40px); min-height: 82px; }
+  .lp-header {
+    width: calc(100% - max(16px, env(safe-area-inset-left)) - max(16px, env(safe-area-inset-right)));
+    min-height: 64px;
+    top: env(safe-area-inset-top, 0px);
+  }
   .lp-header .brand { gap: 7px; font-size: 17px; }
   .lp-header .brand-mark { width: 28px; height: 28px; flex-basis: 28px; }
-  .lp-header { align-items: flex-start; padding-top: 21px; }
-  .lp-header nav { display: grid; grid-template-columns: repeat(3, max-content); justify-content: end; gap: 3px 10px; }
-  .lp-header nav .lp-access-compact { grid-column: 1 / -1; grid-row: 1; justify-self: end; }
-  .lp-product-link { display: inline-flex; min-height: 36px; align-items: center; padding: 3px 0; font-size: 9.5px; }
-  .lp-access-compact { gap: 10px; padding-right: 12px; padding-left: 12px; font-size: 10px; }
-  .lp-stage { padding: 100px 24px; }
-  .lp-scene { min-height: calc(var(--stage-height) + 12svh); }
-  .lp-scene + .lp-scene { margin-top: -8svh; }
+  .lp-header nav { gap: 8px; }
+  .lp-header .lp-product-link { display: none; }
+  .lp-header .lp-access-compact { min-height: 44px; padding: 8px 14px; font-size: 13px; }
+  .lp-header .lp-access-compact > svg { display: none; }
+  .lp-mobile-menu { position: relative; display: block; }
+  .lp-mobile-menu summary {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    list-style: none;
+    border: 1px solid var(--lp-border);
+    border-radius: 9px;
+    background: #0c1a2b;
+    color: #e4efff;
+    cursor: pointer;
+  }
+  .lp-mobile-menu summary::-webkit-details-marker { display: none; }
+  .lp-mobile-menu summary:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }
+  .lp-mobile-menu[open] summary { border-color: #75afff80; }
+  .lp-mobile-menu-panel {
+    position: absolute;
+    inset: calc(100% + 8px) 0 auto auto;
+    min-width: 168px;
+    padding: 5px;
+    border: 1px solid var(--lp-border);
+    border-radius: 12px;
+    background: #0b192a;
+    box-shadow: 0 12px 28px #02081380;
+  }
+  .lp-mobile-menu-panel a {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 7px;
+    color: #dbeaff;
+    font-size: 13px;
+  }
+  .lp-mobile-menu-panel a:is(:hover, :focus-visible) { background: #17314e; }
+  .lp-stage { padding: 64px 20px; }
+  .lp-scene { min-height: var(--stage-height); }
+  .lp-scene + .lp-scene { margin-top: -4svh; }
   .lp-mark { width: 145px; height: 145px; }
-  .lp-hero .lp-mark { width: 155px; height: 155px; }
-  .lp-hero .lp-stage { padding-top: 100px; padding-bottom: 90px; }
+  .lp-hero .lp-mark { width: clamp(104px, 29vw, 132px); height: clamp(104px, 29vw, 132px); }
+  .lp-hero .lp-stage { min-height: clamp(500px, 82svh, 680px); padding-top: calc(76px + env(safe-area-inset-top, 0px)); padding-bottom: 42px; }
   .lp-hero-brand-plane { transform: translateY(calc(var(--mid-y, 0px) * 0.65)); }
   .lp-hero-message .lp-reveal { --reveal-z: 0px; }
-  .lp-hero-name { margin-top: 26px !important; font-size: clamp(56px, 13vw, 78px); }
-  .lp-hero-message { margin-top: 26px; }
-  .lp-hero-message h2 { max-width: 330px; margin: auto; font-size: 25px; text-wrap: balance; }
-  .lp-hero-message p { max-width: 310px; font-size: 13px; }
-  .lp-transformation { min-height: calc(var(--stage-height) + 145svh); }
-  .lp-transformation .lp-stage { padding: 85px 20px 125px; }
+  .lp-hero-name { margin-top: 14px !important; font-size: clamp(44px, 12vw, 58px); }
+  .lp-hero-message { margin-top: 16px; }
+  .lp-hero-message h2 { max-width: 300px; margin: auto; font-size: clamp(21px, 5.8vw, 25px); text-wrap: balance; }
+  .lp-hero-message p { max-width: 300px; margin-top: 10px; font-size: 13px; line-height: 1.6; }
+  .lp-hero .lp-hero-action { margin-top: 20px; gap: 8px; }
+  .lp-hero-action .lp-access { min-height: 44px; gap: 8px; padding: 10px 12px; font-size: 12px; }
+  .lp-hero-action .lp-access > svg { width: 16px; }
+  .lp-transformation { min-height: calc(var(--stage-height) + 88svh); }
+  .lp-transformation .lp-stage { padding: 45px 18px 108px; }
   .lp-galaxy-layout { width: min(500px, 100%); }
-  .lp-galaxy-space { height: 560px; perspective: 1000px; }
+  .lp-galaxy-space { height: clamp(442px, 55svh, 480px); perspective: 1000px; }
   .lp-gravity-core { width: 140px; }
   .lp-galaxy-spiral { width: 155%; opacity: calc((0.34 + var(--galaxy-disorder, 0) * 0.66)); }
   .lp-spiral-stars-2, .lp-star-depth-2 { display: none; }
@@ -665,12 +709,12 @@
   .lp-idea-label { gap: 4px; font-size: 10.5px; }
   .lp-task-orbit-2 { display: none; }
   .lp-galaxy-dust > i:nth-child(n+9) { display: none; }
-  .lp-galaxy-reveal { bottom: -100px; }
-  .lp-galaxy-reveal h2 { font-size: 32px; }
+  .lp-galaxy-reveal { bottom: -82px; }
+  .lp-galaxy-reveal h2 { font-size: clamp(25px, 7.1vw, 32px); }
   .lp-galaxy-reveal p { font-size: 12px; }
 
-  .lp-product { min-height: calc(var(--stage-height) + 110svh); }
-  .lp-product .lp-stage { gap: 20px; padding: 30px 20px 40px; }
+  .lp-product { min-height: calc(var(--stage-height) + 58svh); }
+  .lp-product .lp-stage { gap: 14px; padding: 22px 18px 28px; }
   .lp-product-heading { max-width: 480px; text-align: center; }
   .lp-demo-narratives { min-height: 95px; }
   .lp-demo-narrative > strong { font-size: 42px; }
@@ -716,26 +760,23 @@
   .lp-product-figure figcaption { margin: 17px 8px 0; font-size: 9px; }
   /* Both the overview and details remain readable in the compact presentation. */
 
-  .lp-closing { min-height: var(--stage-height); }
-  .lp-closing .lp-stage { padding-bottom: 210px; }
-  .lp-closing-content { min-height: 0; grid-template-columns: minmax(0, 1fr); gap: 30px; }
-  .lp-closing-invitation { width: 100%; margin-top: 15px; }
-  .lp-closing-content h2 { max-width: 330px; margin-bottom: 26px; font-size: clamp(36px, 8.5vw, 52px); }
-  .lp-closing-content .lp-access { min-height: 50px; gap: 25px; }
-  .lp-closing-sculpture { justify-self: end; width: 150px; }
-  .lp-closing .lp-mark { width: 142px; }
+  .lp-closing { min-height: min(100svh, 640px); }
+  .lp-closing .lp-stage { min-height: inherit; gap: 28px; padding: 48px 20px calc(30px + env(safe-area-inset-bottom, 0px)); }
+  .lp-closing-content { min-height: 0; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; max-width: 450px; }
+  .lp-closing-content h2 { margin-bottom: 18px; font-size: clamp(28px, 7.7vw, 40px); }
+  .lp-closing-content .lp-access { min-height: 44px; gap: 10px; padding: 10px 12px; font-size: 12px; }
+  .lp-closing-sculpture { width: clamp(68px, 23vw, 105px); }
+  .lp-closing .lp-mark { width: 100%; }
 
-  .lp-footer { right: 24px; bottom: 75px; left: 24px; flex-direction: column; gap: 14px; text-align: center; }
+  .lp-footer { position: relative; inset: auto; width: min(100%, 450px); padding-top: 16px; flex-direction: column; gap: 5px; text-align: center; }
   .lp-footer p { font-size: 11px; }
   .lp-footer > div > span { max-width: 270px; font-size: 10px; line-height: 1.7; }
   .lp-footer nav { gap: 30px; }
 }
 @media (max-width: 370px) {
   .lp-stage { padding-right: 18px; padding-left: 18px; }
-  .lp-header { width: calc(100% - 32px); }
   .lp-header .brand { font-size: 15px; }
   .lp-header .brand-mark { width: 24px; height: 24px; flex-basis: 24px; }
-  .lp-header .lp-access-compact > svg { display: none; }
   .lp-idea-label { font-size: 10px; }
   .lp-demo-window { height: 550px; }
   .lp-demo-details-title strong { font-size: 20px; }

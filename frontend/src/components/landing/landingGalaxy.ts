@@ -41,7 +41,7 @@ export function galaxyPosition(systemIndex: number, ideaIndex: number, disorder:
   // Narrow screens keep all twelve ideas readable within staggered orbital bands.
   const chaosX = mobile ? width * (ideaIndex === 0 ? 0.28 : ideaIndex === 1 ? 0.72 : 0.5)
     : width * 0.5 + Math.cos(orbit) * radius
-  const chaosY = mobile ? centerY + 13 + ideaIndex * 23
+  const chaosY = mobile ? centerY + 13 + ideaIndex * 17
     : height * 0.48 + Math.sin(orbit) * height * (0.23 + ideaIndex * 0.045) * Math.cos(inclination)
   const scale = mobile ? 1 : system.scale
   const driftX = Math.cos(phase * 0.45 + systemIndex * 1.7) * (mobile ? 1 : 5)
@@ -49,7 +49,7 @@ export function galaxyPosition(systemIndex: number, ideaIndex: number, disorder:
   const orderedZ = mobile ? 0 : system.z + Math.sin(t) * 12
   return {
     x: mix(centerX + idea.x * (mobile ? 0.62 : scale), chaosX, disorder) + driftX,
-    y: mix(centerY + (mobile ? 17 + ideaIndex * 24 : idea.y * scale), chaosY, disorder) + driftY,
+    y: mix(centerY + (mobile ? 14 + ideaIndex * 17 : idea.y * scale), chaosY, disorder) + driftY,
     z: mix(orderedZ, idea.z + Math.sin(orbit) * Math.sin(inclination) * 240, disorder) * (mobile ? 0 : 1),
     scale,
     rotation: Math.sin(t * 0.7) * disorder * (mobile ? 1 : 3),

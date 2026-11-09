@@ -3,7 +3,7 @@
   min-height: 100dvh;
   padding: var(--demo-gutter);
   background: radial-gradient(ellipse at 50% 0%, #17437170, transparent 70%),
-    linear-gradient(#040c19bb, #040c19ef), url('/landing-atmosphere-23i.png') center / cover fixed;
+    linear-gradient(#040c19bb, #040c19ef), url('/landing-atmosphere-23i.webp') center / cover fixed;
 }
 .demo-window {
   width: min(1600px, 100%);

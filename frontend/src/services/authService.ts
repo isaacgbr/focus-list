@@ -10,6 +10,8 @@ export type AuthUser = {
   type: 'REAL' | 'DEMO'
   expiresAt: string | null
   demoImport?: 'pending' | 'unavailable' | null
+  avatarUrl?: string | null
+  defaultView?: 'list' | 'cards'
 }
 
 export type LoginData = { email: string; password: string }

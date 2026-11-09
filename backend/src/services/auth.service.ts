@@ -7,8 +7,9 @@ import { hashPassword, verifyPassword } from "../security/password.js";
 import { SESSION_DURATION, tokenHash } from "../security/session.js";
 import { HttpError } from "../utils/http-error.js";
 import { allowedBody } from "../utils/validation.js";
+import { withAvatar } from "../utils/public-profile.js";
 
-function normalizedEmail(value: unknown) {
+export function normalizedEmail(value: unknown) {
   if (typeof value !== "string") throw new HttpError(400, "E-mail inválido.");
   const email = value.trim().toLowerCase();
   if (email.length > 254 || !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(email)) {
@@ -17,7 +18,7 @@ function normalizedEmail(value: unknown) {
   return email;
 }
 
-function validPassword(value: unknown) {
+export function validPassword(value: unknown) {
   if (typeof value !== "string") throw new HttpError(400, "A senha deve ter entre 8 e 32 caracteres.");
   const password = value;
   if ([...password].length < 8 || [...password].length > 32 || Buffer.byteLength(password) > 128) {
@@ -69,7 +70,8 @@ class AuthService {
 
   async session(userId: number, sessionId: number) {
     const user = await authRepository.findPublicUser(userId);
-    return { ...user, demoImport: user.type === "REAL" ? await demoRepository.status(sessionId) : null };
+    const { avatarKey, defaultView, ...base } = user;
+    return { ...(user.type === "REAL" ? withAvatar(user) : base), demoImport: user.type === "REAL" ? await demoRepository.status(sessionId) : null };
   }
 
   logout(sessionId: number, userId: number) {
@@ -113,7 +115,7 @@ class AuthService {
     const expiresAt = new Date(Date.now() + SESSION_DURATION);
     await authRepository.createSession(account.id, tokenHash(token), expiresAt, previousToken ? tokenHash(previousToken) : undefined, account.passwordHash!);
     const { passwordHash: _hash, type: _type, ...user } = account;
-    return { user: { ...user, type: "REAL" as const, expiresAt: null, demoImport: null }, token, expiresAt };
+    return { user: { ...withAvatar(user), type: "REAL" as const, expiresAt: null, demoImport: null }, token, expiresAt };
   }
 }
 

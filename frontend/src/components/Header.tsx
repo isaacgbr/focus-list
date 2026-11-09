@@ -16,6 +16,7 @@ export function Header({ contextualBreadcrumbs, isSidebarOpen, onOpenSidebar }: 
     if (pathname === '/app') return [{ label: 'Dashboard' }]
     if (pathname === '/app/arquivados') return [{ label: 'Arquivados' }]
     if (pathname === '/app/sobre') return [{ label: 'Sobre' }]
+    if (pathname === '/app/perfil') return [{ label: 'Perfil' }]
     if (pathname.startsWith('/app/arquivados/')) {
       return [{ label: 'Arquivados', to: '/app/arquivados' }, ...contextualBreadcrumbs]
     }

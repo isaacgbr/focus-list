@@ -27,6 +27,7 @@ import { authErrorMessage } from '../services/authService'
 import areaService, { Area, CreateAreaData } from '../services/areaService'
 import { Brand } from './Brand'
 import { MotionPresence } from './MotionPresence'
+import { UserAvatar } from './UserAvatar'
 
 type SidebarProps = {
   isOpen: boolean
@@ -399,6 +400,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="sidebar-spacer" />
 
           <div className="nav-group nav-group-utility">
+            {user?.type === 'REAL' ? <NavLink className="nav-link sidebar-profile" to="/app/perfil" onClick={onClose} aria-label={`Perfil de ${user.name ?? 'usuário'}`}>
+              <UserAvatar name={user.name} avatarUrl={user.avatarUrl} />
+              <span><strong>{user.name}</strong><small>Meu perfil</small></span>
+            </NavLink> : null}
             {utilityItems.map((item) => (
               <NavLink
                 className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}

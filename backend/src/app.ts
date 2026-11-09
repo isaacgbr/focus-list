@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.routes.js";
 import demoRoutes from "./routes/demo.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import archiveRoutes from "./routes/archive.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 import { requireAuth } from "./middlewares/auth.middleware.js";
 import { HttpError } from "./utils/http-error.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
@@ -43,13 +44,18 @@ app.use((req, res, next) => {
 app.use(cors({ origin: origins, credentials: true }));
 
 // Permite receber JSON no corpo das requisições.
-app.use(express.json({ limit: "32kb" }));
+const json = express.json({ limit: "32kb" });
+app.use((req, res, next) => {
+  if (req.method === "PUT" && req.path === "/profile/avatar") return next();
+  return json(req, res, next);
+});
 
 // Rotas da aplicação.
 app.use(healthRoutes);
 app.use(authRoutes);
 app.use(demoRoutes);
 app.use(requireAuth);
+app.use(profileRoutes);
 app.use(dashboardRoutes);
 app.use(archiveRoutes);
 app.use(areaRoutes);

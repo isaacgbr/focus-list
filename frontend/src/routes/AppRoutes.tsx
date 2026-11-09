@@ -13,6 +13,7 @@ import { PasswordRecoveryPage } from '../pages/PasswordRecoveryPage'
 import { RequireAuth } from '../auth/AuthGate'
 import { DemoEndedPage } from '../pages/DemoEndedPage'
 import { DemoImportPage } from '../pages/DemoImportPage'
+import { Profile } from '../pages/Profile'
 
 function LegacyAppRedirect() {
   const location = useLocation()
@@ -39,6 +40,7 @@ export function AppRoutes() {
           <Route path="arquivados/listas/:listId" element={<ListTasks archivedMode />} />
           <Route path="arquivados/tarefas/:taskId" element={<ArchivedTask />} />
           <Route path="sobre" element={<About />} />
+          <Route path="perfil" element={<Profile />} />
         </Route>
       </Route>
       <Route path="areas/*" element={<LegacyAppRedirect />} />

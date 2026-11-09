@@ -12,6 +12,8 @@ import checklistItemService, { ChecklistItem } from '../services/checklistItemSe
 import listService from '../services/listService'
 import linkService, { Link } from '../services/linkService'
 import taskService, { CreateTaskData, Task, TaskPriority } from '../services/taskService'
+import { useAuth } from '../auth/AuthContext'
+import { defaultView } from '../utils/profile'
 
 type TaskForm = { title: string; description: string; dueDate: string; priority: TaskPriority | '' }
 
@@ -65,6 +67,7 @@ function formatDueDate(value: string | null) {
 }
 
 export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) {
+  const { user } = useAuth()
   const { areaId, listId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -87,7 +90,7 @@ export function ListTasks({ archivedMode = false }: { archivedMode?: boolean }) 
   const [listEditForm, setListEditForm] = useState({ title: '', description: '' })
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [form, setForm] = useState<TaskForm>(emptyTaskForm)
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>(() => defaultView(user))
   const [completedFeedbackTaskId, setCompletedFeedbackTaskId] = useState<number | null>(null)
   const [visiblePendingCards, setVisiblePendingCards] = useState(INITIAL_VISIBLE_CARDS)
   const [visibleCompletedCards, setVisibleCompletedCards] = useState(INITIAL_VISIBLE_CARDS)

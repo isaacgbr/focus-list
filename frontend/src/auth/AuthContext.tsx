@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import api from '../services/api'
 import authService, { authErrorMessage } from '../services/authService'
 import type { AuthUser, LoginData, RegisterData, ResetPasswordData } from '../services/authService'
+import type { UserProfile } from '../services/profileService'
 
 type AuthStatus = 'checking' | 'authenticated' | 'anonymous' | 'error'
 type AuthContextValue = {
@@ -18,6 +19,7 @@ type AuthContextValue = {
   startDemo: () => Promise<void>
   resolveDemo: (action: 'import' | 'discard') => Promise<void>
   demoEnded: boolean
+  updateProfile: (profile: UserProfile) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -138,8 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('anonymous')
   }, [])
 
+  const updateProfile = useCallback((profile: UserProfile) => {
+    ++revision.current
+    setUser((current) => current?.type === 'REAL' ? { ...current, ...profile } : current)
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, status, error, checkSession, login, logout, resetPassword, startDemo, registerFromDemo, resolveDemo, demoEnded }}>
+    <AuthContext.Provider value={{ user, status, error, checkSession, login, logout, resetPassword, startDemo, registerFromDemo, resolveDemo, demoEnded, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

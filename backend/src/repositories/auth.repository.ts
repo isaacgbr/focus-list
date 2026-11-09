@@ -2,6 +2,7 @@ import prisma from "../config/prisma.js";
 import { HttpError } from "../utils/http-error.js";
 
 export const publicUserSelect = { id: true, name: true, email: true, createdAt: true } as const;
+const sessionUserSelect = { ...publicUserSelect, avatarKey: true, defaultView: true } as const;
 
 class AuthRepository {
   createUser(data: { name: string; email: string; passwordHash: string }) {
@@ -9,7 +10,7 @@ class AuthRepository {
   }
 
   findAccount(email: string) {
-    return prisma.user.findUnique({ where: { email }, select: { ...publicUserSelect, passwordHash: true, type: true } });
+    return prisma.user.findUnique({ where: { email }, select: { ...sessionUserSelect, passwordHash: true, type: true } });
   }
 
   async createSession(userId: number, hash: string, expiresAt: Date, previousHash?: string, expectedPasswordHash?: string) {
@@ -73,7 +74,7 @@ class AuthRepository {
   }
 
   findPublicUser(userId: number) {
-    return prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { ...publicUserSelect, type: true, expiresAt: true } });
+    return prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { ...sessionUserSelect, type: true, expiresAt: true } });
   }
 
   revokeSession(sessionId: number, userId: number) {

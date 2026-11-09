@@ -17,6 +17,8 @@ model User {
   email        String?   @unique
   passwordHash String?
   expiresAt    DateTime?
+  avatarKey    String?   @db.VarChar(40)
+  defaultView  String    @default("list") @db.VarChar(5)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

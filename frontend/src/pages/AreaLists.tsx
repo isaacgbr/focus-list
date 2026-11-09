@@ -23,6 +23,8 @@ import archiveService, { ArchivedAreaDetail } from '../services/archiveService'
 import areaService from '../services/areaService'
 import listService, { CreateListData, List } from '../services/listService'
 import taskService from '../services/taskService'
+import { useAuth } from '../auth/AuthContext'
+import { defaultView } from '../utils/profile'
 
 type ListForm = {
   title: string
@@ -43,6 +45,7 @@ const emptyListForm: ListForm = {
 }
 
 export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) {
+  const { user } = useAuth()
   const { areaId } = useParams()
   const selectedAreaId = Number(areaId)
   const setBreadcrumbs = useBreadcrumbs()
@@ -59,7 +62,7 @@ export function AreaLists({ archivedMode = false }: { archivedMode?: boolean }) 
   const [editingList, setEditingList] = useState<List | null>(null)
   const [archiveCandidate, setArchiveCandidate] = useState<List | null>(null)
   const [form, setForm] = useState<ListForm>(emptyListForm)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [viewMode, setViewMode] = useState<ViewMode>(() => defaultView(user))
   const [taskCounts, setTaskCounts] = useState<Record<number, ListTaskCount>>({})
   const formModalRef = useModalFocusTrap<HTMLElement>(isModalOpen)
   const archiveModalRef = useModalFocusTrap<HTMLElement>(archiveCandidate !== null)

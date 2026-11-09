@@ -25,9 +25,12 @@ class AuthRepository {
     });
   }
 
-  async createPasswordReset(userId: number, hash: string) {
+  async createPasswordReset(userId: number, hash: string, email: string) {
     return prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+      // Uma consulta anterior à troca de e-mail não pode emitir um novo link para o endereço antigo.
+      const account = await tx.user.findUnique({ where: { id: userId }, select: { email: true, type: true } });
+      if (account?.type !== "REAL" || account.email !== email) return false;
       const now = new Date();
       const previous = await tx.passwordReset.findUnique({ where: { userId } });
       if (previous && now.getTime() - previous.createdAt.getTime() < 60_000) return false;

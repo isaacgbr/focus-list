@@ -104,8 +104,12 @@
 .auth-field input:disabled { opacity: 0.65; }
 .auth-field-error { color: #ffb0b0; font-size: 12px; line-height: 1.5; }
 .auth-password-hint { margin: -9px 0 0; color: #9aafc7; font-size: 11px; line-height: 1.6; }
-.auth-error-slot:empty { display: none; }
-.auth-error-slot p { margin: 0; padding: 11px 13px; border: 1px solid #fb939338; border-radius: 8px; color: #ffbaba; background: #f871710c; font-size: 12px; line-height: 1.6; }
+.auth-error-slot { display: grid; align-items: center; min-height: 42px; margin: -9px 0; font-size: 12px; line-height: 18px; }
+.auth-error-slot p { margin: 0; padding: 2px 8px; border-left: 2px solid #fb939380; border-radius: 3px; color: #ffbaba; background: #f871710c; animation: auth-feedback-in 160ms ease-out both; }
+@keyframes auth-feedback-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .auth-success { margin: 0 0 20px; padding: 12px 14px; border: 1px solid #63d6ba3d; border-radius: 8px; color: #9de4d2; background: #63d6ba0a; font-size: 12px; line-height: 1.6; }
 .auth-submit {
   display: inline-flex;

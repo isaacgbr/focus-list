@@ -93,7 +93,8 @@ test("autenticação e isolamento real no PostgreSQL", async (t) => {
   });
 
   await t.test("e-mail duplicado é rejeitado sem detalhes internos", async () => {
-    await expect("POST", "/auth/register", 400, { ...accounts[0], email: accounts[0].email.toUpperCase() });
+    const response = await expect("POST", "/auth/register", 400, { ...accounts[0], email: accounts[0].email.toUpperCase() });
+    assert.equal(response.body.message, "Este e-mail já está cadastrado. Entre ou recupere sua senha.");
     assert.equal(await prisma.user.count({ where: { email: accounts[0].email } }), 1);
   });
 

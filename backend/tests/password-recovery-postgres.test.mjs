@@ -54,7 +54,7 @@ test("recuperação no PostgreSQL real: validade, consumo atômico, sessões e l
   const token = randomBytes(32).toString("hex");
   secrets.push(token);
   const before = Date.now();
-  assert.equal(await repository.createPasswordReset(userId, tokenHash(token)), true);
+  assert.equal(await repository.createPasswordReset(userId, tokenHash(token), email), true);
   const reset = await prisma.passwordReset.findUniqueOrThrow({ where: { userId } });
   assert.equal(reset.expiresAt.getTime() - reset.createdAt.getTime(), 30 * 60_000);
   assert.ok(reset.createdAt.getTime() >= before);

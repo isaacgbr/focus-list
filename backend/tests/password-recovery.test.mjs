@@ -104,6 +104,19 @@ test("solicitações existente/inexistente são neutras; token seguro, hash e 30
   assert.equal(f.state.reset.usedAt, null);
 });
 
+test("solicitação iniciada antes da troca de e-mail não emite link para o endereço antigo", async (t) => {
+  const f = fixture(t);
+  const findAccount = authRepository.findAccount.bind(authRepository);
+  t.mock.method(authRepository, "findAccount", async (email) => {
+    const account = await findAccount(email);
+    f.state.user.email = "new@focuslist.invalid";
+    return account;
+  });
+  assert.deepEqual(await authService.forgotPassword({ email: "test@focuslist.invalid" }), neutral);
+  assert.equal(f.emails.length, 0);
+  assert.equal(f.state.reset, null);
+});
+
 test("solicitações simultâneas enviam apenas uma mensagem; novo link substitui o anterior", async (t) => {
   const f = fixture(t);
   await Promise.all([authService.forgotPassword({ email: f.state.user.email }), authService.forgotPassword({ email: f.state.user.email })]);

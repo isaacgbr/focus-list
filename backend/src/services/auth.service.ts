@@ -43,7 +43,7 @@ class AuthService {
     const account = await authRepository.findAccount(email);
     if (account?.type === "REAL") {
       const token = randomBytes(32).toString("hex");
-      if (await authRepository.createPasswordReset(account.id, tokenHash(token))) {
+      if (await authRepository.createPasswordReset(account.id, tokenHash(token), email)) {
         // A resposta não aguarda o provedor nem distingue falha de envio/conta ausente.
         // Sem fila ilimitada; o transporte limita concorrência e timeout.
         void emailService.sendPasswordReset(email, token).catch(() => {
@@ -95,7 +95,10 @@ class AuthService {
       return { user: await authRepository.createUser({ name, email, passwordHash }) };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new HttpError(400, "Não foi possível criar a conta com os dados informados.");
+        // P2002 também pode indicar outra restrição; só identifica e-mail confirmado.
+        if (await authRepository.findAccount(email)) {
+          throw new HttpError(400, "Este e-mail já está cadastrado. Entre ou recupere sua senha.");
+        }
       }
       throw error;
     }

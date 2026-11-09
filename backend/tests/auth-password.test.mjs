@@ -1,8 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Prisma } from "@prisma/client";
 import authService from "../dist/services/auth.service.js";
 import authRepository from "../dist/repositories/auth.repository.js";
 import { verifyPassword } from "../dist/security/password.js";
+
+test("cadastro identifica e-mail duplicado e preserva falhas inesperadas", async (t) => {
+  const payload = { name: "Teste", email: "test@focuslist.invalid", password: "12345678", confirmPassword: "12345678" };
+  const duplicate = new Prisma.PrismaClientKnownRequestError("internal constraint", { code: "P2002", clientVersion: "test" });
+  let account = null;
+  let failure = duplicate;
+  t.mock.method(authRepository, "createUser", async () => { throw failure; });
+  t.mock.method(authRepository, "findAccount", async () => account);
+  await assert.rejects(authService.register(payload), (error) => error === duplicate);
+  account = { id: 1 };
+  await assert.rejects(authService.register(payload), { status: 400, message: "Este e-mail já está cadastrado. Entre ou recupere sua senha." });
+  failure = new Error("internal database failure");
+  await assert.rejects(authService.register(payload), (error) => error === failure);
+});
 
 // Substitui a persistência para testar a regra real sem conectar ao banco.
 test("cadastro aceita 8–32 caracteres e preserva confirmação e hash", async (t) => {

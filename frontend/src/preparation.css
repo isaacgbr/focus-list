@@ -1,0 +1,15 @@
+.api-preparation { min-height: 100svh; width: 100%; display: flex; flex-direction: column; align-items: center; padding: max(28px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 35%, #102c443b, transparent 65%), #07111c; color: #edf5fe; }
+.api-preparation > .brand { font-size: 25px; gap: 12px; }
+.api-preparation > .brand .brand-mark { width: 48px; height: 48px; flex-basis: 48px; }
+.api-preparation-copy { width: 100%; max-width: 480px; margin: auto; padding: 52px 0; text-align: center; }
+.api-preparation-copy.is-checking { visibility: hidden; }
+.api-preparation-copy h1 { margin: 24px 0 18px; font-size: clamp(26px, 5vw, 34px); line-height: 1.25; letter-spacing: -0.8px; overflow-wrap: anywhere; }
+.api-preparation-copy p { margin: 0; color: #a9bfd3; font-size: 15px; line-height: 1.75; }
+.api-preparation-copy button { margin-top: 28px; padding: 13px 24px; min-height: 46px; border: 1px solid #3988e5; border-radius: 9px; background: #2265d8; color: white; font: inherit; cursor: pointer; }
+.api-preparation-copy button:hover { background: #2d73e7; }
+.api-preparation-copy button:focus-visible { outline: 3px solid #94caff; outline-offset: 4px; }
+.preparation-loader { display: inline-block; width: 36px; height: 36px; border: 2px solid #25425b; border-top-color: #83baf0; border-radius: 50%; animation: preparation-spin 1.2s linear infinite; }
+.api-preparation footer { color: #748ba0; font-size: 11px; text-align: center; }
+@keyframes preparation-spin { to { transform: rotate(360deg); } }
+@media (max-width: 390px) { .api-preparation { padding-left: 20px; padding-right: 20px; } .api-preparation-copy p { font-size: 14px; } .api-preparation-copy button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .preparation-loader { animation: none; } }

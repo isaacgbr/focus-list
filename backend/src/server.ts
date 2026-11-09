@@ -1,11 +1,11 @@
 import "dotenv/config";
 
 import app from "./app.js";
+import { serverAddress } from "./config/server.js";
 
-const PORT = process.env.PORT || 3000;
+const { port, host } = serverAddress();
 
 // Inicializa o servidor HTTP.
-// Restrito ao computador local; exposição pública exige revisão de HTTPS/proxy e limitação de abuso.
-app.listen(Number(PORT), "127.0.0.1", () => {
-  console.log(`Servidor iniciado na porta ${PORT}`);
+app.listen(port, host, () => {
+  console.log(`Servidor iniciado em ${host}:${port}`);
 });

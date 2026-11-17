@@ -9,7 +9,7 @@ export function ConnectivityGate({ children }: { children: ReactNode }) {
       if (document.hidden || !navigator.onLine) return
       try {
         // navigator.onLine indica a rede local, não garante acesso ao site.
-        const response = await fetch('/offline.html?connection-check', { method: 'HEAD', cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(8000) })
+        const response = await fetch('/offline.html?connection-check', { method: 'HEAD', cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.timeout(8000) })
         if (!disposed && response.ok && offline) window.location.reload()
       } catch { if (!disposed && !navigator.onLine) setOffline(true) }
     }

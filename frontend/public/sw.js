@@ -1,4 +1,4 @@
-const CACHE = 'focuslist-offline-v1';
+const CACHE = 'focuslist-offline-v2';
 const ASSETS = ['/offline.html', '/offline.css', '/offline.js', '/focuslist-mark.png'];
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

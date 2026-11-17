@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
+import { randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
@@ -64,6 +65,7 @@ test("piloto Vercel separa Function, SPA e arquivos da PWA", async (t) => {
     const response = await get(path, { headers: { Accept: "application/json, text/plain, */*" } });
     assert.equal(response.status, 401, path);
     assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(response.headers.get("vercel-cdn-cache-control"), "no-store");
     await response.json();
   }
   const malformed = await get("/auth/login", {
@@ -82,5 +84,95 @@ test("piloto Vercel separa Function, SPA e arquivos da PWA", async (t) => {
   assert.equal((await get("/offline.html?connection-check", { method: "HEAD" })).status, 200);
   for (const path of ["/assets/missing.js", "/app/missing.js", "/missing.webmanifest"]) {
     assert.equal((await get(path, navigation)).status, 404, path);
+  }
+
+  const post = (path, body, headers = {}) => get(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: process.env.FRONTEND_ORIGIN, ...headers },
+    body: JSON.stringify(body),
+  });
+  const loginFrom = (ip, forwarded) => post("/auth/login", {}, {
+    "x-vercel-forwarded-for": ip,
+    "x-forwarded-for": forwarded,
+  });
+  for (let i = 0; i < 30; i++) {
+    assert.equal((await loginFrom("192.0.2.1", "198.51.100.1")).status, 400);
+  }
+  assert.equal((await loginFrom("192.0.2.1", "198.51.100.2")).status, 429);
+  assert.equal((await loginFrom("192.0.2.2", "198.51.100.2")).status, 400);
+
+  await t.test("recuperação responde 202 enquanto a Vercel mantém o envio em execução", async (t) => {
+    const { default: authRepository } = await import("../dist/repositories/auth.repository.js");
+    const { default: emailService } = await import("../dist/services/email.service.js");
+    const email = "recovery@focuslist.invalid";
+    const delivery = Promise.withResolvers();
+    const tasks = [];
+    // Emula o contexto disponibilizado pelo runtime ao SDK, sem chamar o Resend.
+    const context = Symbol.for("@vercel/request-context");
+    const previousContext = Object.getOwnPropertyDescriptor(globalThis, context);
+    Object.defineProperty(globalThis, context, {
+      configurable: true,
+      value: { get: () => ({ waitUntil: (task) => tasks.push(task) }) },
+    });
+    t.after(() => {
+      if (previousContext) Object.defineProperty(globalThis, context, previousContext);
+      else delete globalThis[context];
+    });
+    t.mock.method(authRepository, "findAccount", async (address) => address === email ? { id: 1, type: "REAL" } : null);
+    t.mock.method(authRepository, "createPasswordReset", async () => true);
+    const send = t.mock.method(emailService, "sendPasswordReset", () => delivery.promise);
+    try {
+      const response = await get("/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: process.env.FRONTEND_ORIGIN },
+        body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(3000),
+      });
+      assert.equal(response.status, 202);
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.equal(send.mock.callCount(), 1);
+      assert.equal(tasks.length, 1);
+      const absent = await post("/auth/forgot-password", { email: "absent@focuslist.invalid" });
+      assert.equal(absent.status, 202);
+      assert.deepEqual(await response.json(), await absent.json());
+      assert.equal(tasks.length, 1);
+    } finally {
+      delivery.resolve();
+      await Promise.all(tasks);
+    }
+  });
+
+  if (process.env.FOCUSLIST_AUTH_TESTS === "LOCAL_CONTROLLED") {
+    assert.ok(["127.0.0.1", "localhost", "[::1]"].includes(new URL(process.env.DATABASE_URL).hostname));
+    const { default: prisma, disconnectDatabase } = await import("../dist/config/prisma.js");
+    const email = "vercel-" + randomUUID() + "@focuslist.invalid";
+    const password = randomBytes(16).toString("hex");
+    t.after(async () => {
+      try {
+        await prisma.area.deleteMany({ where: { user: { email } } });
+        await prisma.user.deleteMany({ where: { email } });
+      }
+      finally { await disconnectDatabase(); }
+    });
+    const registered = await post("/auth/register", { name: "Preview", email, password, confirmPassword: password });
+    assert.equal(registered.status, 201);
+    const login = await post("/auth/login", { email, password });
+    assert.equal(login.status, 200);
+    const setCookie = login.headers.get("set-cookie") ?? "";
+    assert.ok(setCookie.startsWith("__Host-focuslist_session="));
+    for (const flag of ["HttpOnly", "Secure", "SameSite=Lax", "Path=/"]) assert.ok(setCookie.includes(flag), flag);
+    const cookie = setCookie.split(";")[0];
+    const created = await post("/areas", { title: "Área de validação" }, { Cookie: cookie });
+    assert.equal(created.status, 201);
+    const { id } = await created.json();
+    for (const path of ["/auth/session", "/dashboard?today=2026-10-26", "/areas", "/auth/session"]) {
+      const response = await get(path, { headers: { Cookie: cookie } });
+      assert.equal(response.status, 200, path);
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.equal(response.headers.get("vercel-cdn-cache-control"), "no-store");
+      if (path === "/areas") assert.ok((await response.json()).some((area) => area.id === id));
+    }
+    assert.equal((await post("/auth/logout", {}, { Cookie: cookie })).status, 204);
+    assert.equal((await get("/auth/session", { headers: { Cookie: cookie } })).status, 401);
   }
 });

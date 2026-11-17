@@ -22,6 +22,18 @@ const app = express();
 app.set("trust proxy", trustedProxy());
 
 app.disable("x-powered-by");
+if (process.env.VERCEL === "1") {
+  app.use((req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Vercel-CDN-Cache-Control", "no-store");
+    // A API atual usa caminhos como /auth e /areas. /api não tem rotas públicas.
+    if (/^\/api(?:\/|$)/i.test(req.path)) {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      return res.status(404).json({ message: "Recurso não encontrado." });
+    }
+    next();
+  });
+}
 const origins = process.env.FRONTEND_ORIGIN
   ? [process.env.FRONTEND_ORIGIN]
   : process.env.NODE_ENV === "production" ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"];

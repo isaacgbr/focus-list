@@ -2,9 +2,14 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-// Cria a conexão com o PostgreSQL utilizando a DATABASE_URL.
-const pool = new Pool({
+// Cada instância Fluid Compute reutiliza este pool entre requisições.
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ...(process.env.VERCEL === "1" && {
+    max: 2,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 5000,
+  }),
 });
 
 const adapter = new PrismaPg(pool);

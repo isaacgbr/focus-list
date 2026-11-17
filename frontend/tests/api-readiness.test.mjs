@@ -8,10 +8,10 @@ const { outputText } = ts.transpileModule(source, { compilerOptions: { module: t
 const { waitForApi } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 const options = () => ({ signal: new AbortController().signal, onSlow() {}, timeout: 100, retryDelay: 2, grace: 1 })
 
-test('API pronta libera imediatamente, sem loading nem cookies/cache', async () => {
+test('API pronta libera imediatamente e permite cookies da mesma origem sem usar cache', async () => {
   let slow = false
   assert.equal(await waitForApi('/health', { ...options(), onSlow() { slow = true }, request: async (url, init) => {
-    assert.equal(url, '/health'); assert.equal(init.cache, 'no-store'); assert.equal(init.credentials, 'omit')
+    assert.equal(url, '/health'); assert.equal(init.cache, 'no-store'); assert.equal(init.credentials, 'same-origin')
     return Response.json({ status: 'OK' })
   } }), 'ready')
   await new Promise(resolve => setTimeout(resolve, 5))

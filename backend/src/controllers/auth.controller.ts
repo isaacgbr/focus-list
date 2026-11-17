@@ -6,7 +6,7 @@ import { allowedBody } from "../utils/validation.js";
 
 class AuthController {
   async forgotPassword(req: Request, res: Response) {
-    return res.status(202).json(await authService.forgotPassword(req.body));
+    return res.status(202).json(await authService.forgotPassword(req.body, req.app.locals.waitUntil));
   }
 
   async resetPassword(req: Request, res: Response) {

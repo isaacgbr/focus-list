@@ -7,6 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "build:render": "npm --prefix ../frontend run build && prisma generate --config prisma7.config.ts && npm run build",
+    "build:vercel": "prisma generate --config prisma7.config.ts && npm run build",
     "test:auth": "npm run build && node --test tests/auth-isolation.test.mjs",
     "test:profile": "npm run build && node --test tests/profile.test.mjs",
     "test:profile:postgres": "npm run build && node --test tests/profile-postgres.test.mjs",
@@ -33,6 +34,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@vercel/functions": "3.11.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.7",
     "express": "^5.3.0",

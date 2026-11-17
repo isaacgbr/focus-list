@@ -1,0 +1,7 @@
+{
+  "name": "focuslist",
+  "private": true,
+  "scripts": {
+    "vercel-build": "npm --prefix backend ci --include=dev && npm --prefix backend run build:vercel"
+  }
+}

@@ -38,7 +38,7 @@ export const recoveryMessage = "Se existir uma conta com esse e-mail, enviaremos
 const invalidReset = () => new HttpError(400, "Link inválido ou expirado. Solicite uma nova recuperação de senha.");
 
 class AuthService {
-  async forgotPassword(value: unknown) {
+  async forgotPassword(value: unknown, waitUntil?: (task: Promise<void>) => void) {
     const body = allowedBody(value, ["email"]);
     const email = normalizedEmail(body.email);
     const account = await authRepository.findAccount(email);
@@ -47,9 +47,10 @@ class AuthService {
       if (await authRepository.createPasswordReset(account.id, tokenHash(token), email)) {
         // A resposta não aguarda o provedor nem distingue falha de envio/conta ausente.
         // Sem fila ilimitada; o transporte limita concorrência e timeout.
-        void emailService.sendPasswordReset(email, token).catch(() => {
+        const delivery = emailService.sendPasswordReset(email, token).catch(() => {
           console.error("Não foi possível enviar e-mail de recuperação de senha.");
         });
+        waitUntil?.(delivery);
       }
     }
     return { message: recoveryMessage };

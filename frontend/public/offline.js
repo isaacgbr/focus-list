@@ -6,7 +6,7 @@ async function retry() {
   checking = true; button.disabled = true; status.textContent = 'Verificando conexão…';
   try {
     // Query não atendida pelo cache do SW: só uma resposta da rede permite retornar.
-    const response = await fetch('/offline.html?connection-check', { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(8000) });
+    const response = await fetch('/offline.html?connection-check', { cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.timeout(8000) });
     if (!response.ok) throw new Error('unavailable');
     (window.top || window).location.reload();
   } catch { status.textContent = 'Ainda não foi possível conectar. Verifique sua conexão e tente novamente.'; }

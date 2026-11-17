@@ -36,7 +36,7 @@ for (const origin of origins) {
   }
 }
 // Navegação/arquivos públicos não são API; links externos devem conseguir abrir a SPA.
-if (process.env.NODE_ENV === "production") app.use(frontend);
+if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") app.use(frontend);
 // Rejeita origens externas também no servidor (CORS sozinho não impede CSRF).
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");

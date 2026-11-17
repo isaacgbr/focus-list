@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm --prefix backend ci --include=dev && npm --prefix frontend ci --include=dev",
+  "buildCommand": "npm --prefix backend run build:render",
+  "outputDirectory": "frontend/dist",
+  "fluid": true,
+  "regions": ["gru1"],
+  "functions": {
+    "api/focuslist.mjs": {
+      "includeFiles": "backend/assets/focuslist-mark-email.png"
+    }
+  },
+  "routes": [
+    {
+      "src": "^/(?:sw\\.js|manifest\\.webmanifest|offline\\.(?:html|css|js))$",
+      "headers": { "Cache-Control": "no-cache" },
+      "continue": true
+    },
+    {
+      "src": "^/areas/\\d+(?:/listas/\\d+)?/?$",
+      "methods": ["GET", "HEAD"],
+      "has": [{ "type": "header", "key": "accept", "value": "text/html\\s*(?:,.*)?" }],
+      "headers": { "Cache-Control": "no-store", "Vary": "Accept" },
+      "dest": "/index.html"
+    },
+    {
+      "src": "^/((?:api|auth|health|profile|dashboard|archived|areas|lists|tasks|checklist-items|links)(?:/.*)?)$",
+      "headers": { "Cache-Control": "no-store", "Vary": "Accept" },
+      "transforms": [{ "type": "request.path", "op": "set", "args": "/$1" }],
+      "dest": "/api/focuslist"
+    },
+    { "handle": "filesystem" },
+    {
+      "src": "^(?!.*\\.[^/]+$)/(?:app(?:/.*)?|login|cadastro|recuperar-senha|redefinir-senha|demo(?:/dados)?|sobre|arquivados(?:/.*)?)?/?$",
+      "methods": ["GET", "HEAD"],
+      "headers": { "Cache-Control": "no-store" },
+      "dest": "/index.html"
+    }
+  ]
+}

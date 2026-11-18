@@ -16,9 +16,9 @@ O público inclui estudantes, profissionais, desenvolvedores e pessoas que organ
 
 ## Escopo atual
 
-O produto possui um núcleo funcional integrado a dados reais: Dashboard, gerenciamento de Áreas, Listas e Tarefas, modos Lista e Cards, prazos e prioridades, checklist, links e uma Central de Arquivados. A Etapa 19C concluiu o refinamento da experiência desktop e consolidou consistência visual e acessibilidade.
+O produto possui um núcleo funcional integrado a dados reais: Dashboard, gerenciamento de Áreas, Listas e Tarefas, modos Lista e Cards, prazos e prioridades, checklist, links e uma Central de Arquivados. Autenticação, recuperação de senha, Demo temporária, Perfil e avatar privado completam a V1.
 
-A interface web é responsiva e inclui sidebar adaptável, reorganização de conteúdo e modais adequados a larguras menores. Isso não equivale a um aplicativo mobile, PWA ou experiência mobile validada em aparelho físico.
+A interface é responsiva e possui composições próprias para mobile, incluindo Dashboard compacto, navegação adaptável e modais adequados a telas menores. Como PWA, oferece instalação e uma tela Offline própria; dados e tarefas continuam dependendo de conexão e não são armazenados offline.
 
 O detalhamento das funcionalidades existentes está na [Especificação Funcional](03-especificacao-funcional.md). As regras obrigatórias estão em [Regras de Negócio](04-regras-de-negocio.md).
 
@@ -28,12 +28,11 @@ Não fazem parte da V1:
 
 - Tarefas Avulsas;
 - Configurações;
-- autenticação e contas;
 - colaboração e compartilhamento;
 - notificações e integrações externas;
 - aplicativo mobile nativo.
 
-Também ainda não estão implementados PWA, funcionamento offline, Mobile/PWA Real, Landing Page, Área Demo, microinterações futuras, testes de carga ou escalabilidade, preparação final para publicação e deploy.
+O FocusList está publicado na Vercel em uma única origem. O frontend estático e a Function Express usam PostgreSQL e Storage privado no Supabase; a recuperação de senha usa Resend. O service worker guarda somente o shell Offline/PWA e nunca respostas da API ou dados do usuário. Há benchmarks históricos, anteriores ao fluxo autenticado atual.
 
 ## Princípios de escopo
 

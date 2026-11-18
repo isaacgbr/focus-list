@@ -16,7 +16,6 @@ const { verifyPassword } = await import("../dist/security/password.js");
 const { default: avatarRepository } = await import("../dist/repositories/avatar.repository.js");
 
 test("Perfil HTTP/PostgreSQL: persistência, segurança, isolamento, foto e sessões", async (t) => {
-  mockAvatarStorage(t);
   const suffix = randomUUID();
   const emails = ["a", "b", "updated"].map((part) => `profile-${part}-${suffix}@focuslist.invalid`);
   const password = randomBytes(12).toString("hex");
@@ -35,6 +34,7 @@ test("Perfil HTTP/PostgreSQL: persistência, segurança, isolamento, foto e sess
       await disconnectDatabase();
     }
   });
+  mockAvatarStorage(t);
   const secrets = [password, newPassword];
   async function request(method, path, status, body, cookie) {
     const response = await fetch(`${base}${path}`, { method, headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });

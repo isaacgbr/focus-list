@@ -1,6 +1,6 @@
 # Roadmap
 
-O roadmap separa entregas concluídas do trabalho futuro até a publicação.
+O roadmap registra o fechamento da V1 e melhorias posteriores que não bloqueiam a publicação.
 
 ## Histórico concluído
 
@@ -29,26 +29,18 @@ O roadmap separa entregas concluídas do trabalho futuro até a publicação.
 
 ## Estado atual
 
-O núcleo funcional e a experiência Desktop estão concluídos. A aplicação possui interface web responsiva, mas ainda não passou pela etapa específica de Mobile/PWA Real em aparelho físico. Não há publicação final.
+Implementados: núcleo funcional, microinterações, Landing Page, autenticação e
+isolamento multiusuário, recuperação de senha, Demo temporária com importação,
+Perfil com avatar/preferências, PWA/Offline e experiência mobile refinada. A Vercel
+é a produção oficial, com PostgreSQL e Storage privado no Supabase e e-mails pelo Resend.
 
-## Próximos passos
+## Próximos passos não bloqueantes
 
-1. **Validação técnica e desempenho/escalabilidade básica** — revisar comportamento técnico, medir cenários essenciais e identificar limites iniciais.
-2. **Microinterações e animações** — adicionar refinamentos de movimento sem prejudicar acessibilidade ou desempenho.
-3. **Landing Page** — criar a apresentação pública do produto.
-4. **Mobile/PWA Real em aparelho físico** — validar a interface em dispositivos reais e então decidir/implementar os requisitos de PWA e offline.
-5. **Preparação para publicação e Área Demo** — finalizar conteúdo, ambiente e experiência demonstrável.
-6. **Publicação/deploy e apresentação final no GitHub** — disponibilizar o produto e organizar sua apresentação pública.
+- concluir o README e a apresentação pública;
+- acompanhar limites gratuitos e métricas de produção;
+- definir uma rotina operacional para limpeza física de Demos expiradas;
+- revisar benchmarks quando houver mudanças relevantes de volume ou arquitetura.
 
-Todos os itens acima são futuros. Não estão implementados hoje: testes de carga ou escalabilidade, novas microinterações, Landing Page, PWA, offline, Mobile/PWA Real, Área Demo, preparação final para publicação e deploy.
-
-## Área Demo — conceito futuro
-
-O planejamento prevê uma Área Demo completa para apresentar o produto. Conceitualmente:
-
-- não interfere nas métricas nem nos dados do Dashboard;
-- não aparece na Central de Arquivados;
-- possui a ação específica **Ocultar demonstração**;
-- não impede o usuário de criar seus próprios dados.
-
-Detalhes técnicos de persistência, geração ou ciclo de vida ainda não foram definidos.
+A Demo atual usa identidade isolada de 24h, inicia vazia e permite importar
+os dados ao criar conta. O conceito antigo de Área Demo oculta no Dashboard
+foi substituído por esse fluxo; consulte [09-demo.md](09-demo.md).

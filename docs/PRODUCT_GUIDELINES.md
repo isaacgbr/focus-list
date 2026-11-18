@@ -40,7 +40,7 @@ Esta é a fonte oficial para princípios de Produto, UX, identidade e padrões v
 
 - Listas e Tarefas oferecem modos Lista e Cards quando ambos ajudam a leitura.
 - Tarefas permanecem separadas em Pendentes e Concluídas.
-- Concluídas iniciam recolhidas para manter foco no trabalho pendente.
+- O seletor Pendentes/Concluídas mostra um estado por vez, iniciando em Pendentes.
 - Cards usam limite inicial e controles **Ver mais/Recolher** quando a quantidade comprometer a leitura.
 - A interface deve equilibrar densidade, respiro, hierarquia tipográfica e aproveitamento da tela.
 
@@ -75,7 +75,7 @@ Existe uma única **Central de Arquivados** para localizar itens diretamente arq
 - Drawer e modais contêm o foco, fecham por `Escape` quando permitido e devolvem o foco anterior.
 - Componentes interativos devem possuir nome acessível, estado exposto e foco visível.
 - O movimento deve respeitar `prefers-reduced-motion`.
-- Não denominar o estado atual como aplicativo mobile, PWA ou experiência mobile validada em aparelho real.
+- Descrever o produto como aplicação web responsiva e PWA instalável; não o apresentar como aplicativo mobile nativo.
 
 ## Identidade visual
 
@@ -91,16 +91,16 @@ Cores, tipografia, espaçamentos, componentes e estados devem permanecer consist
 
 ## Tela Sobre
 
-A estrutura é Hero, O que é, Como funciona, Recursos principais e Desenvolvido por. A versão não aparece no Hero; fica somente no rodapé. A autoria apresenta Isaac Gabriel, Estudante de Análise e Desenvolvimento de Sistemas, com GitHub e LinkedIn.
+A tela Sobre apresenta marca, hierarquia Área → Lista → Tarefa e recursos essenciais. Autoria e links profissionais ficam no fechamento da Landing.
 
 ## Uso dos protótipos
 
 Protótipos em `prototipos/` registram decisões históricas e bases conceituais. Refinamentos posteriores de escala, densidade, composição, responsividade, Arquivados e `TaskDetails` os superaram parcialmente. Eles não devem ser usados como representação exata da interface atual.
 
-## Trabalho futuro
+## Estado atual
 
-PWA, offline, Mobile/PWA Real, microinterações adicionais, Landing Page, Área Demo, testes de carga/escalabilidade, preparação para publicação e deploy ainda não estão implementados.
+Landing, microinterações, autenticação, recuperação, Perfil, Demo, PWA, experiência Offline e refinamentos mobile estão implementados. A Vercel é a produção oficial; PostgreSQL e avatares privados usam Supabase, e a recuperação de senha usa Resend. O modo Offline é deliberadamente apenas informativo: nenhuma tarefa ou resposta privada da API é cacheada.
 
-A futura Área Demo deverá ser completa, não afetar métricas ou dados do Dashboard, não aparecer na Central de Arquivados, oferecer **Ocultar demonstração** e preservar a liberdade de criação dos próprios dados. Detalhes técnicos ainda não estão decididos.
+A Demo atual é isolada por identidade, tem validade de 24h e começa vazia. Seu contrato está em [09-demo.md](09-demo.md).
 
 Tarefas Avulsas e Configurações não fazem parte da V1.

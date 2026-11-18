@@ -13,11 +13,9 @@ build/
 # Variáveis de ambiente
 # ==========================
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.benchmark.local
+.env.*
+!.env.example
+!.env.*.example
 
 # ==========================
 # Logs
@@ -32,6 +30,13 @@ pnpm-debug.log*
 # ==========================
 .vite/
 .cache/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+.tmp/
+*.tmp
+*.swp
+*.swo
 
 # ==========================
 # Sistema Operacional
@@ -49,13 +54,31 @@ Thumbs.db
 # Cobertura de testes
 # ==========================
 coverage/
+playwright-report/
+test-results/
+blob-report/
 
+# ==========================
+# Dados locais de upload. A produção usa Supabase Storage.
+# ==========================
+backend/uploads/
+
+# ==========================
+# Materiais técnicos locais
+# ==========================
+.local/
+
+# ==========================
 # Ferramentas locais de IA
+# ==========================
 .agents/
+.codex/
 .claude/
 .windsurf/
 skills-lock.json
 AGENTS.md
 
+# ==========================
 # Protótipos somente locais
-/prototipos/
+# ==========================
+prototipos/

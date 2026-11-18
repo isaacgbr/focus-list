@@ -9,7 +9,7 @@ export async function waitForApi(url: string, options: {
   try {
     while (!combined.aborted) {
       try {
-        // Previews protegidos pela Vercel exigem o cookie de acesso à própria origem.
+        // Deployment Protection da Vercel pode exigir o cookie de acesso à própria origem.
         const response = await request(url, { cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.any([combined, AbortSignal.timeout(6000)]) })
         if (response.ok && (await response.json()).status === 'OK' && !combined.aborted) return 'ready'
       } catch { /* Uma resposta HTML do proxy ou erro de rede não confirma a saúde da API. */ }

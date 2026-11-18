@@ -15,11 +15,8 @@ import profileRoutes from "./routes/profile.routes.js";
 import { requireAuth } from "./middlewares/auth.middleware.js";
 import { HttpError } from "./utils/http-error.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
-import { trustedProxy } from "./config/server.js";
-import { frontend } from "./middlewares/frontend.middleware.js";
 
 const app = express();
-app.set("trust proxy", trustedProxy());
 
 app.disable("x-powered-by");
 if (process.env.VERCEL === "1") {
@@ -47,8 +44,6 @@ for (const origin of origins) {
     throw new Error("FRONTEND_ORIGIN deve ser uma origem exata, HTTPS em produção.");
   }
 }
-// Navegação/arquivos públicos não são API; links externos devem conseguir abrir a SPA.
-if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") app.use(frontend);
 // Rejeita origens externas também no servidor (CORS sozinho não impede CSRF).
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");

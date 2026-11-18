@@ -4,12 +4,13 @@ Esta é a fonte principal das funcionalidades presentes no código atual.
 
 ## Dashboard
 
-- carrega Áreas, Listas, Tarefas, checklist e links da API;
+- carrega resumo agregado da API; os filtros de atenção consultam Tarefas e Listas;
 - possui estados de carregamento, erro com nova tentativa e Estado Vazio Inteligente;
 - orienta criar Área, Lista ou Tarefa conforme a próxima lacuna da hierarquia;
 - apresenta Tarefas vencidas, com vencimento hoje e nos próximos sete dias;
 - mostra até três Tarefas em **Em andamento** e até três em **Próximos prazos**;
 - apresenta visão geral de Tarefas e resumo de até seis Áreas, expansível quando necessário;
+- no mobile, usa uma composição exclusiva com saudação/progresso compactos, métricas 2×2, Em andamento e Próximas tarefas em listas de toque;
 - abre uma Tarefa navegando à Lista de origem e aos seus detalhes;
 - permite personalizar a capa com tema Automático, Manhã, Tarde ou Noite; a preferência fica no armazenamento local do navegador;
 - no modo Automático, saudação e capa acompanham o período do dia.
@@ -48,8 +49,8 @@ Em uma Lista arquivada, o estado **Arquivada** aparece integrado ao cabeçalho. 
 ### Modos Lista e Cards
 
 - Tarefas são separadas em Pendentes e Concluídas nos dois modos.
-- No modo Lista, Pendentes ficam visíveis e Concluídas iniciam recolhidas.
-- No modo Cards, o layout usa composição em board; Pendentes mostram inicialmente até 12 Cards e Concluídas iniciam recolhidas.
+- O seletor Pendentes/Concluídas mostra um estado por vez nos dois modos.
+- No modo Cards, o estado selecionado mostra inicialmente até 12 Cards em grade.
 - Cada grupo com mais de 12 Cards oferece **Ver mais** e **Recolher**.
 
 ### Tarefa arquivada
@@ -89,11 +90,11 @@ Arquivar um pai não grava `archivedAt` nos filhos. Ao restaurá-lo, descendente
 
 ## Tela Sobre e identidade
 
-A tela Sobre contém Hero, O que é, Como funciona, Recursos principais e Desenvolvido por. A versão aparece somente no rodapé. A identidade deriva do Conceito A — camadas, visual 3D minimalista e azul como cor principal — e foi refinada na implementação posterior aos protótipos.
+A tela Sobre apresenta a marca, a hierarquia Área → Lista → Tarefa e os recursos essenciais. A identidade deriva do Conceito A — camadas, visual 3D minimalista e azul como cor principal — e foi refinada na implementação posterior aos protótipos.
 
 ## Responsividade e acessibilidade
 
-- interface web responsiva com reorganização do Dashboard, grades, listas, Arquivados, Sobre e Detalhes da Tarefa;
+- interface web responsiva com composição mobile própria do Dashboard e reorganização de grades, listas, Arquivados, Sobre e Detalhes da Tarefa;
 - sidebar em drawer até 800 px, com backdrop, foco contido, fechamento por `Escape` e restauração do foco;
 - breadcrumbs adaptáveis com truncamento em larguras menores;
 - modais com papéis e nomes acessíveis, foco inicial, contenção de foco, `Escape` e restauração do foco;
@@ -101,4 +102,4 @@ A tela Sobre contém Hero, O que é, Como funciona, Recursos principais e Desenv
 - menus e confirmações possuem rótulos e papéis apropriados;
 - estilos respeitam `prefers-reduced-motion`.
 
-Responsividade web não significa PWA nem validação mobile real. Esses trabalhos permanecem no [Roadmap](07-roadmap.md).
+Manifest, ícones e service worker tornam o FocusList instalável. Quando a rede cai, a aplicação mostra uma tela Offline própria e permite tentar novamente; nenhuma resposta da API ou tarefa é disponibilizada por cache.

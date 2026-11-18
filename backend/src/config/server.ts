@@ -7,9 +7,3 @@ export function serverAddress(env: NodeJS.ProcessEnv = process.env) {
   }
   return { port, host: production ? "0.0.0.0" : env.HOST || "127.0.0.1" };
 }
-
-export function trustedProxy(env: NodeJS.ProcessEnv = process.env) {
-  // Render termina TLS no proxy imediatamente anterior. Não confiar em toda a cadeia XFF.
-  // Rever este limite caso a topologia passe a ter outros caminhos/proxies de entrada.
-  return env.NODE_ENV === "production" && env.RENDER === "true" ? 1 : false;
-}

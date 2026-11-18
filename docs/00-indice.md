@@ -14,12 +14,17 @@ Este índice reúne as fontes oficiais do projeto. Cada assunto possui um docume
 | [`05-modelo-de-dados.md`](05-modelo-de-dados.md) | Entidades, campos e relações persistidas |
 | [`06-arquitetura-e-stack.md`](06-arquitetura-e-stack.md) | Arquitetura, tecnologias e API REST |
 | [`07-roadmap.md`](07-roadmap.md) | Histórico relevante, estado atual e próximos passos |
-| [`08-benchmark-isolado.md`](08-benchmark-isolado.md) | Isolamento, seed e baseline segura de benchmark |
+| [`08-autenticacao.md`](08-autenticacao.md) | Autenticação, sessões e recuperação de senha |
+| [`09-demo.md`](09-demo.md) | Demo temporária, isolamento e importação |
+| [`10-perfil.md`](10-perfil.md) | Perfil, avatar privado e preferências |
+| [`11-benchmarks.md`](11-benchmarks.md) | Resumo público das medições históricas |
 | [`PRODUCT_GUIDELINES.md`](PRODUCT_GUIDELINES.md) | Princípios de Produto, UX, identidade e padrões visuais |
 
-## Referências visuais
+## Materiais locais
 
-Os arquivos em `prototipos/` registram decisões e direções anteriores. Eles são **referências históricas ou bases conceituais** e não devem ser tratados como reprodução exata da interface atual. A implementação foi refinada depois desses materiais, especialmente na Etapa 19C.
+A pasta `prototipos/` é local e ignorada pelo Git; não integra o clone público. Seus arquivos registram decisões e direções anteriores. Eles são **referências históricas ou bases conceituais** e não devem ser tratados como reprodução exata da interface atual. A implementação foi refinada depois desses materiais, especialmente na Etapa 19C.
+
+Scripts, datasets e resultados detalhados de benchmark ficam em `.local/benchmarks/`, também ignorado. O repositório público mantém apenas o resumo técnico em [`11-benchmarks.md`](11-benchmarks.md).
 
 | Referência | Classificação atual |
 |---|---|

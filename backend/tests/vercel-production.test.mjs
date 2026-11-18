@@ -10,17 +10,16 @@ import express from "express";
 const root = new URL("../../", import.meta.url);
 const config = JSON.parse(await readFile(new URL("vercel.json", root), "utf8"));
 
-test("piloto Vercel separa Function, SPA e arquivos da PWA", async (t) => {
+test("produção Vercel separa Function, SPA e arquivos da PWA", async (t) => {
   const previous = { ...process.env };
-  Object.assign(process.env, { NODE_ENV: "production", VERCEL: "1", FRONTEND_ORIGIN: "https://preview.focuslist.invalid" });
-  delete process.env.RENDER;
+  Object.assign(process.env, { NODE_ENV: "production", VERCEL: "1", FRONTEND_ORIGIN: "https://focuslist.invalid" });
   t.after(() => { process.env = previous; });
   const { default: handler } = await import("../../api/focuslist.mjs");
   const dist = fileURLToPath(new URL(config.outputDirectory + "/", root));
   const platform = express();
 
-  // Emula somente as regras usadas no vercel.json. O roteador da plataforma
-  // e o empacotamento da Function precisam de verificação no Preview.
+  // Emula as regras relevantes do vercel.json; a plataforma continua responsável
+  // pelo roteamento e empacotamento reais do deployment de produção.
   for (const route of config.routes) {
     if (route.handle === "filesystem") {
       platform.use(express.static(dist));
@@ -154,7 +153,7 @@ test("piloto Vercel separa Function, SPA e arquivos da PWA", async (t) => {
       }
       finally { await disconnectDatabase(); }
     });
-    const registered = await post("/auth/register", { name: "Preview", email, password, confirmPassword: password });
+    const registered = await post("/auth/register", { name: "Produção", email, password, confirmPassword: password });
     assert.equal(registered.status, 201);
     const login = await post("/auth/login", { email, password });
     assert.equal(login.status, 200);

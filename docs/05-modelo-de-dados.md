@@ -11,7 +11,7 @@ Todas as chaves primárias são inteiros autoincrementais. A relação de Área 
 
 ## Implementação multiusuário
 
-O schema e a migration `20261026120000_multiuser_foundation` preparam REAL e DEMO na mesma hierarquia. A migration `20261026130000_require_area_owner` torna o proprietário de Área obrigatório. Ambas estão aplicadas no banco local. Cadastro, login, sessão persistida e logout estão implementados para REAL, com isolamento de todas as rotas de domínio, Dashboard e Arquivados. O fluxo DEMO não está implementado.
+O schema e a migration `20261026120000_multiuser_foundation` preparam REAL e DEMO na mesma hierarquia. A migration `20261026130000_require_area_owner` torna o proprietário de Área obrigatório. As migrations versionadas estão aplicadas no PostgreSQL do Supabase. Cadastro, login, sessão persistida e logout estão implementados para REAL, com isolamento de todas as rotas de domínio, Dashboard e Arquivados. O fluxo DEMO está documentado em [09-demo.md](09-demo.md).
 
 ### User
 
@@ -28,7 +28,7 @@ O schema e a migration `20261026120000_multiuser_foundation` preparam REAL e DEM
 
 Os campos de credenciais são opcionais no Prisma para acomodar DEMO. Os CHECKs SQL `User_type_fields_check` e `User_email_normalized_check` impõem as regras condicionais no PostgreSQL. A autenticação normaliza o e-mail antes da gravação; o banco rejeita valores fora desse formato. O índice único permite várias DEMOs com e-mail nulo. O índice `(type, expiresAt)` prepara a busca de DEMOs expiradas.
 
-Não existem campos de senha pura ou confirmação de senha no banco. Senhas usam scrypt assíncrono com salt aleatório; os parâmetros e o contrato estão em [AUTHENTICATION.md](../backend/AUTHENTICATION.md). Recuperação de senha não está implementada. O cadastro não exige confirmação de e-mail.
+Não existem campos de senha pura ou confirmação de senha no banco. Senhas usam scrypt assíncrono com salt aleatório; os parâmetros e o contrato estão em [08-autenticacao.md](08-autenticacao.md). A recuperação usa `PasswordReset` com token por hash, expiração e consumo único. O cadastro não exige confirmação de e-mail.
 
 ### Session
 
@@ -43,7 +43,7 @@ Não existem campos de senha pura ou confirmação de senha no banco. Senhas usa
 
 O banco não armazena o token original. Há índices para busca pelo hash único, consulta/revogação por `(userId, revokedAt)` e expiração por `expiresAt`. Os CHECKs `Session_tokenHash_format_check` e `Session_expiration_check` ficam na migration SQL, pois não são representados no schema Prisma. Futuras migrations devem preservá-los.
 
-O login gera tokens criptograficamente aleatórios de 32 bytes, persiste apenas SHA-256 e envia o token exclusivamente no cookie HttpOnly/Lax (Secure em produção). A autenticação verifica revogação, expiração e tipo REAL a cada requisição. Nenhum hash ou token aparece no JSON. O fluxo DEMO permanece fora desta implementação; quando existir, deverá respeitar a expiração absoluta de 24 horas do usuário, inclusive nas sessões.
+O login gera tokens criptograficamente aleatórios de 32 bytes, persiste apenas SHA-256 e envia o token exclusivamente no cookie HttpOnly/Lax (Secure em produção). A autenticação verifica revogação, expiração e tipo REAL/DEMO a cada requisição. Nenhum hash ou token aparece no JSON. O fluxo DEMO respeita a expiração absoluta de 24 horas do usuário, inclusive nas sessões.
 
 ### Migrations e propriedade
 
@@ -123,3 +123,11 @@ Os corpos HTTP rejeitam campos desconhecidos, incluindo `userId`, `user` e escri
 As tarefas seguem a hierarquia Área → Lista → Tarefa.
 
 Não existe entidade para Tarefa Avulsa: toda Tarefa possui `listId` obrigatório e pertence a uma Lista.
+
+## Recuperação, Demo e Perfil
+
+- `PasswordReset`: um registro por usuário, token SHA-256 único, expiração e `usedAt`.
+- `DemoTransfer`: vínculo único entre usuário Demo e sessão REAL criada no cadastro; `resolvedAt` registra a decisão.
+- `User.avatarKey`: chave opcional do objeto JPEG no bucket privado do Supabase Storage; `defaultView`: `list` ou `cards`, protegido por CHECK.
+
+O schema e as migrations são a referência para campos e índices completos.

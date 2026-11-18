@@ -25,7 +25,7 @@ import { useNavigate } from 'react-router-dom'
 import dashboardService, { type DashboardSummary, type DashboardTask as DashboardApiTask } from '../services/dashboardService'
 import { useAuth } from '../auth/AuthContext'
 import listService from '../services/listService'
-import taskService from '../services/taskService'
+import taskService, { type TaskPriority } from '../services/taskService'
 import { matchesTaskAttention, type AttentionFilter } from '../utils/taskAttention'
 import { getStoredHeroTheme, storeHeroTheme, heroThemeOptions, type DayPeriod, type HeroTheme } from '../utils/dashboardTheme'
 
@@ -57,6 +57,21 @@ type DashboardTask = {
   checklistCompleted: number
   checklistTotal: number
   linksTotal: number
+}
+
+const priorityLabels: Record<TaskPriority, string> = { HIGH: 'Alta', MEDIUM: 'Média', LOW: 'Baixa' }
+
+function useMobileDashboard() {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 650px)').matches)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 650px)')
+    const update = () => setIsMobile(media.matches)
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  return isMobile
 }
 
 type AttentionItem = {
@@ -186,9 +201,32 @@ function TaskTable({ tasks, onOpen, showDeadline = false }: { tasks: DashboardTa
   )
 }
 
+function MobileTaskItem({ task, onOpen, priority, upcoming = false }: {
+  task: DashboardTask
+  onOpen: (task: DashboardTask) => void
+  priority?: TaskPriority | null
+  upcoming?: boolean
+}) {
+  return (
+    <button className={`mobile-dashboard-task${upcoming ? ' is-upcoming' : ''}`} type="button" onClick={() => onOpen(task)}>
+      <span className="mobile-dashboard-task-copy">
+        <strong>{task.title}</strong>
+        {task.list ? <span><Folder size={14} fill={task.listColor ?? '#269cff'} color={task.listColor ?? '#269cff'} />{task.list}</span> : null}
+      </span>
+      <span className="mobile-dashboard-task-meta">
+        {priority ? <span className={`mobile-priority is-${priority.toLowerCase()}`}>{priorityLabels[priority]}</span> : null}
+        {task.deadline ? <span className={task.deadlineTone ? `mobile-deadline is-${task.deadlineTone}` : 'mobile-deadline'}><CalendarDays size={13} />{task.deadline}</span> : null}
+        {!upcoming ? <TaskMetadata task={task} /> : null}
+      </span>
+      <ChevronRight size={18} aria-hidden="true" />
+    </button>
+  )
+}
+
 export function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const isMobileDashboard = useMobileDashboard()
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const currentDateKey = toDateKey(currentDate)
@@ -203,6 +241,7 @@ export function Dashboard() {
   const [attentionLoading, setAttentionLoading] = useState(false)
   const [attentionError, setAttentionError] = useState('')
   const [attentionAttempt, setAttentionAttempt] = useState(0)
+  const [mobilePriorities, setMobilePriorities] = useState<Map<number, TaskPriority | null>>(() => new Map())
   const heroThemeControlRef = useRef<HTMLDivElement>(null)
   const heroThemeButtonRef = useRef<HTMLButtonElement>(null)
   const dayPeriod = getDayPeriod(currentDate)
@@ -228,6 +267,17 @@ export function Dashboard() {
   }, [currentDateKey])
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
+
+  useEffect(() => {
+    if (!isMobileDashboard || data.overview.total === 0) return
+    let active = true
+    void taskService.getAll().then((tasks) => {
+      if (active) setMobilePriorities(new Map(tasks.map((task) => [task.id, task.priority])))
+    }).catch(() => {
+      if (active) setMobilePriorities(new Map())
+    })
+    return () => { active = false }
+  }, [isMobileDashboard, data])
 
   useEffect(() => {
     if (!attentionFilter) return
@@ -365,12 +415,26 @@ export function Dashboard() {
     </div>
   )
 
+  const renderMobileHero = () => (
+    <div className="mobile-dashboard-hero">
+      <div>
+        <p>{formattedDate}</p>
+        <h1 id="dashboard-title">{dayPeriodContent[dayPeriod].greeting}{firstName ? <>, <span>{firstName}.</span></> : '.'}</h1>
+      </div>
+      <div className="mobile-dashboard-progress" aria-label={`${dashboard.overview.completionPercentage}% das tarefas concluídas`}>
+        <span><strong>{dashboard.overview.completionPercentage}%</strong><small>concluído</small></span>
+        <div aria-hidden="true"><span style={{ width: `${dashboard.overview.completionPercentage}%` }} /></div>
+        <small>{dashboard.overview.completed} de {dashboard.overview.total} tarefas</small>
+      </div>
+    </div>
+  )
+
   if (isLoading) {
-    return <section className="dashboard" aria-labelledby="dashboard-title">{renderHero()}<div className="dashboard-state" aria-live="polite"><LoaderCircle className="spin" size={34} aria-hidden="true" /><h2>Carregando Dashboard...</h2><p>Aguarde enquanto buscamos os dados mais recentes.</p></div></section>
+    return <section className={`dashboard${isMobileDashboard ? ' mobile-dashboard' : ''}`} aria-labelledby="dashboard-title">{isMobileDashboard ? renderMobileHero() : renderHero()}<div className="dashboard-state" aria-live="polite"><LoaderCircle className="spin" size={34} aria-hidden="true" /><h2>Carregando Dashboard...</h2><p>Aguarde enquanto buscamos os dados mais recentes.</p></div></section>
   }
 
   if (loadError) {
-    return <section className="dashboard" aria-labelledby="dashboard-title">{renderHero()}<div className="dashboard-state is-error" role="alert"><AlertCircle size={38} aria-hidden="true" /><h2>Erro ao carregar</h2><p>{loadError}</p><button className="secondary-action" type="button" onClick={() => void loadDashboard()}>Tentar novamente</button></div></section>
+    return <section className={`dashboard${isMobileDashboard ? ' mobile-dashboard' : ''}`} aria-labelledby="dashboard-title">{isMobileDashboard ? renderMobileHero() : renderHero()}<div className="dashboard-state is-error" role="alert"><AlertCircle size={38} aria-hidden="true" /><h2>Erro ao carregar</h2><p>{loadError}</p><button className="secondary-action" type="button" onClick={() => void loadDashboard()}>Tentar novamente</button></div></section>
   }
 
   if (data.overview.total === 0) {
@@ -380,13 +444,53 @@ export function Dashboard() {
     const description = !hasAreas ? 'Comece organizando um contexto da sua vida, como Trabalho ou Estudos.' : !hasLists ? 'Abra uma Área e crie uma Lista para agrupar suas tarefas.' : 'Sua estrutura está pronta. Adicione uma tarefa para acompanhar o que precisa ser feito.'
     const action = !hasAreas ? () => window.dispatchEvent(new Event('focuslist:open-area-form')) : !hasLists ? () => navigate(`/app/areas/${data.firstAreaId}`) : () => navigate(`/app/areas/${data.firstList!.areaId}/listas/${data.firstList!.id}`)
     return (
-      <section className="dashboard" aria-labelledby="dashboard-title">
-        {renderHero()}
+      <section className={`dashboard${isMobileDashboard ? ' mobile-dashboard' : ''}`} aria-labelledby="dashboard-title">
+        {isMobileDashboard ? renderMobileHero() : renderHero()}
         <div className="dashboard-state dashboard-empty-state">
           <span className="dashboard-state-icon" aria-hidden="true">{!hasAreas ? <Folder size={38} /> : !hasLists ? <ListChecks size={38} /> : <FileText size={38} />}</span>
           <h2>{title}</h2><p>{description}</p>
           <button className="primary-action" type="button" onClick={action}><Plus size={20} />{title}</button>
         </div>
+      </section>
+    )
+  }
+
+  if (isMobileDashboard) {
+    const selectedAttentionLabel = dashboard.attentionItems.find((item) => item.id === attentionFilter)?.label
+    return (
+      <section className="dashboard mobile-dashboard" aria-labelledby="dashboard-title">
+        {renderMobileHero()}
+
+        <section className="mobile-dashboard-section mobile-dashboard-summary" aria-labelledby="mobile-summary-title">
+          <div className="mobile-dashboard-section-heading">
+            <h2 id="mobile-summary-title">Resumo</h2>
+          </div>
+          <div className="mobile-dashboard-metrics">
+            <div className="mobile-dashboard-metric is-pending"><CircleDashed size={18} aria-hidden="true" /><span><strong>{dashboard.overview.pending}</strong><small>Pendentes</small></span></div>
+            <div className="mobile-dashboard-metric is-completed"><CheckCircle2 size={18} aria-hidden="true" /><span><strong>{dashboard.overview.completed}</strong><small>Concluídas</small></span></div>
+            <button className={`mobile-dashboard-metric is-today${attentionFilter === 'today' ? ' is-active' : ''}`} type="button" aria-expanded={attentionFilter === 'today'} aria-controls="mobile-attention-tasks" onClick={() => setAttentionFilter((current) => current === 'today' ? null : 'today')}><CalendarDays size={18} aria-hidden="true" /><span><strong>{data.attention.today}</strong><small>Para hoje</small></span></button>
+            <button className={`mobile-dashboard-metric is-overdue${attentionFilter === 'overdue' ? ' is-active' : ''}`} type="button" aria-expanded={attentionFilter === 'overdue'} aria-controls="mobile-attention-tasks" onClick={() => setAttentionFilter((current) => current === 'overdue' ? null : 'overdue')}><AlertCircle size={18} aria-hidden="true" /><span><strong>{data.attention.overdue}</strong><small>Vencidas</small></span></button>
+          </div>
+          {attentionFilter ? (
+            <div className="mobile-dashboard-attention" id="mobile-attention-tasks" aria-label={`Tarefas ${selectedAttentionLabel}`} aria-live="polite" aria-busy={attentionLoading}>
+              {attentionLoading ? <p><LoaderCircle className="spin" size={17} />Carregando tarefas...</p> : attentionError ? <p role="alert">{attentionError}</p> : attentionTasks.length === 0 ? <p>Nenhuma tarefa {selectedAttentionLabel}.</p> : attentionTasks.map((task) => <MobileTaskItem task={task} onOpen={openTask} priority={mobilePriorities.get(task.id)} upcoming key={task.id} />)}
+            </div>
+          ) : null}
+        </section>
+
+        <section className="mobile-dashboard-section" aria-labelledby="mobile-progress-title">
+          <div className="mobile-dashboard-section-heading"><h2 id="mobile-progress-title">Em andamento</h2><span>{dashboard.inProgress.length}</span></div>
+          <div className="mobile-dashboard-task-list">
+            {dashboard.inProgress.length === 0 ? <p className="mobile-dashboard-empty">Nenhuma tarefa pendente.</p> : dashboard.inProgress.map((task) => <MobileTaskItem task={task} onOpen={openTask} priority={mobilePriorities.get(task.id)} key={task.id} />)}
+          </div>
+        </section>
+
+        <section className="mobile-dashboard-section" aria-labelledby="mobile-upcoming-title">
+          <div className="mobile-dashboard-section-heading"><h2 id="mobile-upcoming-title">Próximas tarefas</h2><CalendarRange size={18} aria-hidden="true" /></div>
+          <div className="mobile-dashboard-task-list">
+            {dashboard.upcoming.length === 0 ? <p className="mobile-dashboard-empty">Nenhum prazo nos próximos 7 dias.</p> : dashboard.upcoming.map((task) => <MobileTaskItem task={task} onOpen={openTask} priority={mobilePriorities.get(task.id)} upcoming key={task.id} />)}
+          </div>
+        </section>
       </section>
     )
   }

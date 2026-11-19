@@ -1,44 +1,16 @@
 # Documentação do FocusList
 
-Este índice reúne as fontes oficiais do projeto. Cada assunto possui um documento principal para reduzir duplicidade e divergências.
+Documentação técnica do produto publicado, organizada por responsabilidade e sem duplicação entre assuntos.
 
-## Documentos
+| Documento | Conteúdo |
+| --- | --- |
+| [01 — Visão geral](01-visao-geral.md) | Proposta, organização do produto e princípios |
+| [02 — Funcionalidades](02-funcionalidades.md) | Recursos, fluxos e regras funcionais |
+| [03 — Arquitetura](03-arquitetura.md) | Componentes, camadas, rotas e responsabilidades |
+| [04 — Modelo de dados](04-modelo-de-dados.md) | Entidades, relações e integridade |
+| [05 — Autenticação e segurança](05-autenticacao-e-seguranca.md) | Sessões, autorização e recuperação de senha |
+| [06 — Demo e perfil](06-demo-e-perfil.md) | Identidade temporária, importação, preferências e avatar |
+| [07 — Infraestrutura e deploy](07-infraestrutura-e-deploy.md) | Vercel, Supabase, Resend e PWA |
+| [08 — Validações técnicas](08-validacoes-tecnicas.md) | Testes, builds e verificações de qualidade |
 
-| Documento | Fonte principal para |
-|---|---|
-| [`README.md`](../README.md) | Apresentação rápida, stack, execução e acesso à documentação |
-| [`01-visao-geral.md`](01-visao-geral.md) | Objetivo, proposta, escopo e limites atuais |
-| [`02-navegacao.md`](02-navegacao.md) | Rotas, fluxos e comportamento de navegação |
-| [`03-especificacao-funcional.md`](03-especificacao-funcional.md) | Funcionalidades existentes e comportamento da interface |
-| [`04-regras-de-negocio.md`](04-regras-de-negocio.md) | Regras obrigatórias do domínio |
-| [`05-modelo-de-dados.md`](05-modelo-de-dados.md) | Entidades, campos e relações persistidas |
-| [`06-arquitetura-e-stack.md`](06-arquitetura-e-stack.md) | Arquitetura, tecnologias e API REST |
-| [`07-roadmap.md`](07-roadmap.md) | Histórico relevante, estado atual e próximos passos |
-| [`08-autenticacao.md`](08-autenticacao.md) | Autenticação, sessões e recuperação de senha |
-| [`09-demo.md`](09-demo.md) | Demo temporária, isolamento e importação |
-| [`10-perfil.md`](10-perfil.md) | Perfil, avatar privado e preferências |
-| [`11-benchmarks.md`](11-benchmarks.md) | Resumo público das medições históricas |
-| [`PRODUCT_GUIDELINES.md`](PRODUCT_GUIDELINES.md) | Princípios de Produto, UX, identidade e padrões visuais |
-
-## Materiais locais
-
-A pasta `prototipos/` é local e ignorada pelo Git; não integra o clone público. Seus arquivos registram decisões e direções anteriores. Eles são **referências históricas ou bases conceituais** e não devem ser tratados como reprodução exata da interface atual. A implementação foi refinada depois desses materiais, especialmente na Etapa 19C.
-
-Scripts, datasets e resultados detalhados de benchmark ficam em `.local/benchmarks/`, também ignorado. O repositório público mantém apenas o resumo técnico em [`11-benchmarks.md`](11-benchmarks.md).
-
-| Referência | Classificação atual |
-|---|---|
-| `Tela-01-Dashboard.png` a `Tela-08-Nova-Tarefa.png` | Base conceitual, parcialmente superada pelos refinamentos posteriores |
-| `PROTOTIPO_ARQUIVADOS_V2_APROVADO.png` | Referência histórica do fluxo de Arquivados |
-| `PROTOTIPO_SOBRE_V1_APROVADO.png` | Base conceitual da tela Sobre |
-| `PROTOTIPO_LOGO_CONCEITO_A_APROVADO.png` | Base conceitual da identidade visual |
-
-Em caso de divergência, prevalecem o código atual e as [`Diretrizes de Produto`](PRODUCT_GUIDELINES.md) atualizadas.
-
-## Convenções
-
-- **Implementado:** presente no código atual.
-- **Planejado:** incluído no roadmap, sem implementação atual.
-- Títulos de entidades do produto usam inicial maiúscula: Área, Lista e Tarefa.
-- **Central de Arquivados** é o nome da área única de conteúdo arquivado.
-- A documentação não mantém numeração própria de versão; o histórico Git registra sua evolução.
+O [README](../README.md) apresenta o projeto de forma resumida. Estes documentos registram os contratos técnicos que sustentam a aplicação.
